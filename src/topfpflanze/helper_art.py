@@ -23,18 +23,18 @@ LAMP_STYLE = "B"
 
 def _gauge_a(p, x, top, bottom, frac, color, mark=None, active=False, t=0.0):
     """Schauglas an der Topfwand: senkrechtes Glasröhrchen mit Füllstand (0..1)."""
-    w = 9.0
+    w = 6.5
     r = QRectF(x - w / 2, top, w, bottom - top)
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor(20, 20, 20, 70))  # Schatten
-    p.drawRoundedRect(r.adjusted(1.2, 1.2, 1.2, 1.2), 4, 4)
+    p.drawRoundedRect(r.adjusted(1.0, 1.0, 1.0, 1.0), 3, 3)
     p.setBrush(QColor(255, 255, 255, 150))
-    p.drawRoundedRect(r, 4, 4)
-    inner = r.adjusted(1.6, 1.6, -1.6, -1.6)
+    p.drawRoundedRect(r, 3, 3)
+    inner = r.adjusted(1.3, 1.3, -1.3, -1.3)
     level = inner.bottom() - inner.height() * max(0.0, min(1.0, frac))
     p.save()
     clip = QPainterPath()
-    clip.addRoundedRect(inner, 3, 3)
+    clip.addRoundedRect(inner, 2, 2)
     p.setClipPath(clip)
     p.fillRect(QRectF(inner.left(), level, inner.width(), inner.bottom() - level + 1), color)
     p.fillRect(QRectF(inner.left(), level, inner.width(), 1.2), color.lighter(140))
@@ -42,29 +42,29 @@ def _gauge_a(p, x, top, bottom, frac, color, mark=None, active=False, t=0.0):
     if mark is not None:  # Mindeststand
         y = inner.bottom() - inner.height() * mark
         p.setPen(QPen(QColor("#B03A2E"), 1.0))
-        p.drawLine(QPointF(r.left() - 2.5, y), QPointF(r.right() + 2.5, y))
+        p.drawLine(QPointF(r.left() - 2, y), QPointF(r.right() + 2, y))
     p.setBrush(Qt.BrushStyle.NoBrush)
-    p.setPen(QPen(QColor(70, 70, 70, 200), 1.0))
-    p.drawRoundedRect(r, 4, 4)
+    p.setPen(QPen(QColor(70, 70, 70, 200), 0.9))
+    p.drawRoundedRect(r, 3, 3)
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor(255, 255, 255, 190))
-    p.drawRoundedRect(QRectF(r.left() + 2, r.top() + 4, 1.6, r.height() * 0.45), 0.8, 0.8)
+    p.drawRoundedRect(QRectF(r.left() + 1.6, r.top() + 3, 1.2, r.height() * 0.4), 0.6, 0.6)
     # Ventilkappe oben
     p.setBrush(QColor("#7A7A78"))
-    p.drawRoundedRect(QRectF(x - 4.5, top - 4.5, 9, 5), 1.5, 1.5)
+    p.drawRoundedRect(QRectF(x - 3.3, top - 3.5, 6.6, 4), 1.2, 1.2)
     if active and int(t * 3) % 2 == 0:  # aktiv: Kontrolllicht
         p.setBrush(QColor("#5BE07A"))
-        p.drawEllipse(QPointF(x, top - 2), 1.2, 1.2)
+        p.drawEllipse(QPointF(x, top - 1.6), 0.9, 0.9)
 
 
 def _gauge_geometry(plant, side):
     pot = plant.pot
     cx = WIN_W / 2
     x = cx + side * pot["soil_rx"] * 0.62
-    top = pot["soil_y"] + 16
-    bottom = max(top + 22, pot["drop_y"] + pot["drop_r"] + 4)
+    top = pot["soil_y"] + 17
+    bottom = top + max(16.0, 0.7 * (max(top + 22, pot["drop_y"] + pot["drop_r"] + 4) - top))
     if pot["soil_y"] > 280:  # flache Schale: Anzeige nur klein
-        bottom = top + 14
+        bottom = top + 11
     return x, top, bottom
 
 
@@ -81,7 +81,7 @@ def draw_irrigation(p, plant):
     if active and int(plant.t * 2) % 2 == 0:  # Tropfen an der Erdoberfläche
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(blue)
-        p.drawPath(_drop_path(x, plant.pot["soil_y"] + 6, 1.6))
+        p.drawPath(_drop_path(x, plant.pot["soil_y"] + 5, 1.3))
 
 
 def draw_fertilizer_machine(p, plant):
@@ -155,15 +155,15 @@ def draw_gnome_big(p, feet, s, hop=0.0, t=0.0):
 def draw_gnome_in_pot(p, plant):
     pot = plant.pot
     cx, sy = WIN_W / 2, pot["soil_y"]
-    x = cx - pot["soil_rx"] * 0.6
+    x = cx - pot["soil_rx"] * 0.5
     feet = QPointF(x, sy + 2)
-    draw_gnome_big(p, feet, 2.7, getattr(plant, "gnome_hop", 0.0), plant.t)
+    draw_gnome_big(p, feet, 1.62, getattr(plant, "gnome_hop", 0.0), plant.t)
     # Erdhäufchen vor den Füssen: der Zwerg steht «im» Topf
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor("#4A3728"))
-    p.drawEllipse(QPointF(x, sy + 3), 15, 4.2)
+    p.drawEllipse(QPointF(x, sy + 2.6), 9, 2.6)
     p.setBrush(QColor("#5C4632"))
-    p.drawEllipse(QPointF(x + 3, sy + 1.8), 8, 2.4)
+    p.drawEllipse(QPointF(x + 2, sy + 1.6), 5, 1.6)
 
 
 # ---------------------------------------------------------------- Pflanzenlampe
