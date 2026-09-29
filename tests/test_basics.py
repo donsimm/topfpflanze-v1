@@ -170,65 +170,104 @@ def test_achievement_window_layout_and_clicks(plant):
 def scale_reset():
     from topfpflanze import scaling
     yield scaling
-    scaling.set_scale(1.0)
+    scaling.set_scale(1.0, "plant")
+    scaling.set_scale(1.0, "menu")
 
 
 @pytest.mark.parametrize("value", [0.5, 1.5, 2.0])
-def test_ui_scale_sizes(plant, scale_reset, value):
+def test_plant_scale_leaves_menus_alone(plant, scale_reset, value):
     from topfpflanze import config
     plant.bubble.show()
-    plant.set_ui_scale(value)
-    assert plant.real_width() == round(config.WIN_W * value) or value > 1.0
+    menus = [plant.bubble, *plant.windows.values()]
+    before = [(w.real_width(), w.real_height()) for w in menus]
+    plant.set_ui_scale(value, "plant")
     assert plant.width() == config.WIN_W  # logische Grösse bleibt
-    for w in [plant, plant.bubble, *plant.windows.values()]:
-        assert w.real_width() == round(w.width() * w._k)
+    assert plant.real_width() == round(config.WIN_W * plant._k)
+    assert plant._k <= value
+    if value < 1.0:
+        assert plant._k == value
+    assert [(w.real_width(), w.real_height()) for w in menus] == before
+    assert all(w._k == 1.0 for w in menus)
+    for w in [plant, *menus]:
         assert not w.grab().isNull()
     assert plant.state["ui_scale"] == value
-    plant.set_ui_scale(1.0)
+    plant.set_ui_scale(1.0, "plant")
     assert plant.real_width() == config.WIN_W
 
 
+@pytest.mark.parametrize("value", [0.5, 1.5])
+def test_menu_scale_leaves_plant_alone(plant, scale_reset, value, monkeypatch):
+    from topfpflanze import config
+    monkeypatch.setattr(scale_reset, "_screen_size", lambda: (4000, 4000))
+    plant.bubble.show()
+    size = (plant.real_width(), plant.real_height())
+    plant.set_ui_scale(value, "menu")
+    assert (plant.real_width(), plant.real_height()) == size and plant._k == 1.0
+    for w in [plant.bubble, *plant.windows.values()]:
+        assert w._k == value
+        assert w.real_width() == round(w.width() * value)
+        assert not w.grab().isNull()
+    assert plant.state["menu_scale"] == value
+    plant.set_ui_scale(1.0, "menu")
+    assert plant.bubble.real_width() == config.BUBBLE_W
+
+
+def test_menu_scale_is_limited_to_screen(plant, scale_reset, monkeypatch):
+    monkeypatch.setattr(scale_reset, "_screen_size", lambda: (1920, 1080))
+    plant.set_ui_scale(2.0, "menu")
+    for w in [plant.bubble, *plant.windows.values()]:
+        assert w.real_height() <= 1080 * 0.96 + 1 and w._k >= 1.0
+
+
 def test_ui_scale_limits(scale_reset):
-    assert scale_reset.set_scale(0.1) == 0.5
-    assert scale_reset.set_scale(9) == 2.0
+    assert scale_reset.set_scale(0.1, "plant") == 0.5
+    assert scale_reset.set_scale(9, "menu") == 2.0
 
 
 def test_mouse_position_is_scaled_back(plant, scale_reset):
     from PyQt6.QtCore import QPoint, Qt
     from PyQt6.QtTest import QTest
-    plant.set_ui_scale(0.5)
+    plant.set_ui_scale(0.5, "plant")
+    plant.set_ui_scale(0.5, "menu")
+    seen = []
+    plant.mousePressEvent = lambda e: seen.append(e.position())
+    QTest.mouseClick(plant, Qt.MouseButton.LeftButton, pos=QPoint(50, 80))
+    assert seen and abs(seen[0].x() - 100) < 1 and abs(seen[0].y() - 160) < 1  # echte Pixel → logische
     b = plant.bubble
     b.show()
     key, rect = next((k, r) for k, r in b.icon_rects() if k == "kaktus")
-    pt = rect.center() * b._k  # echte Pixel
+    pt = rect.center() * b._k
     QTest.mouseClick(b, Qt.MouseButton.LeftButton, pos=QPoint(int(pt.x()), int(pt.y())))
     assert plant.state["current"] == "kaktus"
 
 
-def test_ui_scale_saved_and_restored(tmp_path, monkeypatch, scale_reset):
+def test_ui_scales_saved_and_restored(tmp_path, monkeypatch, scale_reset):
     monkeypatch.setattr(config, "STATE_DIR", tmp_path)
     monkeypatch.setattr(config, "STATE_FILE", tmp_path / "state.json")
     from PyQt6.QtWidgets import QApplication
     from topfpflanze.plant import Plant
-    app = QApplication.instance() or QApplication([])
+    app = QApplication.instance() or QApplication([])  # Referenz behalten
     p = Plant()
     p.timer.stop()
-    p.set_ui_scale(0.75)
+    p.set_ui_scale(0.75, "plant")
+    p.set_ui_scale(1.25, "menu")
     p.save_state()
-    scale_reset.set_scale(1.0)
+    scale_reset.set_scale(1.0, "plant")
+    scale_reset.set_scale(1.0, "menu")
     p2 = Plant()
     p2.timer.stop()
-    assert scale_reset.get_scale() == 0.75
+    assert scale_reset.get_scale("plant") == 0.75 and scale_reset.get_scale("menu") == 1.25
+    assert app is not None
 
 
-def test_scale_slider_changes_scale(plant, scale_reset):
+def test_scale_sliders(plant, scale_reset):
     from PyQt6.QtWidgets import QMenu, QPushButton, QSlider
     menu = QMenu()
-    act = plant.scale_slider_action(menu)
-    box = act.defaultWidget()
-    slider = box.findChild(QSlider)
-    assert (slider.minimum(), slider.maximum(), slider.value()) == (50, 200, 100)
-    slider.setValue(150)
-    assert scale_reset.get_scale() == 1.5
-    box.findChild(QPushButton).click()  # «100 %»
-    assert scale_reset.get_scale() == 1.0
+    for kind, title in (("plant", "Pflanzengrösse"), ("menu", "Menügrösse")):
+        box = plant.scale_slider_action(menu, kind, title).defaultWidget()
+        slider = box.findChild(QSlider)
+        assert (slider.minimum(), slider.maximum(), slider.value()) == (50, 200, 100)
+        slider.setValue(150)
+        assert scale_reset.get_scale(kind) == 1.5
+        box.findChild(QPushButton).click()  # «100 %»
+        assert scale_reset.get_scale(kind) == 1.0

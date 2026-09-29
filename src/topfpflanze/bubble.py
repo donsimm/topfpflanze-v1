@@ -11,7 +11,7 @@ from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
 from .drawing import draw_coin, draw_star, fit_font, round_pen
 from .theme import T
 from .util import fmt_age, fmt_int, stage_name, water_status
-from .scaling import S, ScaledWidget
+from .scaling import ScaledWidget
 
 
 # ---------------------------------------------------------------- Sprechblase
@@ -63,7 +63,7 @@ class Bubble(ScaledWidget):
             self.move(int(pos[0]), int(pos[1]))
         else:
             self.move(self.plant.x() + (self.plant.real_width() - self.real_width()) // 2,
-                      max(0, self.plant.y() - self.real_height() + S(40)))
+                      max(0, self.plant.y() - self.real_height() + 40))
 
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:

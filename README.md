@@ -55,9 +55,12 @@ alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 
 ## Grösse der Oberfläche
 
-Rechtsklick → Einstellungen → Regler «Grösse» (50 bis 200 %, «100 %» setzt zurück). Alle Fenster (Pflanze, Sprechblase, Shop,
-Gartenhaus, Erfolge, Fokus-Timer, Sammelbuch) werden gemeinsam skaliert und die Einstellung wird gespeichert.
-Bei Werten über 100 % wird ein Fenster nie grösser als der Bildschirm.
+Rechtsklick → Einstellungen → zwei getrennte Regler (50 bis 200 %, «100 %» setzt zurück):
+
+- **Pflanzengrösse:** Pflanze mit Topf (die Spielgrafik).
+- **Menügrösse:** Sprechblase, Shop, Gartenhaus, Erfolge, Fokus-Timer, Sammelbuch. Standard 100 % (frühere Grösse).
+
+Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösser als der Bildschirm.
 
 ## Aufbau (`src/topfpflanze/`)
 

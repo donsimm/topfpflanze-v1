@@ -1,7 +1,8 @@
-"""Skalierung der gesamten Oberfläche (Regler in den Einstellungen, 0.5x bis 2x).
+"""Skalierung der Oberfläche mit zwei getrennten Reglern (0.5x bis 2x): «plant» für das
+Pflanzenfenster (Pflanze mit Topf), «menu» für alle Menüfenster (Sprechblase, Shop, Gartenhaus, ...).
 
-Alle Fenster rechnen weiter in «logischen» Pixeln (wie bei 100 %). ScaledWidget legt die
-tatsächliche Fenstergrösse fest, skaliert beim Zeichnen und rechnet Mauspositionen zurück.
+Alle Fenster rechnen in «logischen» Pixeln (wie bei 100 %). ScaledWidget legt die tatsächliche
+Fenstergrösse fest, skaliert beim Zeichnen und rechnet Mauspositionen zurück.
 """
 
 from PyQt6.QtCore import QEvent
@@ -9,23 +10,18 @@ from PyQt6.QtGui import QMouseEvent, QPainter
 from PyQt6.QtWidgets import QApplication, QWidget
 
 SCALE_MIN, SCALE_MAX = 0.5, 2.0
-_SCALE = {"v": 1.0}
+_SCALE = {"plant": 1.0, "menu": 1.0}
 _MOUSE = (QEvent.Type.MouseButtonPress, QEvent.Type.MouseButtonRelease,
           QEvent.Type.MouseMove, QEvent.Type.MouseButtonDblClick)
 
 
-def get_scale():
-    return _SCALE["v"]
+def get_scale(kind="plant"):
+    return _SCALE[kind]
 
 
-def set_scale(v):
-    _SCALE["v"] = max(SCALE_MIN, min(SCALE_MAX, float(v)))
-    return _SCALE["v"]
-
-
-def S(n):
-    """Logische Pixel in echte Pixel umrechnen (gerundet)."""
-    return int(round(n * _SCALE["v"]))
+def set_scale(v, kind="plant"):
+    _SCALE[kind] = max(SCALE_MIN, min(SCALE_MAX, float(v)))
+    return _SCALE[kind]
 
 
 def _screen_size():
@@ -37,12 +33,13 @@ def _screen_size():
 
 
 class ScaledWidget(QWidget):
+    KIND = "menu"  # welcher Regler gilt: "plant" oder "menu"
     _lw = _lh = 0
     _k = 1.0
 
     def _fit(self):
         """Wirksamer Faktor: bei Vergrösserung nie grösser als der Bildschirm, nie unter 100 %."""
-        k = get_scale()
+        k = get_scale(self.KIND)
         if k <= 1.0 or not self._lw:
             return k
         size = _screen_size()

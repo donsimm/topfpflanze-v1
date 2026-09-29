@@ -9,7 +9,7 @@ from .data import ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORD
 from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
-from .scaling import S, ScaledWidget
+from .scaling import ScaledWidget
 
 
 # ---------------------------------------------------------------- Weitere Fenster
@@ -41,7 +41,7 @@ class Panel(ScaledWidget):
             self.move(int(pos[0]), int(pos[1]))
         else:
             b = self.plant.bubble
-            self.move(max(0, b.x() - self.real_width() - S(10)), max(0, b.y()))
+            self.move(max(0, b.x() - self.real_width() - 10), max(0, b.y()))
 
     def close_rect(self):
         return QRectF(self.width() - 28, 8, 18, 18)

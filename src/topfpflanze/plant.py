@@ -26,10 +26,13 @@ from .util import fmt_int, fmt_left, round_half_up, stage_index, stage_name
 
 
 class Plant(PlantDrawMixin, ScaledWidget):
+    KIND = "plant"
+
     def __init__(self):
         super().__init__()
         self.state = self.load_state()
-        scaling.set_scale(self.state.get("ui_scale", 1.0))
+        scaling.set_scale(self.state.get("ui_scale", 1.0), "plant")
+        scaling.set_scale(self.state.get("menu_scale", 1.0), "menu")
         _THEME["dark"] = self.state.get("dark", False)
 
         self.t = 0.0
@@ -217,25 +220,27 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if hasattr(self, "shop"):
             self.shop.update()
 
-    def set_ui_scale(self, value):
-        """Gesamtgrösse der Oberfläche ändern (0.5 bis 2.0). Die Anordnung der Fenster wird mit skaliert."""
-        old = scaling.get_scale()
-        new = scaling.set_scale(value)
+    def set_ui_scale(self, value, kind="plant"):
+        """Grösse ändern (0.5 bis 2.0): «plant» = Pflanze mit Topf, «menu» = alle Menüfenster."""
+        old = scaling.get_scale(kind)
+        new = scaling.set_scale(value, kind)
         if abs(new - old) < 1e-6:
             return
-        self.state["ui_scale"] = round(new, 3)
-        wins = [self.bubble, *self.windows.values()]
-        # Fixpunkt: Fusspunkt (Mitte unten) des Pflanzenfensters bleibt an seinem Platz
-        ax, ay = self.x() + self.real_width() / 2, self.y() + self.real_height()
-        old_k = {id(w): w._k for w in wins}
-        pos = {id(w): (w.x(), w.y()) for w in wins}
-        self.rescale()
-        self.move(int(round(ax - self.real_width() / 2)), int(round(ay - self.real_height())))
-        for w in wins:
-            w.rescale()
-            x, y = pos[id(w)]
-            f = w._k / old_k[id(w)]
-            w.move(int(round(ax + (x - ax) * f)), int(round(ay + (y - ay) * f)))
+        if kind == "plant":
+            self.state["ui_scale"] = round(new, 3)
+            # Fixpunkt: Fusspunkt (Mitte unten) der Pflanze bleibt an seinem Platz
+            ax, ay = self.x() + self.real_width() / 2, self.y() + self.real_height()
+            old_top = self.y()
+            self.rescale()
+            self.move(int(round(ax - self.real_width() / 2)), int(round(ay - self.real_height())))
+            # Sprechblase folgt der Oberkante der Pflanze
+            self.bubble.move(self.bubble.x(), self.bubble.y() + (self.y() - old_top))
+        else:
+            self.state["menu_scale"] = round(new, 3)
+            for w in [self.bubble, *self.windows.values()]:  # jedes Fenster wächst um seine Mitte
+                cx, cy = w.x() + w.real_width() / 2, w.y() + w.real_height() / 2
+                w.rescale()
+                w.move(int(round(cx - w.real_width() / 2)), int(round(cy - w.real_height() / 2)))
         self.clamp_windows_to_screen()
         self.update_tooltip()
         self.save_state()
@@ -807,13 +812,13 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     # ---------- Menü ----------
 
-    def scale_slider_action(self, parent):
-        """Regler «Grösse» (50 bis 200 %) für das Einstellungsmenü."""
+    def scale_slider_action(self, parent, kind="plant", title="Pflanzengrösse"):
+        """Regler (50 bis 200 %) für das Einstellungsmenü; kind: «plant» oder «menu»."""
         box = QWidget()
         lay = QHBoxLayout(box)
         lay.setContentsMargins(12, 4, 12, 4)
         label = QLabel()
-        label.setMinimumWidth(96)
+        label.setMinimumWidth(132)
         slider = QSlider(Qt.Orientation.Horizontal)
         slider.setRange(int(scaling.SCALE_MIN * 100), int(scaling.SCALE_MAX * 100))
         slider.setSingleStep(5)
@@ -825,14 +830,14 @@ class Plant(PlantDrawMixin, ScaledWidget):
         reset.setFlat(True)
 
         def show(v):
-            label.setText(f"Grösse: {v} %")
+            label.setText(f"{title}: {v} %")
 
         def change(v):
             v = int(round(v / 5.0)) * 5
             show(v)
-            self.set_ui_scale(v / 100.0)
+            self.set_ui_scale(v / 100.0, kind)
 
-        slider.setValue(int(round(scaling.get_scale() * 100)))
+        slider.setValue(int(round(scaling.get_scale(kind) * 100)))
         show(slider.value())
         slider.valueChanged.connect(change)
         reset.clicked.connect(lambda: slider.setValue(100))
@@ -878,7 +883,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if not self.key_source:
             a_kb.setText("Tastaturanschläge zählen (nicht verfügbar)")
             a_kb.setEnabled(False)
-        set_menu.addAction(self.scale_slider_action(set_menu))
+        set_menu.addAction(self.scale_slider_action(set_menu, "plant", "Pflanzengrösse"))
+        set_menu.addAction(self.scale_slider_action(set_menu, "menu", "Menügrösse"))
         a_dark = set_menu.addAction("Dunkelmodus")
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))

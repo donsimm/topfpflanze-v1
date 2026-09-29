@@ -11,7 +11,7 @@ from .data import PLANT_TYPES
 from .drawing import draw_seed_packet, draw_star
 from .theme import T
 from .util import fmt_date, fmt_datetime, fmt_int, mix, stage_name
-from .scaling import S, ScaledWidget
+from .scaling import ScaledWidget
 
 
 # ---------------------------------------------------------------- Gartenhaus
@@ -48,7 +48,7 @@ class Garden(ScaledWidget):
         if pos:
             self.move(int(pos[0]), int(pos[1]))
         else:
-            self.move(max(0, self.plant.x() - self.real_width() - S(10)), max(0, self.plant.y() - S(40)))
+            self.move(max(0, self.plant.x() - self.real_width() - 10), max(0, self.plant.y() - 40))
 
     def entries(self):
         return list(reversed(self.plant.state.get("garden", [])))  # neueste zuerst

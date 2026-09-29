@@ -9,7 +9,7 @@ from .data import FERTILIZERS, FERT_ORDER, HELPERS, HELPER_ORDER
 from .drawing import draw_coin, draw_fert_icon, draw_helper_icon, fit_font
 from .theme import T
 from .util import fert_description, fmt_int
-from .scaling import S, ScaledWidget
+from .scaling import ScaledWidget
 
 
 # ---------------------------------------------------------------- Dünger-Shop
@@ -45,7 +45,7 @@ class Shop(ScaledWidget):
         if pos:
             self.move(int(pos[0]), int(pos[1]))
         else:
-            self.move(max(0, self.plant.x() - self.real_width() - S(10)), max(0, self.plant.y()))
+            self.move(max(0, self.plant.x() - self.real_width() - 10), max(0, self.plant.y()))
 
     def tab_rects(self):
         w = (SHOP_W - 24 - 6) / 2

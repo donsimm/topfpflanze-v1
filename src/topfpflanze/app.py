@@ -47,7 +47,7 @@ Coins und Dünger:
   - Im Shop gekaufter Dünger wirkt auf die ausgewählte Pflanze: mehr Wachstum,
     teilweise aber höherer Wasserverbrauch. Die Laufzeit zählt nur, solange die
     Pflanze ausgewählt ist und das Programm läuft.
-  Rechtsklick                Menü (Einstellungen: Regler «Grösse» 50–200 %)
+  Rechtsklick                Menü (Einstellungen: Regler «Pflanzengrösse» und «Menügrösse», 50–200 %)
 
 Spielmechanik:
   - Wasser sinkt mit der Zeit (Geschwindigkeit je nach Pflanze), auch bei ausgeschaltetem PC.
