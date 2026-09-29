@@ -292,6 +292,18 @@ class Plant(PlantDrawMixin, QWidget):
             st["daily"] = {"date": today, "keys": 0, "clicks": 0, "focus": 0, "focus_min": 0, "done": []}
         if st.get("weekly", {}).get("week") != week:
             st["weekly"] = {"week": week, "keys": 0, "growth": 0.0, "focus": 0, "done": []}
+        for e in st.get("ach_pending", []):  # ältere Einträge ohne Periode ergänzen
+            if "period" not in e:
+                e["period"] = next((a.period for a in ACHIEVEMENTS if a.key == e["key"]), "general")
+                e["pid"] = self.ach_pid(e["period"])
+
+    def ach_pid(self, period):
+        """Kennung der laufenden Periode (Tag bzw. Kalenderwoche); leer bei einmaligen Erfolgen."""
+        if period == "daily":
+            return time.strftime("%Y-%m-%d")
+        if period == "weekly":
+            return time.strftime("%G-W%V")
+        return ""
 
     def ach_value(self, key):
         st = self.state
@@ -320,25 +332,50 @@ class Plant(PlantDrawMixin, QWidget):
         return f"{done} von {len(ACHIEVEMENTS)} erreicht"
 
     def check_achievements(self):
-        """Merkt erreichte Erfolge zur Abholung vor; die Coins gibt es erst über claim_achievements()."""
+        """Merkt erreichte Erfolge zur Abholung vor; die Coins gibt es erst beim Einlösen."""
         self.ensure_periods()
         pending = self.state.setdefault("ach_pending", [])
         for a in ACHIEVEMENTS:
             done = self.ach_done_list(a.period)
             if a.key not in done and self.ach_value(a.key) >= a.target:
                 done.append(a.key)
-                pending.append({"key": a.key, "name": a.name, "reward": a.reward})
+                pending.append({"key": a.key, "name": a.name, "reward": a.reward,
+                                "period": a.period, "pid": self.ach_pid(a.period)})
                 self.popup(f"Erfolg: {a.name}", coin=False)
                 self.save_state()
+                self.ach_win.refresh()
 
-    def ach_pending_keys(self):
-        return {e["key"] for e in self.state.get("ach_pending", [])}
+    def ach_pending_entry(self, key):
+        """Vorgemerkter Erfolg der laufenden Periode (oder None)."""
+        for e in self.state.get("ach_pending", []):
+            if e["key"] == key and e.get("pid", "") == self.ach_pid(e.get("period", "general")):
+                return e
+        return None
+
+    def ach_expired(self):
+        """Nicht abgeholte tägliche/wöchentliche Erfolge früherer Perioden."""
+        return [e for e in self.state.get("ach_pending", [])
+                if e.get("pid", "") != self.ach_pid(e.get("period", "general"))]
 
     def ach_pending_total(self):
         return sum(e["reward"] for e in self.state.get("ach_pending", []))
 
+    def claim_achievement(self, entry):
+        """Löst einen einzelnen vorgemerkten Erfolg ein; gibt die Coins zurück."""
+        pending = self.state.get("ach_pending", [])
+        if not any(e is entry for e in pending):
+            return 0
+        pending[:] = [e for e in pending if e is not entry]
+        self.state["coins"] = self.state.get("coins", 0) + entry["reward"]
+        self.popup(f"+{fmt_int(entry['reward'])} {entry['name']}")
+        self.save_state()
+        self.bubble.update()
+        self.shop.update()
+        self.ach_win.refresh()
+        return entry["reward"]
+
     def claim_achievements(self):
-        """Zahlt alle vorgemerkten Erfolgs-Belohnungen aus; gibt die Summe zurück."""
+        """Löst alle vorgemerkten Erfolge auf einmal ein; gibt die Summe zurück."""
         total = self.ach_pending_total()
         if total:
             self.state["coins"] = self.state.get("coins", 0) + total
@@ -347,6 +384,7 @@ class Plant(PlantDrawMixin, QWidget):
             self.save_state()
             self.bubble.update()
             self.shop.update()
+            self.ach_win.refresh()
         return total
 
     # ---------- Helfer ----------
@@ -645,7 +683,7 @@ class Plant(PlantDrawMixin, QWidget):
             self.sec_acc = 0.0
             self.check_achievements()
             if self.ach_win.isVisible():
-                self.ach_win.update()
+                self.ach_win.refresh()
         if now - self.last_save > 60:
             self.save_state()
             self.last_save = now

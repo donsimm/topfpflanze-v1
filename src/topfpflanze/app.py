@@ -28,7 +28,8 @@ Prestige:
   (je Stufe dauerhaft +10 % Wachstum und Coins). Nicht ausgewachsene Pflanzen kommen
   nur ins Gartenhaus.
 
-Erfolge: 3 tägliche, 3 wöchentliche und 6 einmalige; die Coins holt man im Erfolge-Fenster per Knopf ab.
+Erfolge: 3 tägliche, 3 wöchentliche und 6 einmalige. Erreichte Erfolge holt man einzeln (Geschenk-Symbol)
+  oder mit «Alle abholen» ab; nicht abgeholte tägliche/wöchentliche stehen unten in der Liste «Nicht abgeholt».
 Fokus-Timer: 25, 45 oder 60 Minuten mit doppeltem Wachstum, Abbruch kostet nur den Bonus.
 Besucher: kommen von selbst; Klick auf einen Besucher begrüsst ihn (+3 Coins).
 

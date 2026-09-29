@@ -7,7 +7,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .data import ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
-from .drawing import draw_coin, draw_star, draw_visitor, round_pen
+from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
 
@@ -136,28 +136,16 @@ class Panel(QWidget):
 
 class AchievementsWin(Panel):
     ROW_H = 35
+    OLD_H = 35       # Höhe eines Eintrags in der Liste «Nicht abgeholt»
+    OLD_MAX = 6      # so viele Einträge werden angezeigt, der Rest als «… und N weitere»
 
     def __init__(self, plant):
         super().__init__(plant, 300, 602, "ach_pos")
 
-    def button_rect(self):
-        return QRectF(40, self.height() - 44, self.width() - 80, 30)
+    # ---------- Layout ----------
 
-    def items(self):
-        return [("claim", self.button_rect(), self.plant.ach_pending_total() > 0)]
-
-    def on_click(self, key):
-        if key == "claim":
-            self.plant.claim_achievements()
-
-    def paintEvent(self, _e):
-        plant = self.plant
-        done_n = sum(1 for a in ACHIEVEMENTS if plant.ach_is_done(a))
-        pending = plant.ach_pending_keys()
-        total = plant.ach_pending_total()
-        p = self.begin("Erfolge", f"{done_n} von {len(ACHIEVEMENTS)} erreicht")
-        base = self.font()
-        y = 58.0
+    def layout(self):
+        """Berechnet Positionen: Zeilen je Erfolg, Liste nicht abgeholter Erfolge, Knopf, Gesamthöhe."""
         W = self.width()
         now = time.localtime()
         secs_day = 86400 - (now.tm_hour * 3600 + now.tm_min * 60 + now.tm_sec)
@@ -165,70 +153,196 @@ class AchievementsWin(Panel):
         sections = (("daily", "Täglich", f"neu in {fmt_left(secs_day)}"),
                     ("weekly", "Wöchentlich", f"neu in {fmt_age(secs_week)}"),
                     ("general", "Allgemein", "einmalig"))
+        y = 58.0
+        heads, rows = [], []
         for period, heading, right in sections:
-            p.setFont(self.font_px(base, 12, True))
-            p.setPen(T("text"))
-            p.drawText(QRectF(12, y, 150, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, heading)
-            p.setFont(self.font_px(base, 10))
-            p.setPen(T("muted"))
-            p.drawText(QRectF(W - 162, y, 150, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, right)
+            heads.append((heading, right, y))
             y += 20
             for a in (a for a in ACHIEVEMENTS if a.period == period):
-                done = plant.ach_is_done(a)
-                claimable = a.key in pending
-                val = min(plant.ach_value(a.key), a.target)
-                row = QRectF(12, y, W - 24, self.ROW_H - 3)
-                p.setPen(QPen(QColor("#D4A017"), 1.6) if claimable else
-                         QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
-                p.setBrush(T("gold_bg") if claimable else T("active_bg") if done else T("cell"))
-                p.drawRoundedRect(row, 6, 6)
-                icon_c = QPointF(row.left() + 13, row.center().y())
-                if done:
-                    p.setPen(Qt.PenStyle.NoPen)
-                    p.setBrush(QColor("#2E9E44"))
-                    p.drawEllipse(icon_c, 7, 7)
-                    p.setPen(round_pen(QColor("#FFFFFF"), 1.8))
-                    p.drawLine(icon_c + QPointF(-3.2, 0.2), icon_c + QPointF(-0.8, 2.6))
-                    p.drawLine(icon_c + QPointF(-0.8, 2.6), icon_c + QPointF(3.4, -2.4))
-                else:
-                    draw_star(p, icon_c, 7, "#D8D3C4" if not _THEME["dark"] else "#6A6A62",
-                              "#9A958A")
-                p.setFont(self.font_px(base, 11, True))
-                p.setPen(T("text"))
-                p.drawText(QRectF(row.left() + 26, row.top() + 1, 150, 15),
-                           Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.name)
-                reward = f"+{a.reward}"
-                p.setFont(self.font_px(base, 11, True))
-                tw = p.fontMetrics().horizontalAdvance(reward)
-                draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)
-                p.setPen(T("coin"))
-                p.drawText(QRectF(row.right() - 18 - tw, row.top() + 1, tw + 2, 15),
-                           Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, reward)
-                p.setFont(self.font_px(base, 10))
-                p.setPen(T("text2"))
-                p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 92, 13),
-                           Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.desc)
-                p.setPen(T("coin") if claimable else T("ok") if done else T("muted"))
-                p.drawText(QRectF(row.right() - 90, row.top() + 15, 82, 13),
-                           Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                           "abholbar" if claimable else "erreicht" if done else
-                           f"{fmt_int(val)} / {fmt_int(a.target)}")
-                bar = QRectF(row.left() + 26, row.bottom() - 4.5, row.width() - 34, 2)
-                p.setPen(Qt.PenStyle.NoPen)
-                p.setBrush(T("sep"))
-                p.drawRoundedRect(bar, 1, 1)
-                p.setBrush(QColor("#2E9E44"))
-                p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * val / a.target, 2), 1, 1)
+                rows.append((a, QRectF(12, y, W - 24, self.ROW_H - 3)))
                 y += self.ROW_H
             y += 4
-        br = self.button_rect()
+        expired = self.plant.ach_expired()
+        old_head_y = y
+        old_rows = []
+        if expired:
+            y += 22
+            for e in expired[:self.OLD_MAX]:
+                old_rows.append((e, QRectF(12, y, W - 24, self.OLD_H - 3)))
+                y += self.OLD_H
+            if len(expired) > self.OLD_MAX:
+                y += 16
+        btn = QRectF(40, y + 6, W - 80, 30)
+        return {"heads": heads, "rows": rows, "expired": expired, "old_head_y": old_head_y,
+                "old_rows": old_rows, "btn": btn, "height": int(btn.bottom() + 14)}
+
+    def refresh(self):
+        """Passt die Fensterhöhe an die Liste an und zeichnet neu."""
+        h = self.layout()["height"]
+        if h != self.height():
+            self.setFixedSize(self.width(), h)
+        self.update()
+
+    def showEvent(self, e):
+        self.refresh()
+        super().showEvent(e)
+
+    def button_rect(self):
+        return self.layout()["btn"]
+
+    def items(self):
+        lay = self.layout()
+        out = []
+        for a, r in lay["rows"]:
+            e = self.plant.ach_pending_entry(a.key)
+            out.append((("row", a.key), r, e is not None))
+        for e, r in lay["old_rows"]:
+            out.append((("old", id(e)), r, True))
+        out.append(("all", lay["btn"], self.plant.ach_pending_total() > 0))
+        return out
+
+    def on_click(self, key):
+        pl = self.plant
+        if key == "all":
+            pl.claim_achievements()
+        elif key[0] == "row":
+            e = pl.ach_pending_entry(key[1])
+            if e:
+                pl.claim_achievement(e)
+        elif key[0] == "old":
+            for e in pl.state.get("ach_pending", []):
+                if id(e) == key[1]:
+                    pl.claim_achievement(e)
+                    break
+
+    # ---------- Zeichnen ----------
+
+    @staticmethod
+    def old_label(e):
+        pid = e.get("pid", "")
+        if e.get("period") == "daily" and len(pid) == 10:
+            return f"Täglich, {pid[8:10]}.{pid[5:7]}."
+        if e.get("period") == "weekly" and "W" in pid:
+            return f"Wöchentlich, KW {int(pid.split('W')[1])}"
+        return ""
+
+    def draw_claim_row(self, p, row, name, sub, reward, hover, base):
+        """Goldene, anklickbare Zeile mit Geschenk-Symbol, Name, Belohnung und «Abholen»."""
+        p.setPen(QPen(QColor("#D4A017"), 2.0 if hover else 1.6))
+        p.setBrush(T("gold_bg"))
+        p.drawRoundedRect(row, 6, 6)
+        draw_gift(p, QPointF(row.left() + 13, row.center().y()), 8)
+        p.setFont(self.font_px(base, 11, True))
+        p.setPen(T("text"))
+        p.drawText(QRectF(row.left() + 26, row.top() + 1, 150, 15),
+                   Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, name)
+        text = f"+{reward}"
+        tw = p.fontMetrics().horizontalAdvance(text)
+        draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)
+        p.setPen(T("coin"))
+        p.drawText(QRectF(row.right() - 18 - tw, row.top() + 1, tw + 2, 15),
+                   Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, text)
+        p.setFont(self.font_px(base, 10))
+        p.setPen(T("text2"))
+        p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 76, 13),
+                   Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, sub)
+        pill = QRectF(row.right() - 70, row.bottom() - 15, 62, 13)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor("#D4A017") if hover else QColor("#E6B93A"))
+        p.drawRoundedRect(pill, 6.5, 6.5)
+        p.setFont(self.font_px(base, 10, True))
+        p.setPen(QColor("#3B2A00"))
+        p.drawText(pill, Qt.AlignmentFlag.AlignCenter, "Abholen")
+
+    def paintEvent(self, _e):
+        plant = self.plant
+        lay = self.layout()
+        done_n = sum(1 for a in ACHIEVEMENTS if plant.ach_is_done(a))
+        total = plant.ach_pending_total()
+        p = self.begin("Erfolge", f"{done_n} von {len(ACHIEVEMENTS)} erreicht")
+        base = self.font()
+        W = self.width()
+        for heading, right, hy in lay["heads"]:
+            p.setFont(self.font_px(base, 12, True))
+            p.setPen(T("text"))
+            p.drawText(QRectF(12, hy, 150, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, heading)
+            p.setFont(self.font_px(base, 10))
+            p.setPen(T("muted"))
+            p.drawText(QRectF(W - 162, hy, 150, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, right)
+        for a, row in lay["rows"]:
+            done = plant.ach_is_done(a)
+            claimable = plant.ach_pending_entry(a.key) is not None
+            val = min(plant.ach_value(a.key), a.target)
+            if claimable:
+                self.draw_claim_row(p, row, a.name, a.desc, a.reward, self.hover == ("row", a.key), base)
+                continue
+            p.setPen(QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
+            p.setBrush(T("active_bg") if done else T("cell"))
+            p.drawRoundedRect(row, 6, 6)
+            icon_c = QPointF(row.left() + 13, row.center().y())
+            if done:
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(QColor("#2E9E44"))
+                p.drawEllipse(icon_c, 7, 7)
+                p.setPen(round_pen(QColor("#FFFFFF"), 1.8))
+                p.drawLine(icon_c + QPointF(-3.2, 0.2), icon_c + QPointF(-0.8, 2.6))
+                p.drawLine(icon_c + QPointF(-0.8, 2.6), icon_c + QPointF(3.4, -2.4))
+            else:
+                draw_star(p, icon_c, 7, "#D8D3C4" if not _THEME["dark"] else "#6A6A62", "#9A958A")
+            p.setFont(self.font_px(base, 11, True))
+            p.setPen(T("text"))
+            p.drawText(QRectF(row.left() + 26, row.top() + 1, 150, 15),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.name)
+            reward = f"+{a.reward}"
+            tw = p.fontMetrics().horizontalAdvance(reward)
+            draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)
+            p.setPen(T("coin"))
+            p.drawText(QRectF(row.right() - 18 - tw, row.top() + 1, tw + 2, 15),
+                       Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, reward)
+            p.setFont(self.font_px(base, 10))
+            p.setPen(T("text2"))
+            p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 92, 13),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.desc)
+            p.setPen(T("ok") if done else T("muted"))
+            p.drawText(QRectF(row.right() - 90, row.top() + 15, 82, 13),
+                       Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                       "abgeholt" if done else f"{fmt_int(val)} / {fmt_int(a.target)}")
+            bar = QRectF(row.left() + 26, row.bottom() - 4.5, row.width() - 34, 2)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(T("sep"))
+            p.drawRoundedRect(bar, 1, 1)
+            p.setBrush(QColor("#2E9E44"))
+            p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * val / a.target, 2), 1, 1)
+
+        if lay["expired"]:
+            hy = lay["old_head_y"]
+            p.setFont(self.font_px(base, 12, True))
+            p.setPen(T("text"))
+            p.drawText(QRectF(12, hy, 190, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                       "Nicht abgeholt")
+            p.setFont(self.font_px(base, 10))
+            p.setPen(T("muted"))
+            p.drawText(QRectF(W - 152, hy, 140, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                       "aus früheren Perioden")
+            for e, row in lay["old_rows"]:
+                self.draw_claim_row(p, row, e["name"], self.old_label(e), e["reward"],
+                                    self.hover == ("old", id(e)), base)
+            more = len(lay["expired"]) - len(lay["old_rows"])
+            if more > 0:
+                last = lay["old_rows"][-1][1]
+                p.setFont(self.font_px(base, 10))
+                p.setPen(T("muted"))
+                p.drawText(QRectF(12, last.bottom() + 3, W - 24, 13), Qt.AlignmentFlag.AlignCenter,
+                           f"… und {more} weitere (Knopf unten holt alle)")
+
+        br = lay["btn"]
         if total > 0:
-            hov = self.hover == "claim"
+            hov = self.hover == "all"
             p.setPen(QPen(QColor("#D4A017"), 1.8 if hov else 1.4))
             p.setBrush(T("gold_bg"))
             p.drawRoundedRect(br, 8, 8)
             p.setFont(self.font_px(base, 12, True))
-            label = f"Abholen  +{fmt_int(total)}"
+            label = f"Alle abholen  +{fmt_int(total)}"
             tw = p.fontMetrics().horizontalAdvance(label)
             p.setPen(T("coin"))
             p.drawText(QRectF(br.center().x() - tw / 2 - 8, br.top(), tw + 2, br.height()),

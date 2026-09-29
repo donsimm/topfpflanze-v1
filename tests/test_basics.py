@@ -104,20 +104,63 @@ def test_achievements_are_claimed_manually(plant):
     debug._reset_periods(plant)
     debug._add_activity(plant, clicks=20)  # d_clicks: 10 Coins
     assert plant.state["coins"] == 0
-    assert "d_clicks" in plant.ach_pending_keys()
-    total = plant.ach_pending_total()
-    assert total >= 10
-    assert plant.claim_achievements() == total
-    assert plant.state["coins"] == total
-    assert plant.ach_pending_total() == 0
-    assert plant.claim_achievements() == 0
+    e = plant.ach_pending_entry("d_clicks")
+    assert e and e["reward"] == 10
+    assert plant.claim_achievement(e) == 10
+    assert plant.state["coins"] == 10
+    assert plant.ach_pending_entry("d_clicks") is None
+    assert plant.claim_achievement(e) == 0  # nicht doppelt
     plant.check_achievements()  # nicht erneut vormerken
-    assert plant.ach_pending_total() == 0
+    assert plant.ach_pending_entry("d_clicks") is None
 
 
-def test_pending_achievements_survive_day_change(plant):
+def test_claim_all(plant):
+    plant.state["coins"] = 0
     debug._reset_periods(plant)
-    debug._add_activity(plant, clicks=20)
-    plant.state["daily"] = {}  # Tageswechsel
+    debug._add_activity(plant, keys=2000, clicks=20)
+    total = plant.ach_pending_total()
+    assert total == 25
+    assert plant.claim_achievements() == 25
+    assert plant.state["coins"] == 25
+    assert plant.claim_achievements() == 0
+
+
+def test_expired_achievements_listed_and_claimable(plant):
+    debug._reset_periods(plant)
+    debug._add_activity(plant, keys=2000, clicks=20)
+    assert plant.ach_expired() == []
+    debug._next_period(plant)
+    exp = plant.ach_expired()
+    assert {e["key"] for e in exp} == {"d_keys", "d_clicks"}
+    assert plant.ach_pending_entry("d_keys") is None  # nicht mehr in der Tageszeile
+    plant.state["coins"] = 0
+    plant.claim_achievement(exp[0])
+    assert plant.state["coins"] == exp[0]["reward"]
+    assert len(plant.ach_expired()) == 1
+
+
+def test_old_pending_entries_are_migrated(plant):
+    plant.state["ach_pending"] = [{"key": "d_keys", "name": "Fleissige Finger", "reward": 15}]
     plant.ensure_periods()
-    assert "d_clicks" in plant.ach_pending_keys()
+    e = plant.state["ach_pending"][0]
+    assert e["period"] == "daily" and e["pid"] == plant.ach_pid("daily")
+
+
+def test_achievement_window_layout_and_clicks(plant):
+    debug._reset_periods(plant)
+    debug._add_activity(plant, keys=2000, clicks=20)
+    debug._next_period(plant)
+    debug._add_activity(plant, clicks=20)
+    win = plant.ach_win
+    win.show()
+    lay = win.layout()
+    assert len(lay["old_rows"]) == 2 and win.height() == lay["height"]
+    plant.state["coins"] = 0
+    win.on_click(("row", "d_clicks"))
+    assert plant.state["coins"] == 10
+    old = lay["old_rows"][0][0]
+    win.on_click(("old", id(old)))
+    assert plant.state["coins"] == 10 + old["reward"]
+    win.on_click("all")
+    assert plant.ach_pending_total() == 0 and win.height() == win.layout()["height"]
+    assert not win.grab().isNull()

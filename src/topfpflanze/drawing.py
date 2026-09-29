@@ -408,3 +408,24 @@ def round_pen(color, width):
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
     return pen
+
+
+def draw_gift(p, c, r):
+    """Geschenk-Symbol (abholbare Belohnung), Mittelpunkt c, Kantenlänge ca. 2 r."""
+    p.save()
+    p.translate(c)
+    s = r / 8.0
+    p.scale(s, s)
+    p.setPen(QPen(QColor("#A8321F"), 0.9))
+    p.setBrush(QColor("#E5533D"))
+    p.drawRoundedRect(QRectF(-7, -2, 14, 9), 1.2, 1.2)
+    p.setBrush(QColor("#F06A55"))
+    p.drawRoundedRect(QRectF(-8, -5.5, 16, 4.2), 1.2, 1.2)
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(QColor("#F2C230"))
+    p.drawRect(QRectF(-1.3, -5.5, 2.6, 12.5))
+    ribbon = QPainterPath(QPointF(0, -5.5))
+    ribbon.cubicTo(QPointF(-6.5, -11), QPointF(-6.5, -5.5), QPointF(0, -5.5))
+    ribbon.cubicTo(QPointF(6.5, -11), QPointF(6.5, -5.5), QPointF(0, -5.5))
+    p.drawPath(ribbon)
+    p.restore()

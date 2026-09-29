@@ -68,6 +68,19 @@ def _reset_periods(plant):
     _refresh(plant)
 
 
+def _next_period(plant):
+    """Simuliert Tages- und Wochenwechsel: laufende Zähler werden neu gestartet, offene Erfolge wandern in die Liste."""
+    plant.state["daily"] = {"date": "1999-01-01"}
+    plant.state["weekly"] = {"week": "1999-W01"}
+    for e in plant.state.get("ach_pending", []):
+        if e.get("period") == "daily":
+            e["pid"] = "1999-01-01"
+        elif e.get("period") == "weekly":
+            e["pid"] = "1999-W01"
+    plant.ensure_periods()
+    _refresh(plant)
+
+
 def _unlock_helpers(plant):
     plant.state["helpers"] = list(HELPER_ORDER)
     plant.state["helpers_off"] = []
@@ -137,6 +150,7 @@ def build_menu(plant, menu):
     dm.addAction("+2'000 Tastendrücke gezählt").triggered.connect(lambda: _add_activity(plant, keys=2000))
     dm.addAction("+20 Klicks gezählt").triggered.connect(lambda: _add_activity(plant, clicks=20))
     dm.addAction("Tages-/Wochenerfolge zurücksetzen").triggered.connect(lambda: _reset_periods(plant))
+    dm.addAction("Tag/Woche wechseln lassen (Erfolge)").triggered.connect(lambda: _next_period(plant))
     dm.addAction("Alle Helfer freischalten").triggered.connect(lambda: _unlock_helpers(plant))
     dm.addAction(f"Prestige-Stufe «{k.name}» +1").triggered.connect(lambda: _prestige(plant))
     dm.addAction("Spielstand jetzt speichern").triggered.connect(plant.save_state)
