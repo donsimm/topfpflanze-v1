@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "topfpflanze"
+version = "0.1.0"
+description = "Desktop-Pflanzen, die durch Klicks und Tastaturanschläge wachsen"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "PyQt6>=6.5",
+    "pynput>=1.7; sys_platform != 'linux'",
+]
+
+[project.optional-dependencies]
+# Linux: Tastaturzählung unter X11 und Wayland (Benutzer in Gruppe 'input')
+linux-keys = ["evdev>=1.6", "pynput>=1.7"]
+dev = ["pytest>=7", "pyinstaller>=6"]
+
+[project.gui-scripts]
+topfpflanze = "topfpflanze.game:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

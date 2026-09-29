@@ -1,0 +1,42 @@
+name: Release
+# Baut eigenständige Programme (ohne Python-Installation) für Windows, macOS und Linux.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - {os: windows-latest, name: windows}
+          - {os: macos-latest, name: macos}
+          - {os: ubuntu-latest, name: linux}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - name: Build
+        run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src src/topfpflanze/__main__.py
+      - name: Packen
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ matrix.name }}" = windows ]; then 7z a ../Topfpflanze-windows.zip Topfpflanze
+          elif [ "${{ matrix.name }}" = macos ]; then zip -r ../Topfpflanze-macos.zip Topfpflanze.app
+          else tar czf ../Topfpflanze-linux.tar.gz Topfpflanze; fi
+      - uses: actions/upload-artifact@v4
+        with: {name: "${{ matrix.name }}", path: "Topfpflanze-*"}
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {merge-multiple: true}
+      - uses: softprops/action-gh-release@v2
+        with: {files: "Topfpflanze-*"}
