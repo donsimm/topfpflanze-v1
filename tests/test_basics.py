@@ -97,3 +97,27 @@ def test_helper_art_renders_all_plants(plant):
         plant.select_plant(key)
         plant.ps["growth"] = plant.kind.bloom_at
         assert not plant.grab().isNull()
+
+
+def test_achievements_are_claimed_manually(plant):
+    plant.state["coins"] = 0
+    debug._reset_periods(plant)
+    debug._add_activity(plant, clicks=20)  # d_clicks: 10 Coins
+    assert plant.state["coins"] == 0
+    assert "d_clicks" in plant.ach_pending_keys()
+    total = plant.ach_pending_total()
+    assert total >= 10
+    assert plant.claim_achievements() == total
+    assert plant.state["coins"] == total
+    assert plant.ach_pending_total() == 0
+    assert plant.claim_achievements() == 0
+    plant.check_achievements()  # nicht erneut vormerken
+    assert plant.ach_pending_total() == 0
+
+
+def test_pending_achievements_survive_day_change(plant):
+    debug._reset_periods(plant)
+    debug._add_activity(plant, clicks=20)
+    plant.state["daily"] = {}  # Tageswechsel
+    plant.ensure_periods()
+    assert "d_clicks" in plant.ach_pending_keys()

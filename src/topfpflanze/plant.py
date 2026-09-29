@@ -94,7 +94,7 @@ class Plant(PlantDrawMixin, QWidget):
                 "coins": 0, "passive_acc": 0.0, "keyboard_enabled": True, "on_top": True,
                 "garden": [], "garden_pos": None, "dark": False,
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
-                "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0,
+                "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_PRESETS[0]}
 
     def load_state(self):
@@ -320,15 +320,34 @@ class Plant(PlantDrawMixin, QWidget):
         return f"{done} von {len(ACHIEVEMENTS)} erreicht"
 
     def check_achievements(self):
+        """Merkt erreichte Erfolge zur Abholung vor; die Coins gibt es erst über claim_achievements()."""
         self.ensure_periods()
+        pending = self.state.setdefault("ach_pending", [])
         for a in ACHIEVEMENTS:
             done = self.ach_done_list(a.period)
             if a.key not in done and self.ach_value(a.key) >= a.target:
                 done.append(a.key)
-                self.state["coins"] = self.state.get("coins", 0) + a.reward
-                if not self.ach_win.isVisible():
-                    self.state["ach_new"] = self.state.get("ach_new", 0) + 1
-                self.popup(f"+{a.reward} {a.name}")
+                pending.append({"key": a.key, "name": a.name, "reward": a.reward})
+                self.popup(f"Erfolg: {a.name}", coin=False)
+                self.save_state()
+
+    def ach_pending_keys(self):
+        return {e["key"] for e in self.state.get("ach_pending", [])}
+
+    def ach_pending_total(self):
+        return sum(e["reward"] for e in self.state.get("ach_pending", []))
+
+    def claim_achievements(self):
+        """Zahlt alle vorgemerkten Erfolgs-Belohnungen aus; gibt die Summe zurück."""
+        total = self.ach_pending_total()
+        if total:
+            self.state["coins"] = self.state.get("coins", 0) + total
+            self.state["ach_pending"] = []
+            self.popup(f"+{fmt_int(total)} Erfolge")
+            self.save_state()
+            self.bubble.update()
+            self.shop.update()
+        return total
 
     # ---------- Helfer ----------
 

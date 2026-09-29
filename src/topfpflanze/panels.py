@@ -138,16 +138,23 @@ class AchievementsWin(Panel):
     ROW_H = 35
 
     def __init__(self, plant):
-        super().__init__(plant, 300, 556, "ach_pos")
+        super().__init__(plant, 300, 602, "ach_pos")
 
-    def showEvent(self, e):
-        super().showEvent(e)
-        self.plant.state["ach_new"] = 0
-        self.plant.bubble.update()
+    def button_rect(self):
+        return QRectF(40, self.height() - 44, self.width() - 80, 30)
+
+    def items(self):
+        return [("claim", self.button_rect(), self.plant.ach_pending_total() > 0)]
+
+    def on_click(self, key):
+        if key == "claim":
+            self.plant.claim_achievements()
 
     def paintEvent(self, _e):
         plant = self.plant
         done_n = sum(1 for a in ACHIEVEMENTS if plant.ach_is_done(a))
+        pending = plant.ach_pending_keys()
+        total = plant.ach_pending_total()
         p = self.begin("Erfolge", f"{done_n} von {len(ACHIEVEMENTS)} erreicht")
         base = self.font()
         y = 58.0
@@ -168,10 +175,12 @@ class AchievementsWin(Panel):
             y += 20
             for a in (a for a in ACHIEVEMENTS if a.period == period):
                 done = plant.ach_is_done(a)
+                claimable = a.key in pending
                 val = min(plant.ach_value(a.key), a.target)
                 row = QRectF(12, y, W - 24, self.ROW_H - 3)
-                p.setPen(QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
-                p.setBrush(T("active_bg") if done else T("cell"))
+                p.setPen(QPen(QColor("#D4A017"), 1.6) if claimable else
+                         QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
+                p.setBrush(T("gold_bg") if claimable else T("active_bg") if done else T("cell"))
                 p.drawRoundedRect(row, 6, 6)
                 icon_c = QPointF(row.left() + 13, row.center().y())
                 if done:
@@ -199,10 +208,11 @@ class AchievementsWin(Panel):
                 p.setPen(T("text2"))
                 p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 92, 13),
                            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.desc)
-                p.setPen(T("ok") if done else T("muted"))
+                p.setPen(T("coin") if claimable else T("ok") if done else T("muted"))
                 p.drawText(QRectF(row.right() - 90, row.top() + 15, 82, 13),
                            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                           "erreicht" if done else f"{fmt_int(val)} / {fmt_int(a.target)}")
+                           "abholbar" if claimable else "erreicht" if done else
+                           f"{fmt_int(val)} / {fmt_int(a.target)}")
                 bar = QRectF(row.left() + 26, row.bottom() - 4.5, row.width() - 34, 2)
                 p.setPen(Qt.PenStyle.NoPen)
                 p.setBrush(T("sep"))
@@ -211,6 +221,26 @@ class AchievementsWin(Panel):
                 p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * val / a.target, 2), 1, 1)
                 y += self.ROW_H
             y += 4
+        br = self.button_rect()
+        if total > 0:
+            hov = self.hover == "claim"
+            p.setPen(QPen(QColor("#D4A017"), 1.8 if hov else 1.4))
+            p.setBrush(T("gold_bg"))
+            p.drawRoundedRect(br, 8, 8)
+            p.setFont(self.font_px(base, 12, True))
+            label = f"Abholen  +{fmt_int(total)}"
+            tw = p.fontMetrics().horizontalAdvance(label)
+            p.setPen(T("coin"))
+            p.drawText(QRectF(br.center().x() - tw / 2 - 8, br.top(), tw + 2, br.height()),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
+            draw_coin(p, QPointF(br.center().x() + tw / 2 + 4, br.center().y()), 6)
+        else:
+            p.setPen(QPen(T("cell_border"), 1))
+            p.setBrush(T("cell"))
+            p.drawRoundedRect(br, 8, 8)
+            p.setFont(self.font_px(base, 11))
+            p.setPen(T("muted"))
+            p.drawText(br, Qt.AlignmentFlag.AlignCenter, "nichts abzuholen")
         p.end()
 
 
