@@ -164,25 +164,26 @@ def draw_helper_icon(p, key, rect):
     p.translate(rect.topLeft())
     p.scale(rect.width() / 36, rect.height() / 36)
     nopen = Qt.PenStyle.NoPen
-    if key == "tropf":
-        pen = QPen(QColor("#4F6B4A"), 3)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        p.setPen(pen)
-        p.setBrush(Qt.BrushStyle.NoBrush)
-        tube = QPainterPath(QPointF(4, 8))
-        tube.cubicTo(QPointF(16, 6), QPointF(20, 20), QPointF(26, 20))
-        p.drawPath(tube)
+    if key == "tropf":  # Schauglas mit Wasserstand
+        p.setPen(QPen(QColor("#465A66"), 1.2))
+        p.setBrush(QColor("#EAF3F8"))
+        p.drawRoundedRect(QRectF(13, 5, 10, 24), 5, 5)
         p.setPen(nopen)
-        p.setBrush(QColor("#2E7D46"))
-        p.drawRoundedRect(QRectF(24, 17, 6, 6), 1.5, 1.5)
         p.setBrush(QColor("#4FA3E0"))
-        p.drawPath(_drop_path(27, 30, 2.6))
+        p.drawRoundedRect(QRectF(14.6, 15, 6.8, 12.4), 3, 3)
+        p.setBrush(QColor(255, 255, 255, 190))
+        p.drawRoundedRect(QRectF(15.2, 8, 1.6, 8), 0.8, 0.8)
+        p.setBrush(QColor("#7A7A78"))
+        p.drawRoundedRect(QRectF(13.5, 2, 9, 4), 1.5, 1.5)
+        p.setBrush(QColor("#4FA3E0"))
+        p.drawPath(_drop_path(18, 34, 1.6))
         p.setBrush(QColor("#6B4A2E"))
         p.drawRoundedRect(QRectF(6, 32, 26, 3), 1.5, 1.5)
     elif key == "hummel":
         draw_visitor(p, "hummel", QPointF(18, 19), 1.9, 0.3)
     elif key == "zwerg":
-        _draw_gnome(p, QPointF(18, 34), 1.25)
+        from .helper_art import draw_gnome_big
+        draw_gnome_big(p, QPointF(15, 34), 1.15)
     elif key == "lampe":
         cone = QPainterPath(QPointF(11, 16))
         cone.lineTo(25, 16)

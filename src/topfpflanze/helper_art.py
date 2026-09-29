@@ -10,15 +10,13 @@ from PyQt6.QtCore import QPointF, QRectF, Qt
 from PyQt6.QtGui import QBrush, QColor, QLinearGradient, QPainterPath, QPen
 
 from .config import WIN_W
-from .data import DRIP_MIN, FERTILIZERS
+from .data import DRIP_MIN
 from .drawing import _drop_path, round_pen
 
-# Auswahl der Variante je Helfer: "A" oder "B"
-HELPER_STYLE = {"tropf": "A", "automat": "A", "zwerg": "A", "lampe": "A"}
-
-
-def style(key):
-    return HELPER_STYLE.get(key, "A")
+# Lampe: Grafik vorerst ausgeschaltet (der Bonus von +10 % Wachstum bleibt aktiv).
+# Variante «A» = Schwanenhals-Lampe, «B» = hängende LED-Leiste.
+LAMP_VISIBLE = False
+LAMP_STYLE = "B"
 
 
 # ---------------------------------------------------------------- Füllstandsanzeigen
@@ -59,46 +57,6 @@ def _gauge_a(p, x, top, bottom, frac, color, mark=None, active=False, t=0.0):
         p.drawEllipse(QPointF(x, top - 2), 1.2, 1.2)
 
 
-def _globe_b(p, x, soil_y, frac, color, active=False, t=0.0, lean=0.0):
-    """Giesskugel: Glaskugel mit Hals, in die Erde gesteckt."""
-    p.save()
-    p.translate(x, soil_y + 1)
-    p.rotate(lean)
-    r = 11.0
-    neck_h = 11
-    cy = -neck_h - r + 1
-    # Hals
-    p.setPen(QPen(QColor(70, 70, 70, 190), 0.9))
-    p.setBrush(QColor(255, 255, 255, 140))
-    p.drawRoundedRect(QRectF(-2.2, -neck_h, 4.4, neck_h + 3), 1.5, 1.5)
-    # Kugel
-    p.setBrush(QColor(255, 255, 255, 120))
-    p.drawEllipse(QPointF(0, cy), r, r)
-    inner = r - 1.4
-    level = cy + inner - 2 * inner * max(0.0, min(1.0, frac))
-    p.save()
-    clip = QPainterPath()
-    clip.addEllipse(QPointF(0, cy), inner, inner)
-    p.setClipPath(clip)
-    p.fillRect(QRectF(-inner, level, 2 * inner, cy + inner - level + 1), color)
-    p.fillRect(QRectF(-inner, level, 2 * inner, 1.1), color.lighter(140))
-    p.restore()
-    p.setBrush(Qt.BrushStyle.NoBrush)
-    p.setPen(QPen(QColor(70, 70, 70, 200), 1.0))
-    p.drawEllipse(QPointF(0, cy), r, r)
-    p.setPen(Qt.PenStyle.NoPen)
-    p.setBrush(QColor(255, 255, 255, 200))
-    p.drawEllipse(QPointF(-r * 0.4, cy - r * 0.35), r * 0.16, r * 0.26)
-    # Einfüllkappe
-    p.setBrush(QColor("#7A7A78"))
-    p.drawRoundedRect(QRectF(-2.5, cy - r - 2.2, 5, 3), 1, 1)
-    if active:
-        ph = (t * 1.6) % 1.0
-        p.setBrush(color)
-        p.drawPath(_drop_path(0, 2 + ph * 6, 1.4 * (1 - ph * 0.4)))
-    p.restore()
-
-
 def _gauge_geometry(plant, side):
     pot = plant.pot
     cx = WIN_W / 2
@@ -115,36 +73,26 @@ def _water_frac(plant):
 
 
 def draw_irrigation(p, plant):
-    """Tropfbewässerung: Wasseranzeige am Topf (rechts)."""
-    pot = plant.pot
+    """Tropfbewässerung: Schauglas mit Wasserstand an der Topfwand (rechts)."""
     blue = QColor("#4FA3E0")
     active = getattr(plant, "drip_active", False)
-    if style("tropf") == "A":
-        x, top, bottom = _gauge_geometry(plant, +1)
-        _gauge_a(p, x, top, bottom, _water_frac(plant), blue, mark=DRIP_MIN / 100.0, active=active, t=plant.t)
-        if active and int(plant.t * 2) % 2 == 0:  # Tropfen an der Erdoberfläche
-            p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(blue)
-            p.drawPath(_drop_path(x, pot["soil_y"] + 6, 1.6))
-    else:
-        x = WIN_W / 2 + pot["soil_rx"] * 0.68
-        _globe_b(p, x, pot["soil_y"] + 1, _water_frac(plant), blue, active=active, t=plant.t, lean=6)
+    x, top, bottom = _gauge_geometry(plant, +1)
+    _gauge_a(p, x, top, bottom, _water_frac(plant), blue, mark=DRIP_MIN / 100.0, active=active, t=plant.t)
+    if active and int(plant.t * 2) % 2 == 0:  # Tropfen an der Erdoberfläche
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(blue)
+        p.drawPath(_drop_path(x, plant.pot["soil_y"] + 6, 1.6))
 
 
 def draw_fertilizer_machine(p, plant):
-    """Düngerautomat: Düngeranzeige am Topf (links), Füllstand = Restlaufzeit."""
-    pot = plant.pot
+    """Düngerautomat: Schauglas links in der Farbe des Düngers, Füllstand = Restlaufzeit."""
     fz, left = plant.fert()
-    last = plant.state.get("last_fert")
-    ref = fz or FERTILIZERS.get(last)
-    color = QColor(ref.color).lighter(115) if ref else QColor("#5FA84F")
-    frac = (left / (fz.minutes * 60)) if fz else 0.0
-    if style("automat") == "A":
-        x, top, bottom = _gauge_geometry(plant, -1)
-        _gauge_a(p, x, top, bottom, frac, color, mark=None, active=bool(fz), t=plant.t)
+    if not fz:  # leer: nur das Glas
+        color, frac = QColor("#9AA0A6"), 0.0
     else:
-        x = WIN_W / 2 - pot["soil_rx"] * 0.68
-        _globe_b(p, x, pot["soil_y"] + 1, frac, color, active=bool(fz), t=plant.t, lean=-6)
+        color, frac = QColor(fz.color), left / (fz.minutes * 60)
+    x, top, bottom = _gauge_geometry(plant, -1)
+    _gauge_a(p, x, top, bottom, frac, color, mark=None, active=bool(fz), t=plant.t)
 
 
 # ---------------------------------------------------------------- Gartenzwerg
@@ -157,23 +105,21 @@ def _arm(p, shoulder, hand, skin=QColor("#2F5FA8")):
     p.drawEllipse(hand, 1.7, 1.7)
 
 
-def draw_gnome_big(p, feet, s, hop=0.0, variant="A", t=0.0):
-    """Grosser Gartenzwerg (s = 1: ca. 26 px hoch) mit Armen; Füsse bei «feet»."""
+def draw_gnome_big(p, feet, s, hop=0.0, t=0.0):
+    """Grosser Gartenzwerg mit Schaufel (s = 1: ca. 26 px hoch); Füsse bei «feet»."""
     p.save()
     p.translate(feet.x(), feet.y() - hop * 4 * s)
     p.scale(s, s)
+    p.setPen(round_pen(QColor("#8A6A3E"), 1.4))
+    p.drawLine(QPointF(8, 0), QPointF(11, -19))
     p.setPen(Qt.PenStyle.NoPen)
-    if variant == "B":  # Schaufel im Hintergrund
-        p.setPen(round_pen(QColor("#8A6A3E"), 1.4))
-        p.drawLine(QPointF(8, 0), QPointF(11, -19))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor("#9AA0A6"))
-        blade = QPainterPath(QPointF(6.2, 1.5))
-        blade.lineTo(10.2, 1.5)
-        blade.lineTo(9.6, -3.5)
-        blade.lineTo(6.8, -3.5)
-        blade.closeSubpath()
-        p.drawPath(blade)
+    p.setBrush(QColor("#9AA0A6"))
+    blade = QPainterPath(QPointF(6.2, 1.5))
+    blade.lineTo(10.2, 1.5)
+    blade.lineTo(9.6, -3.5)
+    blade.lineTo(6.8, -3.5)
+    blade.closeSubpath()
+    p.drawPath(blade)
     p.setBrush(QColor("#5A3A1E"))
     p.drawEllipse(QPointF(-3, -0.8), 2.6, 1.3)
     p.drawEllipse(QPointF(3, -0.8), 2.6, 1.3)
@@ -195,14 +141,8 @@ def draw_gnome_big(p, feet, s, hop=0.0, variant="A", t=0.0):
     p.drawPath(beard)
     p.setBrush(QColor("#E08A6A"))
     p.drawEllipse(QPointF(0, -15.5), 1.3, 1.1)
-    # Arme
-    if variant == "A":  # winkt
-        wave = math.sin(t * 5) * 1.6 if hop > 0 else math.sin(t * 2) * 0.8
-        _arm(p, QPointF(-4, -11), QPointF(-7.5, -6))
-        _arm(p, QPointF(4, -11), QPointF(8 + wave * 0.4, -18 + wave))
-    else:  # hält die Schaufel
-        _arm(p, QPointF(-4, -11), QPointF(-7, -6))
-        _arm(p, QPointF(4, -11), QPointF(9, -10))
+    _arm(p, QPointF(-4, -11), QPointF(-7, -6))
+    _arm(p, QPointF(4, -11), QPointF(9, -10))
     hat = QPainterPath(QPointF(-4.8, -17))
     hat.lineTo(4.8, -17)
     hat.quadTo(QPointF(2, -24), QPointF(-1, -27))
@@ -215,10 +155,9 @@ def draw_gnome_big(p, feet, s, hop=0.0, variant="A", t=0.0):
 def draw_gnome_in_pot(p, plant):
     pot = plant.pot
     cx, sy = WIN_W / 2, pot["soil_y"]
-    var = style("zwerg")
     x = cx - pot["soil_rx"] * 0.6
     feet = QPointF(x, sy + 2)
-    draw_gnome_big(p, feet, 2.7, getattr(plant, "gnome_hop", 0.0), var, plant.t)
+    draw_gnome_big(p, feet, 2.7, getattr(plant, "gnome_hop", 0.0), plant.t)
     # Erdhäufchen vor den Füssen: der Zwerg steht «im» Topf
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor("#4A3728"))
@@ -234,7 +173,7 @@ def draw_lamp(p, plant):
     pot = plant.pot
     cx, sy = WIN_W / 2, pot["soil_y"]
     pulse = 0.5 + 0.5 * math.sin(plant.t * 2.0)
-    if style("lampe") == "A":
+    if LAMP_STYLE == "A":
         # Schwanenhals-Lampe, am Topfrand rechts eingeklemmt
         base = QPointF(cx + pot["soil_rx"] + 4, sy + 2)
         head = QPointF(cx + 38, -22)

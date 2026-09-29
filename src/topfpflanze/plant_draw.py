@@ -73,17 +73,17 @@ class PlantDrawMixin:
         p.restore()
 
     def draw_helpers_ground(self, p):
-        """Helfer am Topf: Wasseranzeige und Düngeranzeige (hinter der Pflanze)."""
+        """Helfer im Topf hinter der Pflanze: Wasseranzeige, Düngeranzeige, Gartenzwerg."""
         if self.helper_on("tropf"):
             helper_art.draw_irrigation(p, self)
         if self.helper_on("automat"):
             helper_art.draw_fertilizer_machine(p, self)
-
-    def draw_helpers_front(self, p):
-        """Helfer vor der Pflanze: Gartenzwerg im Topf, Lampe mit Lichtkegel."""
         if self.helper_on("zwerg"):
             helper_art.draw_gnome_in_pot(p, self)
-        if self.helper_on("lampe"):
+
+    def draw_helpers_front(self, p):
+        """Helfer vor der Pflanze: Lampe mit Lichtkegel (vorerst ausgeschaltet)."""
+        if helper_art.LAMP_VISIBLE and self.helper_on("lampe"):
             helper_art.draw_lamp(p, self)
 
     def draw_creatures(self, p):
