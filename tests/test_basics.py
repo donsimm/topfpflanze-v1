@@ -87,3 +87,18 @@ def test_debug_visitor_and_helpers(plant):
     assert all(plant.helper_on(h) for h in data.HELPER_ORDER)
     plant.spawn_visitor("marienkaefer")
     assert plant.state["book"]["marienkaefer"]["count"] == 1
+
+
+@pytest.mark.parametrize("var", ["A", "B"])
+def test_helper_art_variants_render(plant, var):
+    from topfpflanze import helper_art
+    for key in helper_art.HELPER_STYLE:
+        helper_art.HELPER_STYLE[key] = var
+    plant.state["helpers"] = list(data.HELPER_ORDER)
+    plant.state["helpers_off"] = []
+    for key in data.PLANT_ORDER:
+        plant.select_plant(key)
+        plant.ps["growth"] = plant.kind.bloom_at
+        assert not plant.grab().isNull()
+    for key in helper_art.HELPER_STYLE:
+        helper_art.HELPER_STYLE[key] = "A"

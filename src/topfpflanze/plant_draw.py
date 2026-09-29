@@ -5,10 +5,10 @@ import random
 from PyQt6.QtGui import QBrush, QColor, QFont, QImage, QLinearGradient, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from . import debug
+from . import debug, helper_art
 from .config import PLANT_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
 from .data import PLANT_TYPES, POTS, VISITORS
-from .drawing import _draw_gnome, _drop_path, draw_coin, draw_visitor, round_pen
+from .drawing import draw_coin, draw_visitor, round_pen
 from .util import bezier, cubic, drop_path, mix, water_status
 
 
@@ -65,6 +65,7 @@ class PlantDrawMixin:
         tp = self.top_point
         self.top_point = QPointF(cx + (tp.x() - cx) * PLANT_SCALE, sy + (tp.y() - sy) * PLANT_SCALE)
         if particles:
+            self.draw_helpers_front(p)
             self.draw_creatures(p)
             self.draw_particles(p)
         if drop:
@@ -72,22 +73,18 @@ class PlantDrawMixin:
         p.restore()
 
     def draw_helpers_ground(self, p):
-        cx, sy = WIN_W / 2, self.pot["soil_y"]
+        """Helfer am Topf: Wasseranzeige und Düngeranzeige (hinter der Pflanze)."""
         if self.helper_on("tropf"):
-            end = QPointF(cx + self.pot["soil_rx"] * 0.55, sy - 1)
-            tube = QPainterPath(QPointF(WIN_W - 6, sy - 46))
-            tube.cubicTo(QPointF(WIN_W - 10, sy - 10), QPointF(end.x() + 20, sy - 8), end)
-            p.setPen(round_pen(QColor("#4F6B4A"), 2.2))
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawPath(tube)
-            p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(QColor("#2E7D46"))
-            p.drawRoundedRect(QRectF(end.x() - 3, end.y() - 3, 6, 4), 1, 1)
-            if self.drip_active and int(self.t * 2) % 2 == 0:
-                p.setBrush(QColor("#4FA3E0"))
-                p.drawPath(_drop_path(end.x(), end.y() + 3, 1.6))
+            helper_art.draw_irrigation(p, self)
+        if self.helper_on("automat"):
+            helper_art.draw_fertilizer_machine(p, self)
+
+    def draw_helpers_front(self, p):
+        """Helfer vor der Pflanze: Gartenzwerg im Topf, Lampe mit Lichtkegel."""
         if self.helper_on("zwerg"):
-            _draw_gnome(p, QPointF(20, SCENE_H - 8), 1.0, self.gnome_hop)
+            helper_art.draw_gnome_in_pot(p, self)
+        if self.helper_on("lampe"):
+            helper_art.draw_lamp(p, self)
 
     def draw_creatures(self, p):
         if self.bee_anim > 0:
