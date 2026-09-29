@@ -5,9 +5,9 @@ Alle Fenster rechnen in «logischen» Pixeln (wie bei 100 %). ScaledWidget legt 
 Fenstergrösse fest, skaliert beim Zeichnen und rechnet Mauspositionen zurück.
 """
 
-from PyQt6.QtCore import QEvent
+from PyQt6.QtCore import QEvent, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent, QPainter
-from PyQt6.QtWidgets import QApplication, QWidget
+from PyQt6.QtWidgets import QApplication, QToolTip, QWidget
 
 SCALE_MIN, SCALE_MAX = 0.5, 2.0
 _SCALE = {"plant": 1.0, "menu": 1.0}
@@ -48,6 +48,8 @@ class ScaledWidget(QWidget):
         return max(1.0, k)
 
     def setFixedSize(self, w, h):
+        # Tooltips auch anzeigen, wenn das Fenster nicht aktiv ist (Desktop-Fenster ohne Fokus)
+        self.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
         self._lw, self._lh = w, h
         self.rescale()
 
@@ -75,6 +77,10 @@ class ScaledWidget(QWidget):
         return p
 
     def event(self, ev):
+        if ev.type() == QEvent.Type.ToolTip and hasattr(self, "close_rect"):
+            if self.close_rect().contains(QPointF(ev.pos()) / self._k):
+                QToolTip.showText(ev.globalPos(), "Schliessen", self)
+                return True
         if self._k != 1.0 and ev.type() in _MOUSE and isinstance(ev, QMouseEvent):
             ev = QMouseEvent(ev.type(), ev.position() / self._k, ev.globalPosition(),
                              ev.button(), ev.buttons(), ev.modifiers())

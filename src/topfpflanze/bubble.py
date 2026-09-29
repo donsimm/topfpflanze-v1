@@ -86,28 +86,37 @@ class Bubble(ScaledWidget):
         over = self.icon_at(e.position()) is not None
         self.setCursor(Qt.CursorShape.PointingHandCursor if over else Qt.CursorShape.ArrowCursor)
 
+    def tooltip_text(self, key):
+        """Text beim Überfahren eines Symbols: zuerst, was der Klick auslöst, darunter Angaben dazu."""
+        pl = self.plant
+        if key in TOOL_ORDER:
+            verb = "schliessen" if pl.windows[key].isVisible() else "öffnen"
+        if key == "shop":
+            return (f"Dünger-Shop {verb}\nCoins: {fmt_int(pl.state.get('coins', 0))} "
+                    f"(+{PASSIVE_PER_HOUR} pro Stunde)")
+        if key == "garden":
+            return f"Gartenhaus {verb}\n{len(pl.state.get('garden', []))} Pflanze(n) eingelagert"
+        if key == "ach":
+            pend = len(pl.state.get("ach_pending", []))
+            return f"Erfolge {verb}\n{pl.ach_summary()}" + (f"\n{pend} zum Abholen bereit" if pend else "")
+        if key == "focus":
+            return f"Fokus-Timer {verb}\n{pl.focus_summary()}"
+        if key == "book":
+            return (f"Besucher-Sammelbuch {verb}\n"
+                    f"{len(pl.state.get('book', {}))} / {len(VISITORS)} entdeckt")
+        if key in PLANT_TYPES:
+            k = PLANT_TYPES[key]
+            pst = pl.state["plants"].get(key)
+            text = f"{k.name} auswählen ({k.difficulty})"
+            if pst:
+                text += f"\n{stage_name(k, pst['growth'])}"
+            return text
+        return ""
+
     def event(self, e):
         if e.type() == QEvent.Type.ToolTip:
-            key = self.icon_at(QPointF(e.pos()))
-            if key == "shop":
-                QToolTip.showText(e.globalPos(),
-                                  f"Dünger-Shop\nCoins: {fmt_int(self.plant.state.get('coins', 0))} (+{PASSIVE_PER_HOUR} pro Stunde)", self)
-            elif key == "garden":
-                n = len(self.plant.state.get("garden", []))
-                QToolTip.showText(e.globalPos(), f"Gartenhaus (Ehrenhalle)\n{n} Pflanze(n)", self)
-            elif key == "ach":
-                QToolTip.showText(e.globalPos(), f"Erfolge\n{self.plant.ach_summary()}", self)
-            elif key == "focus":
-                QToolTip.showText(e.globalPos(), f"Fokus-Timer\n{self.plant.focus_summary()}", self)
-            elif key == "book":
-                n = len(self.plant.state.get("book", {}))
-                QToolTip.showText(e.globalPos(), f"Besucher-Sammelbuch\n{n} / {len(VISITORS)} entdeckt", self)
-            elif key:
-                k = PLANT_TYPES[key]
-                pst = self.plant.state["plants"].get(key)
-                text = f"{k.name} ({k.difficulty})"
-                if pst:
-                    text += f"\n{stage_name(k, pst['growth'])}"
+            text = self.tooltip_text(self.icon_at(QPointF(e.pos()) / self._k))
+            if text:
                 QToolTip.showText(e.globalPos(), text, self)
             else:
                 QToolTip.hideText()

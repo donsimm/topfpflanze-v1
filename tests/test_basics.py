@@ -8,6 +8,8 @@ import pytest
 
 pytest.importorskip("PyQt6")
 
+from PyQt6.QtCore import QEvent, Qt  # noqa: E402
+
 from topfpflanze import config, data, debug, util
 from topfpflanze.app import parse_args
 
@@ -271,3 +273,46 @@ def test_scale_sliders(plant, scale_reset):
         assert scale_reset.get_scale(kind) == 1.5
         box.findChild(QPushButton).click()  # «100 %»
         assert scale_reset.get_scale(kind) == 1.0
+
+
+def test_bubble_tooltips_say_what_the_icon_does(plant):
+    b = plant.bubble
+    assert b.testAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
+    assert plant.testAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
+    texts = {k: b.tooltip_text(k) for k in ("shop", "garden", "ach", "focus", "book", "kaktus")}
+    assert texts["shop"].startswith("Dünger-Shop öffnen")
+    assert texts["garden"].startswith("Gartenhaus öffnen")
+    assert texts["ach"].startswith("Erfolge öffnen")
+    assert texts["focus"].startswith("Fokus-Timer öffnen")
+    assert texts["book"].startswith("Besucher-Sammelbuch öffnen")
+    assert texts["kaktus"].startswith("Kaktus auswählen")
+    plant.windows["shop"].show()
+    assert b.tooltip_text("shop").startswith("Dünger-Shop schliessen")
+
+
+def test_bubble_tooltip_event_shows_text(plant, scale_reset):
+    from PyQt6.QtCore import QPoint
+    from PyQt6.QtGui import QHelpEvent
+    from PyQt6.QtWidgets import QToolTip
+    b = plant.bubble
+    b.show()
+    for kind_scale in (1.0, 0.5):
+        plant.set_ui_scale(kind_scale, "menu")
+        rect = dict(b.icon_rects())["shop"]
+        pt = rect.center() * b._k
+        ev = QHelpEvent(QEvent.Type.ToolTip, QPoint(int(pt.x()), int(pt.y())), b.mapToGlobal(QPoint(int(pt.x()), int(pt.y()))))
+        assert b.event(ev)
+        assert QToolTip.isVisible() and QToolTip.text().startswith("Dünger-Shop")
+        QToolTip.hideText()
+
+
+def test_close_button_tooltip(plant):
+    from PyQt6.QtGui import QHelpEvent
+    from PyQt6.QtWidgets import QToolTip
+    for win in (plant.shop, plant.garden, plant.ach_win, plant.focus_win, plant.book_win):
+        win.show()
+        pt = win.close_rect().center().toPoint()
+        ev = QHelpEvent(QEvent.Type.ToolTip, pt, win.mapToGlobal(pt))
+        assert win.event(ev)
+        assert QToolTip.isVisible() and QToolTip.text() == "Schliessen"
+        QToolTip.hideText()
