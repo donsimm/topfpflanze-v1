@@ -2,9 +2,8 @@
 
 import math
 import time
-from PyQt6.QtWidgets import QToolTip
 from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
-from PyQt6.QtCore import QEvent, QPointF, QRectF, Qt
+from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .config import BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, TOOL, TOOL_GAP, TOOL_ORDER
 from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
@@ -113,15 +112,8 @@ class Bubble(ScaledWidget):
             return text
         return ""
 
-    def event(self, e):
-        if e.type() == QEvent.Type.ToolTip:
-            text = self.tooltip_text(self.icon_at(QPointF(e.pos()) / self._k))
-            if text:
-                QToolTip.showText(e.globalPos(), text, self)
-            else:
-                QToolTip.hideText()
-            return True
-        return super().event(e)
+    def tooltip_at(self, pos):
+        return self.tooltip_text(self.icon_at(pos))
 
     def paintEvent(self, _e):
         k, s = self.plant.kind, self.plant.ps

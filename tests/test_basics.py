@@ -8,7 +8,7 @@ import pytest
 
 pytest.importorskip("PyQt6")
 
-from PyQt6.QtCore import QEvent, Qt  # noqa: E402
+from PyQt6.QtCore import QEvent, QPointF, Qt  # noqa: E402
 
 from topfpflanze import config, data, debug, util
 from topfpflanze.app import parse_args
@@ -290,29 +290,70 @@ def test_bubble_tooltips_say_what_the_icon_does(plant):
     assert b.tooltip_text("shop").startswith("Dünger-Shop schliessen")
 
 
-def test_bubble_tooltip_event_shows_text(plant, scale_reset):
+def _help_event(win, pt):
     from PyQt6.QtCore import QPoint
     from PyQt6.QtGui import QHelpEvent
-    from PyQt6.QtWidgets import QToolTip
+    p = QPoint(int(pt.x()), int(pt.y()))
+    return QHelpEvent(QEvent.Type.ToolTip, p, win.mapToGlobal(p))
+
+
+def test_bubble_tooltip_event_shows_text(plant, scale_reset):
+    from topfpflanze import tooltip
     b = plant.bubble
     b.show()
-    for kind_scale in (1.0, 0.5):
-        plant.set_ui_scale(kind_scale, "menu")
+    for menu_scale in (1.0, 0.5):
+        plant.set_ui_scale(menu_scale, "menu")
         rect = dict(b.icon_rects())["shop"]
-        pt = rect.center() * b._k
-        ev = QHelpEvent(QEvent.Type.ToolTip, QPoint(int(pt.x()), int(pt.y())), b.mapToGlobal(QPoint(int(pt.x()), int(pt.y()))))
-        assert b.event(ev)
-        assert QToolTip.isVisible() and QToolTip.text().startswith("Dünger-Shop")
-        QToolTip.hideText()
+        assert b.event(_help_event(b, rect.center() * b._k))
+        assert tooltip.current_text().startswith("Dünger-Shop")
+        tooltip.hide_tip()
+        assert tooltip.current_text() == ""
+
+
+def test_tooltip_hides_on_leave_and_click(plant):
+    from PyQt6.QtGui import QMouseEvent
+    from PyQt6.QtCore import QEvent, QPointF
+    from topfpflanze import tooltip
+    b = plant.bubble
+    b.show()
+    rect = dict(b.icon_rects())["shop"]
+    b.event(_help_event(b, rect.center()))
+    assert tooltip.current_text()
+    b.event(QEvent(QEvent.Type.Leave))
+    assert tooltip.current_text() == ""
+    b.event(_help_event(b, rect.center()))
+    other = dict(b.icon_rects())["kaktus"].center()
+    move = QMouseEvent(QEvent.Type.MouseMove, other, QPointF(b.mapToGlobal(other.toPoint())),
+                       Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+    b.event(move)  # anderes Symbol → Tooltip verschwindet
+    assert tooltip.current_text() == ""
+
+
+def test_plant_and_menu_tooltips_use_custom_widget(plant):
+    from topfpflanze import tooltip
+    plant.update_tooltip()
+    assert plant.event(_help_event(plant, QPointF(50, 100)))
+    assert "Wiesenblume" in tooltip.current_text()
+    tooltip.hide_tip()
+
+
+def test_tooltip_follows_dark_theme(plant):
+    from topfpflanze import tooltip
+    plant.set_dark(True)
+    tooltip.show_tip("Dünger-Shop öffnen\nCoins: 0", plant.mapToGlobal(QPointF(10, 10).toPoint()))
+    img = tooltip._get().grab().toImage()
+    px = img.pixelColor(img.width() // 2, 3)
+    assert px.red() < 90 and px.green() < 90, "Tooltip muss im Dunkelmodus dunkel sein"
+    plant.set_dark(False)
+    img = tooltip._get().grab().toImage()
+    assert img.pixelColor(img.width() // 2, 3).red() > 200
+    tooltip.hide_tip()
 
 
 def test_close_button_tooltip(plant):
-    from PyQt6.QtGui import QHelpEvent
-    from PyQt6.QtWidgets import QToolTip
+    from topfpflanze import tooltip
     for win in (plant.shop, plant.garden, plant.ach_win, plant.focus_win, plant.book_win):
         win.show()
-        pt = win.close_rect().center().toPoint()
-        ev = QHelpEvent(QEvent.Type.ToolTip, pt, win.mapToGlobal(pt))
-        assert win.event(ev)
-        assert QToolTip.isVisible() and QToolTip.text() == "Schliessen"
-        QToolTip.hideText()
+        assert win.event(_help_event(win, win.close_rect().center()))
+        assert tooltip.current_text() == "Schliessen"
+        tooltip.hide_tip()

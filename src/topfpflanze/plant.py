@@ -279,8 +279,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def update_tooltip(self):
         s, k = self.ps, self.kind
-        self.setToolTip(f"{k.name} · {stage_name(k, s['growth'])} · "
-                        f"Wachstum {s['growth']:.0f} · Wasser {s['water']:.0f} %")
+        self.tip_text = (f"{k.name} · {stage_name(k, s['growth'])}\n"
+                         f"Wachstum {s['growth']:.0f} · Wasser {s['water']:.0f} %")
+
+    def tooltip_at(self, pos):
+        return getattr(self, "tip_text", "")
 
     # ---------- Logik ----------
 

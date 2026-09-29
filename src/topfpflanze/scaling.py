@@ -7,7 +7,9 @@ Fenstergrösse fest, skaliert beim Zeichnen und rechnet Mauspositionen zurück.
 
 from PyQt6.QtCore import QEvent, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent, QPainter
-from PyQt6.QtWidgets import QApplication, QToolTip, QWidget
+from PyQt6.QtWidgets import QApplication, QWidget
+
+from . import tooltip
 
 SCALE_MIN, SCALE_MAX = 0.5, 2.0
 _SCALE = {"plant": 1.0, "menu": 1.0}
@@ -76,12 +78,27 @@ class ScaledWidget(QWidget):
         p.scale(self._k, self._k)
         return p
 
+    def tooltip_at(self, pos):
+        """Text für einen Tooltip an der (logischen) Position; leer = keiner. Unterklassen überschreiben das."""
+        if hasattr(self, "close_rect") and self.close_rect().contains(pos):
+            return "Schliessen"
+        return ""
+
     def event(self, ev):
-        if ev.type() == QEvent.Type.ToolTip and hasattr(self, "close_rect"):
-            if self.close_rect().contains(QPointF(ev.pos()) / self._k):
-                QToolTip.showText(ev.globalPos(), "Schliessen", self)
-                return True
-        if self._k != 1.0 and ev.type() in _MOUSE and isinstance(ev, QMouseEvent):
+        t = ev.type()
+        if t == QEvent.Type.ToolTip:
+            text = self.tooltip_at(QPointF(ev.pos()) / self._k)
+            if text:
+                tooltip.show_tip(text, ev.globalPos())
+            else:
+                tooltip.hide_tip()
+            return True
+        if t in (QEvent.Type.Leave, QEvent.Type.MouseButtonPress, QEvent.Type.Hide, QEvent.Type.Wheel):
+            tooltip.hide_tip()
+        elif t == QEvent.Type.MouseMove and tooltip.current_text():
+            if self.tooltip_at(QPointF(ev.position()) / self._k) != tooltip.current_text():
+                tooltip.hide_tip()
+        if self._k != 1.0 and t in _MOUSE and isinstance(ev, QMouseEvent):
             ev = QMouseEvent(ev.type(), ev.position() / self._k, ev.globalPosition(),
                              ev.button(), ev.buttons(), ev.modifiers())
         return super().event(ev)
