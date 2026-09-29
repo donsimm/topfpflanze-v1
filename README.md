@@ -53,6 +53,12 @@ Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer,
 Besucher erscheinen lassen, Fokus-Timer (1 Minute), Tastendrücke/Klicks für Erfolge, Tages-/Wochenerfolge zurücksetzen,
 alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 
+## Grösse der Oberfläche
+
+Rechtsklick → Einstellungen → Regler «Grösse» (50 bis 200 %, «100 %» setzt zurück). Alle Fenster (Pflanze, Sprechblase, Shop,
+Gartenhaus, Erfolge, Fokus-Timer, Sammelbuch) werden gemeinsam skaliert und die Einstellung wird gespeichert.
+Bei Werten über 100 % wird ein Fenster nie grösser als der Bildschirm.
+
 ## Aufbau (`src/topfpflanze/`)
 
 | Modul | Inhalt |
@@ -65,6 +71,8 @@ alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 | `bubble.py`, `shop.py`, `garden.py`, `panels.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch |
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
+| `scaling.py` | Skalierung der Oberfläche (Basisklasse `ScaledWidget`) |
+| `helper_art.py` | Grafiken der Helfer (Anzeigen, Zwerg, Lampe) |
 | `debug.py` | Debug-Modus |
 
 Neue Pflanze: Eintrag in `data.py` (`PLANT_TYPES`, `PLANT_ORDER`, ggf. `POTS`) und eine `draw_<key>`-Methode in `plant_draw.py`.

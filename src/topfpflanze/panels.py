@@ -2,7 +2,6 @@
 
 import math
 import time
-from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
@@ -10,11 +9,12 @@ from .data import ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORD
 from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
+from .scaling import S, ScaledWidget
 
 
 # ---------------------------------------------------------------- Weitere Fenster
 
-class Panel(QWidget):
+class Panel(ScaledWidget):
     """Gemeinsame Grundlage für Erfolge, Fokus-Timer und Sammelbuch (Stil der Sprechblase)."""
 
     def __init__(self, plant, w, h, pos_key):
@@ -41,7 +41,7 @@ class Panel(QWidget):
             self.move(int(pos[0]), int(pos[1]))
         else:
             b = self.plant.bubble
-            self.move(max(0, b.x() - self.width() - 10), max(0, b.y()))
+            self.move(max(0, b.x() - self.real_width() - S(10)), max(0, b.y()))
 
     def close_rect(self):
         return QRectF(self.width() - 28, 8, 18, 18)
@@ -99,7 +99,7 @@ class Panel(QWidget):
         self.update()
 
     def begin(self, title, subtitle):
-        p = QPainter(self)
+        p = self.new_painter()
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = QRectF(1, 1, self.width() - 2, self.height() - 2)
         p.setPen(QPen(T("panel_border"), 1.2))

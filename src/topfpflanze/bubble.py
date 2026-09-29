@@ -2,20 +2,21 @@
 
 import math
 import time
-from PyQt6.QtWidgets import QToolTip, QWidget
+from PyQt6.QtWidgets import QToolTip
 from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QEvent, QPointF, QRectF, Qt
 
-from .config import BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, TOOL, TOOL_GAP, TOOL_ORDER, WIN_W
+from .config import BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, TOOL, TOOL_GAP, TOOL_ORDER
 from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
 from .drawing import draw_coin, draw_star, fit_font, round_pen
 from .theme import T
 from .util import fmt_age, fmt_int, stage_name, water_status
+from .scaling import S, ScaledWidget
 
 
 # ---------------------------------------------------------------- Sprechblase
 
-class Bubble(QWidget):
+class Bubble(ScaledWidget):
     """Eigenständiges, verschiebbares Fenster mit dem Live-Status der Pflanze."""
 
     def __init__(self, plant):
@@ -61,8 +62,8 @@ class Bubble(QWidget):
         if pos:
             self.move(int(pos[0]), int(pos[1]))
         else:
-            self.move(self.plant.x() + (WIN_W - BUBBLE_W) // 2,
-                      max(0, self.plant.y() - BUBBLE_H + 40))
+            self.move(self.plant.x() + (self.plant.real_width() - self.real_width()) // 2,
+                      max(0, self.plant.y() - self.real_height() + S(40)))
 
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:
@@ -115,7 +116,7 @@ class Bubble(QWidget):
 
     def paintEvent(self, _e):
         k, s = self.plant.kind, self.plant.ps
-        p = QPainter(self)
+        p = self.new_painter()
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = QRectF(1, 1, self.width() - 2, self.height() - 2)
         p.setPen(QPen(T("panel_border"), 1.2))

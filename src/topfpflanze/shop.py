@@ -1,7 +1,6 @@
 """Dünger- und Helfer-Shop."""
 
 import time
-from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
@@ -10,11 +9,12 @@ from .data import FERTILIZERS, FERT_ORDER, HELPERS, HELPER_ORDER
 from .drawing import draw_coin, draw_fert_icon, draw_helper_icon, fit_font
 from .theme import T
 from .util import fert_description, fmt_int
+from .scaling import S, ScaledWidget
 
 
 # ---------------------------------------------------------------- Dünger-Shop
 
-class Shop(QWidget):
+class Shop(ScaledWidget):
     """Eigenständiges, verschiebbares Shop-Fenster im Stil der Sprechblase."""
 
     COLS = 3
@@ -45,7 +45,7 @@ class Shop(QWidget):
         if pos:
             self.move(int(pos[0]), int(pos[1]))
         else:
-            self.move(max(0, self.plant.x() - SHOP_W - 10), max(0, self.plant.y()))
+            self.move(max(0, self.plant.x() - self.real_width() - S(10)), max(0, self.plant.y()))
 
     def tab_rects(self):
         w = (SHOP_W - 24 - 6) / 2
@@ -122,7 +122,7 @@ class Shop(QWidget):
     def paintEvent(self, _e):
         plant = self.plant
         coins = plant.state.get("coins", 0)
-        p = QPainter(self)
+        p = self.new_painter()
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = QRectF(1, 1, self.width() - 2, self.height() - 2)
         p.setPen(QPen(T("panel_border"), 1.2))

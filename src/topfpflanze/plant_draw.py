@@ -41,7 +41,7 @@ class PlantDrawMixin:
     # ---------- Zeichnen: Grundgerüst ----------
 
     def paintEvent(self, _e):
-        p = QPainter(self)
+        p = self.new_painter()
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.paint_scene(p)
         if debug.enabled():

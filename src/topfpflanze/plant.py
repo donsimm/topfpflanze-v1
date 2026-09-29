@@ -6,11 +6,12 @@ import os
 import random
 import sys
 import time
-from PyQt6.QtWidgets import QApplication, QMenu, QMessageBox, QWidget
+from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMenu, QMessageBox, QPushButton,
+                             QSlider, QWidget, QWidgetAction)
 from PyQt6.QtCore import QPointF, QTimer, Qt
 from PyQt6.QtGui import QActionGroup, QColor
 
-from . import config, debug
+from . import config, debug, scaling
 from .bubble import Bubble
 from .config import MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
@@ -18,15 +19,17 @@ from .garden import Garden
 from .keys import KeyCounter
 from .panels import AchievementsWin, BookWin, FocusWin
 from .plant_draw import PlantDrawMixin
+from .scaling import ScaledWidget
 from .shop import Shop
 from .theme import _THEME
 from .util import fmt_int, fmt_left, round_half_up, stage_index, stage_name
 
 
-class Plant(PlantDrawMixin, QWidget):
+class Plant(PlantDrawMixin, ScaledWidget):
     def __init__(self):
         super().__init__()
         self.state = self.load_state()
+        scaling.set_scale(self.state.get("ui_scale", 1.0))
         _THEME["dark"] = self.state.get("dark", False)
 
         self.t = 0.0
@@ -202,7 +205,7 @@ class Plant(PlantDrawMixin, QWidget):
         screen = QApplication.primaryScreen()
         if screen:
             g = screen.availableGeometry()
-            self.move(g.right() - WIN_W - 40, g.bottom() - WIN_H - 40)
+            self.move(g.right() - self.real_width() - 40, g.bottom() - self.real_height() - 40)
 
     def select_plant(self, key):
         if key != self.state["current"]:
@@ -213,6 +216,40 @@ class Plant(PlantDrawMixin, QWidget):
         self.bubble.update()
         if hasattr(self, "shop"):
             self.shop.update()
+
+    def set_ui_scale(self, value):
+        """Gesamtgrösse der Oberfläche ändern (0.5 bis 2.0). Die Anordnung der Fenster wird mit skaliert."""
+        old = scaling.get_scale()
+        new = scaling.set_scale(value)
+        if abs(new - old) < 1e-6:
+            return
+        self.state["ui_scale"] = round(new, 3)
+        wins = [self.bubble, *self.windows.values()]
+        # Fixpunkt: Fusspunkt (Mitte unten) des Pflanzenfensters bleibt an seinem Platz
+        ax, ay = self.x() + self.real_width() / 2, self.y() + self.real_height()
+        old_k = {id(w): w._k for w in wins}
+        pos = {id(w): (w.x(), w.y()) for w in wins}
+        self.rescale()
+        self.move(int(round(ax - self.real_width() / 2)), int(round(ay - self.real_height())))
+        for w in wins:
+            w.rescale()
+            x, y = pos[id(w)]
+            f = w._k / old_k[id(w)]
+            w.move(int(round(ax + (x - ax) * f)), int(round(ay + (y - ay) * f)))
+        self.clamp_windows_to_screen()
+        self.update_tooltip()
+        self.save_state()
+
+    def clamp_windows_to_screen(self):
+        screen = QApplication.primaryScreen()
+        if not screen:
+            return
+        g = screen.availableGeometry()
+        for w in [self, self.bubble, *self.windows.values()]:
+            x = max(g.left(), min(w.x(), g.right() - w.real_width() + 1))
+            y = max(g.top(), min(w.y(), g.bottom() - w.real_height() + 1))
+            if (x, y) != (w.x(), w.y()):
+                w.move(x, y)
 
     def set_dark(self, on):
         self.state["dark"] = on
@@ -770,6 +807,41 @@ class Plant(PlantDrawMixin, QWidget):
 
     # ---------- Menü ----------
 
+    def scale_slider_action(self, parent):
+        """Regler «Grösse» (50 bis 200 %) für das Einstellungsmenü."""
+        box = QWidget()
+        lay = QHBoxLayout(box)
+        lay.setContentsMargins(12, 4, 12, 4)
+        label = QLabel()
+        label.setMinimumWidth(96)
+        slider = QSlider(Qt.Orientation.Horizontal)
+        slider.setRange(int(scaling.SCALE_MIN * 100), int(scaling.SCALE_MAX * 100))
+        slider.setSingleStep(5)
+        slider.setPageStep(10)
+        slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        slider.setTickInterval(25)
+        slider.setMinimumWidth(150)
+        reset = QPushButton("100 %")
+        reset.setFlat(True)
+
+        def show(v):
+            label.setText(f"Grösse: {v} %")
+
+        def change(v):
+            v = int(round(v / 5.0)) * 5
+            show(v)
+            self.set_ui_scale(v / 100.0)
+
+        slider.setValue(int(round(scaling.get_scale() * 100)))
+        show(slider.value())
+        slider.valueChanged.connect(change)
+        reset.clicked.connect(lambda: slider.setValue(100))
+        for wdg in (label, slider, reset):
+            lay.addWidget(wdg)
+        act = QWidgetAction(parent)
+        act.setDefaultWidget(box)
+        return act
+
     def show_menu(self, global_pos):
         m = QMenu(self)
         sub = m.addMenu("Pflanze wählen")
@@ -806,6 +878,7 @@ class Plant(PlantDrawMixin, QWidget):
         if not self.key_source:
             a_kb.setText("Tastaturanschläge zählen (nicht verfügbar)")
             a_kb.setEnabled(False)
+        set_menu.addAction(self.scale_slider_action(set_menu))
         a_dark = set_menu.addAction("Dunkelmodus")
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))

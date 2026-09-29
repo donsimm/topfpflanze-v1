@@ -2,7 +2,7 @@
 
 import math
 import time
-from PyQt6.QtWidgets import QMessageBox, QWidget
+from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
@@ -11,11 +11,12 @@ from .data import PLANT_TYPES
 from .drawing import draw_seed_packet, draw_star
 from .theme import T
 from .util import fmt_date, fmt_datetime, fmt_int, mix, stage_name
+from .scaling import S, ScaledWidget
 
 
 # ---------------------------------------------------------------- Gartenhaus
 
-class Garden(QWidget):
+class Garden(ScaledWidget):
     """Ehrenhalle für voll ausgewachsene Pflanzen, im Stil der Sprechblase."""
 
     COLS = 3
@@ -47,7 +48,7 @@ class Garden(QWidget):
         if pos:
             self.move(int(pos[0]), int(pos[1]))
         else:
-            self.move(max(0, self.plant.x() - GARDEN_W - 10), max(0, self.plant.y() - 40))
+            self.move(max(0, self.plant.x() - self.real_width() - S(10)), max(0, self.plant.y() - S(40)))
 
     def entries(self):
         return list(reversed(self.plant.state.get("garden", [])))  # neueste zuerst
@@ -170,7 +171,7 @@ class Garden(QWidget):
 
     def paintEvent(self, _e):
         entries = self.entries()
-        p = QPainter(self)
+        p = self.new_painter()
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         rect = QRectF(1, 1, self.width() - 2, self.height() - 2)
