@@ -1,4 +1,4 @@
-from topfpflanze.game import main
+from topfpflanze.app import main
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 # Topfpflanze
 
 Desktop-Pflanzen, die durch Mausklicks und Tastaturanschläge wachsen (PyQt6).
-Spielanleitung: siehe Kopf von `src/topfpflanze/game.py`. Es wird nur die *Anzahl* der Tastendrücke gezählt, nie welche Taste.
+Spielanleitung: siehe Kopf von `src/topfpflanze/app.py`. Es wird nur die *Anzahl* der Tastendrücke gezählt, nie welche Taste.
 
 ## Installation
 
@@ -31,9 +31,37 @@ pip install -e ".[dev]"
 QT_QPA_PLATFORM=offscreen pytest
 ```
 
+## Debug-Modus und Testen
+
+```
+python -m topfpflanze --debug              # eigener Spielstand im Unterordner «debug»
+python -m topfpflanze --debug --speed 60   # mit Zeitraffer
+python -m topfpflanze --data-dir ~/test    # beliebiger Spielstandordner (auch ohne Debug)
+```
+
+Im Debug-Modus zeigt das Pflanzenfenster oben links «DEBUG», und das Rechtsklick-Menü hat den Eintrag **Debug**:
+Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer, passives Einkommen), Coins, Wachstum und Wasser setzen,
+Besucher erscheinen lassen, Fokus-Timer (1 Minute), Tastendrücke/Klicks für Erfolge, Tages-/Wochenerfolge zurücksetzen,
+alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
+
+## Aufbau (`src/topfpflanze/`)
+
+| Modul | Inhalt |
+|---|---|
+| `app.py` | Programmstart, Kommandozeile, Spielanleitung im Kopf |
+| `config.py` | Pfade, Fenstergrössen, Coin-Konstanten |
+| `data.py` | Pflanzenarten, Dünger, Helfer, Besucher, Erfolge, Topfgeometrie |
+| `plant.py` | Pflanzenfenster: Spielzustand, Logik, Eingaben, Menü |
+| `plant_draw.py` | Zeichnen von Topf, Erde, Partikeln, Pflanzen |
+| `bubble.py`, `shop.py`, `garden.py`, `panels.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch |
+| `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
+| `keys.py` | Tastaturzählung (nur Anzahl) |
+| `debug.py` | Debug-Modus |
+
+Neue Pflanze: Eintrag in `data.py` (`PLANT_TYPES`, `PLANT_ORDER`, ggf. `POTS`) und eine `draw_<key>`-Methode in `plant_draw.py`.
+
 ## Offene Punkte / Roadmap
 
 - Auf echten Windows-/macOS-Systemen testen (bisher nur unter Linux offscreen geprüft).
 - Autostart, Tray-Symbol, Signierung/Notarisierung der Builds.
-- `game.py` (2700 Zeilen) in Module aufteilen: Daten, Zeichnen, Fenster, Speicherstand.
 - Mehrsprachigkeit (derzeit nur Deutsch/Schweizer Schreibweise).

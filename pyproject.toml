@@ -19,7 +19,7 @@ linux-keys = ["evdev>=1.6", "pynput>=1.7"]
 dev = ["pytest>=7", "pyinstaller>=6"]
 
 [project.gui-scripts]
-topfpflanze = "topfpflanze.game:main"
+topfpflanze = "topfpflanze.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
