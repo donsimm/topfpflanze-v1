@@ -19,7 +19,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: pip install -e ".[dev]"
+      - name: Installieren
+        shell: bash
+        run: |
+          pip install -e ".[dev]"
+          if [ "${{ matrix.name }}" = linux ]; then
+            pip install pynput
+            pip install evdev || echo "evdev nicht verfügbar, Tastaturzählung nur über pynput"
+          fi
       - name: Build
         run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src src/topfpflanze/__main__.py
       - name: Packen
@@ -39,4 +46,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with: {merge-multiple: true}
       - uses: softprops/action-gh-release@v2
-        with: {files: "Topfpflanze-*"}
+        with:
+          files: "Topfpflanze-*"
+          generate_release_notes: true
+          body: |
+            Eigenständige Programme, keine Python-Installation nötig. Spielstand bleibt beim Update erhalten.
+
+            - **Windows:** ZIP entpacken, `Topfpflanze.exe` starten. SmartScreen: «Weitere Informationen → Trotzdem ausführen» (nicht signiert).
+            - **macOS:** ZIP entpacken, App per Rechtsklick → Öffnen starten (nicht signiert). Systemeinstellungen → Datenschutz → «Eingabeüberwachung» für die Tastaturzählung freigeben.
+            - **Linux:** `tar xzf Topfpflanze-linux.tar.gz && ./Topfpflanze/Topfpflanze`. Benötigt `libxcb-cursor0` (`sudo apt install libxcb-cursor0`); für Wayland Benutzer in Gruppe `input`.
