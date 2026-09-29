@@ -11,6 +11,8 @@ pip install ".[linux-keys]"   # Linux: zusätzlich evdev (Wayland)
 topfpflanze              # oder: python -m topfpflanze
 ```
 
+Debian/Ubuntu: vorher `sudo apt install python3-venv python3-pip libxcb-cursor0`, dann in einer virtuellen Umgebung installieren (`python3 -m venv .venv && source .venv/bin/activate`). Ohne `libxcb-cursor0` startet Qt (ab 6.5) nicht.
+
 Fertige Programme für Windows, macOS und Linux erzeugt der Workflow `Release` (Git-Tag `vX.Y.Z`) und hängt sie an die GitHub-Release-Seite.
 
 ## Plattformhinweise
