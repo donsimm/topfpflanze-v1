@@ -16,6 +16,7 @@ from .bubble import Bubble
 from .config import MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from .garden import Garden
+from .info import InfoWin
 from .keys import KeyCounter
 from .panels import AchievementsWin, BookWin, FocusWin
 from .plant_draw import PlantDrawMixin
@@ -73,8 +74,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.ach_win = AchievementsWin(self)
         self.focus_win = FocusWin(self)
         self.book_win = BookWin(self)
+        self.info_win = InfoWin(self)
         self.windows = {"shop": self.shop, "garden": self.garden, "ach": self.ach_win,
-                        "focus": self.focus_win, "book": self.book_win}
+                        "focus": self.focus_win, "book": self.book_win, "info": self.info_win}
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick)
@@ -146,7 +148,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if hasattr(self, "garden"):
             self.state["garden_pos"] = [self.garden.x(), self.garden.y()]
         if hasattr(self, "windows"):
-            for win in (self.ach_win, self.focus_win, self.book_win):
+            for win in (self.ach_win, self.focus_win, self.book_win, self.info_win):
                 self.state[win.pos_key] = [win.x(), win.y()]
         try:
             config.STATE_DIR.mkdir(parents=True, exist_ok=True)

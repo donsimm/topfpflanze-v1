@@ -17,7 +17,7 @@ Bedienung:
   Taschen-Symbol             Dünger-Shop öffnen/schliessen
   Gartenhaus-Symbol          Gartenhaus (Ehrenhalle) öffnen/schliessen
 
-Sprechblase: oben die fünf Pflanzen, darunter die Werkzeuge
+Sprechblase: oben die fünf Pflanzen, darunter die Werkzeuge (inkl. Info-Fenster mit allen Regeln und Werten)
   Shop · Gartenhaus · Erfolge · Fokus-Timer · Besucher-Sammelbuch
 
 Helfer (Shop > Reiter «Helfer», einmal kaufen, einzeln ein-/ausschaltbar):

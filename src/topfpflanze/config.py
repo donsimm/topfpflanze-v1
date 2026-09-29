@@ -39,9 +39,9 @@ BUBBLE_ROWS_H = 164         # Höhe des Textbereichs
 ICON, ICON_GAP = 30, 7 * 2 / 3  # Pflanzensymbole in der Sprechblase
 SHOP_GAP = 16 * 2 / 3        # (nicht mehr verwendet)
 TOOL, TOOL_GAP = 24, 6       # Werkzeugsymbole (zweite Reihe)
-TOOL_ORDER = ["shop", "garden", "ach", "focus", "book"]
+TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "info"]
 TOOL_NAMES = {"shop": "Shop", "garden": "Gartenhaus", "ach": "Erfolge", "focus": "Fokus-Timer",
-              "book": "Besucher-Sammelbuch"}
+              "book": "Besucher-Sammelbuch", "info": "Info"}
 SHOP_W, SHOP_H = 270, 304
 GARDEN_W, GARDEN_H = 300, 444
 

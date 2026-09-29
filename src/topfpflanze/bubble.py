@@ -100,6 +100,8 @@ class Bubble(ScaledWidget):
             return f"Erfolge {verb}\n{pl.ach_summary()}" + (f"\n{pend} zum Abholen bereit" if pend else "")
         if key == "focus":
             return f"Fokus-Timer {verb}\n{pl.focus_summary()}"
+        if key == "info":
+            return f"Info {verb}\nSpielregeln und Werte"
         if key == "book":
             return (f"Besucher-Sammelbuch {verb}\n"
                     f"{len(pl.state.get('book', {}))} / {len(VISITORS)} entdeckt")
@@ -357,6 +359,15 @@ class Bubble(ScaledWidget):
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QColor("#4C9A4A"))
             p.drawEllipse(QPointF(15, 16), 1.4, 1.4)
+
+        elif key == "info":
+            p.setPen(QPen(QColor("#2F6DB5"), 1.3))
+            p.setBrush(QColor("#DCEBFA"))
+            p.drawEllipse(QPointF(15, 15), 10.5, 10.5)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor("#2F6DB5"))
+            p.drawEllipse(QPointF(15, 9.3), 1.7, 1.7)
+            p.drawRoundedRect(QRectF(13.5, 12.6, 3, 9), 1.2, 1.2)
 
         elif key == "book":
             p.setPen(QPen(QColor("#2E5A2E"), 0.9))

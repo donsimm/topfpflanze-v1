@@ -357,3 +357,36 @@ def test_close_button_tooltip(plant):
         assert win.event(_help_event(win, win.close_rect().center()))
         assert tooltip.current_text() == "Schliessen"
         tooltip.hide_tip()
+
+
+def test_info_window_content_and_scroll(plant):
+    from topfpflanze import info
+    w = plant.info_win
+    assert "info" in plant.windows and "info" in config.TOOL_ORDER
+    for key, _name in info.TABS:
+        w.tab, w.scroll = key, 0.0
+        w.cache.clear()
+        items, total = w.layout()
+        assert items and total > 0
+        assert not w.grab().isNull()
+    # Werte stammen aus den Daten
+    text = " ".join(str(b) for b in info.blocks("pfl"))
+    for k in data.PLANT_TYPES.values():
+        assert k.name in text and f"{k.growth_per_click:g}" in text
+    text = " ".join(str(b) for b in info.blocks("shop"))
+    for f in data.FERTILIZERS.values():
+        assert f.name in text
+    for h in data.HELPERS.values():
+        assert h.name in text and h.desc in text
+    # Reiter wechseln setzt Scroll zurück, Scroll ist begrenzt
+    w.tab = "reg"
+    assert w.max_scroll() > 0
+    w.scroll = 1e9
+    w.wheelEvent(type("E", (), {"angleDelta": lambda self: type("P", (), {"y": lambda s: 0})()})())
+    assert w.scroll <= w.max_scroll()
+    w.on_click(("tab", "bed"))
+    assert w.tab == "bed" and w.scroll == 0.0
+    plant.state["info_pos"] = None
+    plant.save_state()
+    assert plant.state["info_pos"] is not None
+    assert plant.bubble.tooltip_text("info").startswith("Info öffnen")
