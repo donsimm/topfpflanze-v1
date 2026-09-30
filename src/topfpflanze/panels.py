@@ -456,12 +456,12 @@ class BookWin(Panel):
     COLS = 4
 
     def __init__(self, plant):
-        super().__init__(plant, 300, 334, "book_pos")
+        super().__init__(plant, 300, 352, "book_pos")
 
     def card_rects(self):
-        gap, x0, y0 = 6, 12, 58
+        gap, x0, y0 = 8, 12, 58
         cw = (self.width() - 2 * x0 - (self.COLS - 1) * gap) / self.COLS
-        ch = 104
+        ch = 112
         return [(key, QRectF(x0 + (i % self.COLS) * (cw + gap), y0 + (i // self.COLS) * (ch + gap), cw, ch))
                 for i, key in enumerate(VISITOR_ORDER)]
 
@@ -486,7 +486,7 @@ class BookWin(Panel):
                 p.setPen(QPen(T("cell_border"), 1))
             p.setBrush(T("cell"))
             p.drawRoundedRect(r, 7, 7)
-            draw_visitor(p, key, QPointF(r.center().x(), r.top() + 34), 2.3, plant.t + hash(key) % 7,
+            draw_visitor(p, key, QPointF(r.center().x(), r.top() + 38), 2.3, plant.t + hash(key) % 7,
                          silhouette=not found)
             p.setFont(self.font_px(base, 10, True))
             p.setPen(T("text") if found else T("muted"))
@@ -494,13 +494,13 @@ class BookWin(Panel):
             while p.fontMetrics().horizontalAdvance(v.name if found else "???") > r.width() - 6 and name_font.pixelSize() > 7:
                 name_font.setPixelSize(name_font.pixelSize() - 1)
                 p.setFont(name_font)
-            p.drawText(QRectF(r.left() + 2, r.top() + 62, r.width() - 4, 14), Qt.AlignmentFlag.AlignCenter,
+            p.drawText(QRectF(r.left() + 2, r.top() + 64, r.width() - 4, 14), Qt.AlignmentFlag.AlignCenter,
                        v.name if found else "???")
             p.setFont(self.font_px(base, 9))
             p.setPen(rarity_col[v.rarity])
-            p.drawText(QRectF(r.left() + 2, r.top() + 76, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter, v.rarity)
+            p.drawText(QRectF(r.left() + 2, r.top() + 78, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter, v.rarity)
             p.setPen(T("text2"))
-            p.drawText(QRectF(r.left() + 2, r.top() + 88, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter,
+            p.drawText(QRectF(r.left() + 2, r.top() + 90, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter,
                        (f"{book[key]['count']}× gesehen" if book[key]['count'] < 100 else f"{book[key]['count']}×")
                        if found else "unbekannt")
             if found:
@@ -508,17 +508,17 @@ class BookWin(Panel):
                 nxt = next((s for s in MASTERY_STEPS if count < s), None)
                 prev = MASTERY_STEPS[tier - 1] if tier else 0
                 frac = 1.0 if nxt is None else (count - prev) / (nxt - prev)
-                bar = QRectF(r.left() + 8, r.bottom() - 4, r.width() - 16, 2.5)
+                bar = QRectF(r.left() + 10, r.bottom() - 8, r.width() - 20, 2.5)
                 p.setPen(Qt.PenStyle.NoPen)
                 p.setBrush(T("sep"))
                 p.drawRoundedRect(bar, 1.2, 1.2)
                 p.setBrush(TIER_COLORS[min(tier, 2)] if nxt is None else TIER_COLORS[tier])
                 p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * frac, 2.5), 1.2, 1.2)
                 # Setzling oben links: Keimspitze (noch keine Stufe) oder 1–3 Blätter
-                draw_seedling(p, QPointF(r.left() + 12, r.top() + 23), 18, tier,
+                draw_seedling(p, QPointF(r.left() + 11, r.top() + 16.2), 14, tier,
                               TIER_COLORS[tier - 1] if tier else QColor("#8CC084"))
                 has_var = book[key].get("shiny", 0) > 0
-                draw_star(p, QPointF(r.right() - 9, r.top() + 9), 5.5,
+                draw_star(p, QPointF(r.right() - 11, r.top() + 11), 5.5,
                           "#F2C230" if has_var else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
                           "#B8860B" if has_var else "#9A958A")
 
