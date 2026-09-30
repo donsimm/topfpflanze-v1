@@ -12,7 +12,8 @@ jobs:
       matrix:
         include:
           - {os: windows-latest, name: windows}
-          - {os: macos-latest, name: macos}
+          - {os: macos-latest, name: macos-arm}      # Apple Silicon (M1 und neuer)
+          - {os: macos-15-intel, name: macos-intel}  # Intel-Macs (ältere Modelle)
           - {os: ubuntu-latest, name: linux}
     runs-on: ${{ matrix.os }}
     steps:
@@ -37,7 +38,8 @@ jobs:
         run: |
           cd dist
           if [ "${{ matrix.name }}" = windows ]; then 7z a ../Topfpflanze-windows.zip Topfpflanze
-          elif [ "${{ matrix.name }}" = macos ]; then zip -r ../Topfpflanze-macos.zip Topfpflanze.app
+          elif [ "${{ matrix.name }}" = macos-arm ]; then zip -r ../Topfpflanze-macos-apple-silicon.zip Topfpflanze.app
+          elif [ "${{ matrix.name }}" = macos-intel ]; then zip -r ../Topfpflanze-macos-intel.zip Topfpflanze.app
           else tar czf ../Topfpflanze-linux.tar.gz Topfpflanze; fi
       - uses: actions/upload-artifact@v4
         with: {name: "${{ matrix.name }}", path: "Topfpflanze-*"}
@@ -56,5 +58,5 @@ jobs:
             Eigenständige Programme, keine Python-Installation nötig. Spielstand bleibt beim Update erhalten.
 
             - **Windows:** ZIP entpacken, `Topfpflanze.exe` starten. SmartScreen: «Weitere Informationen → Trotzdem ausführen» (nicht signiert).
-            - **macOS:** ZIP entpacken, App per Rechtsklick → Öffnen starten (nicht signiert). Systemeinstellungen → Datenschutz → «Eingabeüberwachung» für die Tastaturzählung freigeben.
+            - **macOS:** `Topfpflanze-macos-apple-silicon.zip` für Macs mit M1 oder neuer, `Topfpflanze-macos-intel.zip` für ältere Macs mit Intel-Prozessor (Apple-Menü → «Über diesen Mac» zeigt den Chip). ZIP entpacken, App per Rechtsklick → Öffnen starten (nicht signiert). Systemeinstellungen → Datenschutz → «Eingabeüberwachung» für die Tastaturzählung freigeben.
             - **Linux:** `tar xzf Topfpflanze-linux.tar.gz && ./Topfpflanze/Topfpflanze`. Benötigt `libxcb-cursor0` (`sudo apt install libxcb-cursor0`); für Wayland Benutzer in Gruppe `input`.

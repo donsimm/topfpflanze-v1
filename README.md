@@ -22,7 +22,7 @@ bash scripts/install-linux.sh --autostart  # zusätzlich beim Anmelden starten
 
 Meldungen des Spiels landen dann in `~/.local/share/topfpflanze/topfpflanze.log`.
 
-Fertige Programme für Windows, macOS und Linux erzeugt der Workflow `Release` (Git-Tag `vX.Y.Z`) und hängt sie an die GitHub-Release-Seite.
+Fertige Programme für Windows, macOS (Apple Silicon und Intel) und Linux erzeugt der Workflow `Release` (Git-Tag `vX.Y.Z`) und hängt sie an die GitHub-Release-Seite.
 
 ## Plattformhinweise
 
