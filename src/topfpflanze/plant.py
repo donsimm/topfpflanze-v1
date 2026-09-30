@@ -13,7 +13,7 @@ from PyQt6.QtGui import QActionGroup, QColor
 
 from . import config, debug, scaling
 from .bubble import Bubble
-from .config import MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
+from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from .garden import Garden
 from .info import InfoWin
@@ -592,7 +592,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if not self.visitor:
             return False
         vp = self.visitor_pos()
-        if (vp - pos).manhattanLength() > 22:
+        if (vp - pos).manhattanLength() > 22 * VISITOR_SCALE / 1.25:
             return False
         name = VISITORS[self.visitor["key"]].name
         self.state["coins"] = self.state.get("coins", 0) + VISIT_GREET_COINS

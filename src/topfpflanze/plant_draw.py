@@ -6,7 +6,7 @@ from PyQt6.QtGui import QBrush, QColor, QFont, QImage, QLinearGradient, QPainter
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from . import debug, helper_art
-from .config import PLANT_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
+from .config import PLANT_SCALE, VISITOR_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
 from .data import PLANT_TYPES, POTS, VISITORS
 from .drawing import draw_coin, draw_visitor, round_pen
 from .util import bezier, cubic, drop_path, mix, water_status
@@ -104,7 +104,7 @@ class PlantDrawMixin:
                 flip = math.cos(a * 0.8 + v["phase"]) * v["side"] > 0
             elif vt.move == "sit":
                 flip = v["side"] < 0
-            draw_visitor(p, v["key"], pos, 1.25, self.t, alpha=fade, flip=flip)
+            draw_visitor(p, v["key"], pos, VISITOR_SCALE, self.t, alpha=fade, flip=flip)
 
     def draw_soil(self, p):
         cx, sy = WIN_W / 2, self.pot["soil_y"]
