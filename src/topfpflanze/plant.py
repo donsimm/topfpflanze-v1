@@ -309,6 +309,10 @@ class Plant(PlantDrawMixin, ScaledWidget):
             m *= FOCUS_MULT
         return m
 
+    def prestige_ready(self):
+        """Die gewählte Pflanze ist ausgewachsen (Blüte erreicht) und kann fürs Prestige eingelagert werden."""
+        return self.ps["growth"] >= self.kind.bloom_at
+
     def prestige_level(self, key=None):
         return self.state.get("prestige", {}).get(key or self.state["current"], 0)
 

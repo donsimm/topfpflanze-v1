@@ -13,6 +13,7 @@ CHANGELOG = [
         "Besucher-Stufen Besucher, Stammgast und Gartenbewohner (Setzling mit 1–3 Blättern im Sammelbuch), Belohnung in Gold; jeder Gartenbewohner gibt +1 % Wachstum.",
         "Seltene Farbvarianten der Besucher, mit Stern im Sammelbuch; der Name wird in Gold angezeigt, sobald gefunden.",
         "Info-Fenster mit Reiter «Version» und Release Notes.",
+        "Goldene Aura hinter der Pflanze, sobald sie für das Prestige bereit ist (blüht).",
     ]),
     ("0.1.0", "29.09.2026", [
         "Fünf Pflanzen mit eigenen Töpfen und Spielständen; Wachstum durch Klicks und Tastendrücke.",

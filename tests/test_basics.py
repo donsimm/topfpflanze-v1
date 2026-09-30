@@ -507,3 +507,37 @@ def test_version_tab_and_changelog(plant):
     import re, pathlib
     pyproject = (pathlib.Path(__file__).parent.parent / "pyproject.toml").read_text(encoding="utf-8")
     assert re.search(rf'^version = "{re.escape(__version__)}"$', pyproject, re.M)
+
+
+def _aura_alpha(plant, t):
+    plant.t = t
+    img = plant.grab().toImage()
+    return img.pixelColor(60, 190).alpha()  # seitlich der Pflanze, innerhalb der Aura
+
+
+def test_prestige_aura_only_when_ready_and_breathes(plant):
+    from topfpflanze import config
+    plant.select_plant("wiesenblume")
+    plant.ps["growth"] = plant.kind.bloom_at * 0.9
+    assert not plant.prestige_ready()
+    assert _aura_alpha(plant, 0.0) == 0
+    plant.ps["growth"] = plant.kind.bloom_at
+    assert plant.prestige_ready()
+    period = config.PRESTIGE_AURA_PERIOD
+    dark = _aura_alpha(plant, 0.0)               # Atemzug: dunkelster Punkt
+    bright = _aura_alpha(plant, period / 2)      # hellster Punkt
+    assert 0 < dark < bright
+    assert bright <= config.PRESTIGE_AURA_ALPHA[1]  # bleibt dezent
+    assert abs(_aura_alpha(plant, period) - dark) <= 1  # periodisch
+    plant.ps["growth"] = plant.kind.bloom_at * 3   # auch weit nach der Blüte
+    assert plant.prestige_ready()
+
+
+def test_prestige_aura_not_in_garden_snapshot(plant):
+    plant.select_plant("wiesenblume")
+    plant.ps["growth"] = plant.kind.bloom_at
+    plant.t = 1.5
+    entry = {"key": "wiesenblume", "growth": plant.kind.bloom_at, "seed": 1, "color": None, "created": 0}
+    pix = plant.snapshot(entry, scale=1)
+    img = pix.toImage() if hasattr(pix, "toImage") else pix
+    assert img.pixelColor(int(60), 190).alpha() == 0

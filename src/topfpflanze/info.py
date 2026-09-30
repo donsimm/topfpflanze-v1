@@ -73,7 +73,8 @@ def blocks(tab, plant=None):
                   f"Passiv {PASSIVE_PER_HOUR} Gold pro Stunde."),
             ("h", "Prestige"),
             ("p", f"Blühende Pflanze einlagern: Stufe der Art +1 (dauerhaft +{pct(PRESTIGE_BONUS)} Wachstum und "
-                  "Gold). Nicht ausgewachsene kommen nur ins Gartenhaus."),
+                  "Gold). Nicht ausgewachsene kommen nur ins Gartenhaus. Bereit ist die Pflanze, sobald sie "
+                  "blüht: eine sanfte goldene Aura leuchtet dann hinter ihr."),
             ("h", "Fokus-Timer"),
             ("p", f"{' / '.join(str(m) for m in FOCUS_PRESETS)} min mit ×{G(FOCUS_MULT)} Wachstum. "
                   "Belohnung: Minuten ÷ 5 Gold. Abbruch kostet nur den Bonus."),

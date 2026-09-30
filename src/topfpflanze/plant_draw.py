@@ -2,11 +2,12 @@
 
 import math
 import random
-from PyQt6.QtGui import QBrush, QColor, QFont, QImage, QLinearGradient, QPainter, QPainterPath, QPen
+from PyQt6.QtGui import (QBrush, QColor, QFont, QImage, QLinearGradient, QPainter, QPainterPath, QPen,
+                         QRadialGradient)
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from . import debug, helper_art
-from .config import PLANT_SCALE, VISITOR_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
+from .config import PLANT_SCALE, PRESTIGE_AURA_ALPHA, PRESTIGE_AURA_PERIOD, VISITOR_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
 from .data import PLANT_TYPES, POTS, VISITORS
 from .drawing import draw_coin, draw_visitor, round_pen
 from .util import bezier, cubic, drop_path, mix, water_status
@@ -52,6 +53,8 @@ class PlantDrawMixin:
         cx, sy = WIN_W / 2, self.pot["soil_y"]
         p.save()
         p.translate(0, SCENE_DY)
+        if particles:
+            self.draw_prestige_aura(p)
         getattr(self, "draw_pot_" + self.kind.pot)(p)
         self.draw_soil(p)
         if particles:
@@ -70,6 +73,30 @@ class PlantDrawMixin:
             self.draw_particles(p)
         if drop:
             self.draw_water_drop(p)
+        p.restore()
+
+    def draw_prestige_aura(self, p):
+        """Goldene Aura hinter der ganzen Pflanze, solange sie für das Prestige bereit ist (Blüte erreicht).
+        Sehr dezent, atmet langsam: Deckkraft pendelt zwischen den Werten in PRESTIGE_AURA_ALPHA."""
+        if not self.prestige_ready():
+            return
+        lo, hi = PRESTIGE_AURA_ALPHA
+        breath = 0.5 - 0.5 * math.cos(2 * math.pi * self.t / PRESTIGE_AURA_PERIOD)  # 0..1
+        alpha = lo + (hi - lo) * breath
+        tp, sy = self.top_point, self.pot["soil_y"]
+        cx, cy = WIN_W / 2, (tp.y() + sy) / 2 + 10
+        rx = 100.0
+        ry = min(210.0, (sy - tp.y()) / 2 + 70)
+        g = QRadialGradient(QPointF(0, 0), rx)
+        g.setColorAt(0.0, QColor(255, 214, 80, int(alpha)))
+        g.setColorAt(0.55, QColor(255, 214, 80, int(alpha * 0.45)))
+        g.setColorAt(1.0, QColor(255, 214, 80, 0))
+        p.save()
+        p.translate(cx, cy)
+        p.scale(1.0, ry / rx)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QBrush(g))
+        p.drawEllipse(QPointF(0, 0), rx, rx)
         p.restore()
 
     def draw_helpers_ground(self, p):
