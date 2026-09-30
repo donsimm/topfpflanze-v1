@@ -891,6 +891,25 @@ def test_focus_start_hides_menus_and_shrinks_timer_then_restores_them(plant):
         assert (w.x(), w.y()) == before[id(w)]  # nichts hat sich verschoben
 
 
+def test_focus_has_ten_minute_preset_and_compact_abort_x(plant):
+    from PyQt6.QtCore import QPointF, QEvent, Qt
+    from PyQt6.QtGui import QMouseEvent
+    from topfpflanze.data import FOCUS_PRESETS
+    assert FOCUS_PRESETS[0] == 10 and plant.state["focus_minutes"] == 25
+    assert [k for k, _r in plant.focus_win.preset_rects()][0] == "p10"
+    plant.focus_win.show()
+    plant.focus_win.on_click("p10")
+    assert plant.state["focus_minutes"] == 10
+    plant.start_focus(10)
+    w = plant.focus_win
+    assert w.compact and not w.grab().isNull()
+    assert "abbrechen" in w.tooltip_at(w.abort_rect().center())
+    ev = QMouseEvent(QEvent.Type.MouseButtonPress, QPointF(w.abort_rect().center()), w.mapToGlobal(QPointF(w.abort_rect().center())),
+                     Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    w.mousePressEvent(ev)
+    assert plant.focus is None and not w.compact
+
+
 def test_focus_abort_restores_windows_too(plant):
     plant.bubble.show()
     plant.info_win.show()
@@ -926,7 +945,7 @@ def test_focus_mode_switch_is_locked_while_running(plant):
     items = {k: c for k, _r, c in plant.focus_win.items()}
     assert items["mode"] and items["start"]
     plant.start_focus(25)
-    assert plant.focus_win.items() == []             # kompakt: nichts anklickbar
+    assert [k for k, _r, _c in plant.focus_win.items()] == ["abort"]   # kompakt: nur das X ist anklickbar
     plant.abort_focus()
     plant.state["focus_mode"] = False
     plant.start_focus(25)                            # ohne Fokusmodus läuft das normale Fenster weiter

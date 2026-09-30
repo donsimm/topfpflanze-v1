@@ -5,7 +5,7 @@ import time
 from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .data import MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
+from .data import MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_DEFAULT, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
 from .drawing import draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_date, fmt_int, fmt_left
@@ -414,14 +414,23 @@ class FocusWin(Panel):
         if not self.compact:
             return super().mousePressEvent(e)
         if e.button() == Qt.MouseButton.LeftButton:
+            if self.abort_rect().contains(e.position()):
+                self.plant.abort_focus()
+                return
             handle = self.windowHandle()
             if handle:
                 handle.startSystemMove()
         elif e.button() == Qt.MouseButton.RightButton:
             self.plant.show_menu(e.globalPosition().toPoint())
 
+    def abort_rect(self):
+        """Klickfläche des kleinen X unter der Zeit (nur im Fokusmodus)."""
+        return QRectF(self.width() / 2 - 11, self.height() / 2 + 20, 22, 20)
+
     def tooltip_at(self, pos):
         if self.compact:
+            if self.abort_rect().contains(pos):
+                return "Fokus abbrechen\nKein Bonus für diese Sitzung."
             rem, _ = self.plant.focus_remaining()
             m, sec = divmod(int(math.ceil(rem)), 60)
             return f"Fokus läuft: noch {m:02d}:{sec:02d}\nRechtsklick: Menü, Fokus abbrechen"
@@ -442,7 +451,7 @@ class FocusWin(Panel):
         halo = T("panel")
         halo.setAlpha(175)
         p.setBrush(Qt.BrushStyle.NoBrush)
-        p.setPen(QPen(halo, 12))
+        p.setPen(QPen(halo, 9))
         p.drawEllipse(c, R, R)
         track = T("text2")
         track.setAlpha(110)
@@ -461,18 +470,26 @@ class FocusWin(Panel):
         path.addText(c.x() - fm.horizontalAdvance(text) / 2, c.y() + fm.ascent() / 2 - 2, font, text)
         outline = T("panel")
         outline.setAlpha(230)
-        p.setPen(QPen(outline, 4.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.setPen(QPen(outline, 2.4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawPath(path)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(T("text"))
         p.drawPath(path)
+        ar = self.abort_rect()                      # kleines X zum Abbrechen
+        hot = self.hover == "abort"
+        a = QPointF(ar.center().x(), ar.center().y())
+        for col, w in ((outline, 3.2), (QColor("#D64541") if hot else T("text2"), 1.4)):
+            p.setPen(QPen(col, w, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.drawLine(QPointF(a.x() - 3.5, a.y() - 3.5), QPointF(a.x() + 3.5, a.y() + 3.5))
+            p.drawLine(QPointF(a.x() - 3.5, a.y() + 3.5), QPointF(a.x() + 3.5, a.y() - 3.5))
         p.end()
 
     # ---------- Normales Fenster ----------
 
     def preset_rects(self):
-        w = (self.width() - 24 - 12) / 3
+        n = len(FOCUS_PRESETS)
+        w = (self.width() - 24 - 6 * (n - 1)) / n
         return [(f"p{m}", QRectF(12 + i * (w + 6), 58, w, 24)) for i, m in enumerate(FOCUS_PRESETS)]
 
     def button_rect(self):
@@ -483,7 +500,7 @@ class FocusWin(Panel):
 
     def items(self):
         if self.compact:
-            return []
+            return [("abort", self.abort_rect(), True)]
         running = self.plant.focus is not None
         return ([(k, r, not running) for k, r in self.preset_rects()] + [("start", self.button_rect(), True),
                                                                           ("mode", self.mode_rect(), not running)])
@@ -493,7 +510,7 @@ class FocusWin(Panel):
             if self.plant.focus:
                 self.plant.abort_focus()
             else:
-                self.plant.start_focus(self.plant.state.get("focus_minutes", FOCUS_PRESETS[0]))
+                self.plant.start_focus(self.plant.state.get("focus_minutes", FOCUS_DEFAULT))
         elif key == "mode":
             self.plant.state["focus_mode"] = not self.plant.state.get("focus_mode", True)
             self.plant.save_state()
@@ -508,7 +525,7 @@ class FocusWin(Panel):
         p = self.begin("Fokus-Timer", f"Wachstum ×{FOCUS_MULT:g} während der Sitzung")
         base = self.font()
         running = plant.focus is not None
-        chosen = plant.state.get("focus_minutes", FOCUS_PRESETS[0])
+        chosen = plant.state.get("focus_minutes", FOCUS_DEFAULT)
         for key, r in self.preset_rects():
             m = int(key[1:])
             sel = m == (plant.focus["minutes"] if running else chosen)

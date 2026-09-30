@@ -132,7 +132,8 @@ GNOME_INTERVAL = 30.0         # Gartenzwerg: alle 30 Sekunden
 LAMP_BOOST = 0.10             # Pflanzenlampe: +10 %
 PRESTIGE_BONUS = 0.10         # je Prestige-Stufe: +10 % Wachstum und Gold
 FOCUS_MULT = 2.0              # Fokus-Timer: doppeltes Wachstum
-FOCUS_PRESETS = (25, 45, 60)
+FOCUS_PRESETS = (10, 25, 45, 60)
+FOCUS_DEFAULT = 25
 
 
 # ---------------------------------------------------------------- Besucher (Sammelbuch)
