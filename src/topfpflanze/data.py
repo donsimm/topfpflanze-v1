@@ -171,6 +171,36 @@ VISITOR_ORDER = ["marienkaefer", "kohlweissling", "biene", "zitronenfalter",
 VISIT_DURATION = 30.0
 VISIT_GREET_COINS = 3
 
+# Meisterschaft: Stufen je Besucher nach Anzahl Besuche (Varianten zählen mit)
+MASTERY_STEPS = (10, 50, 200)
+MASTERY_NAMES = ("Bronze", "Silber", "Gold")
+MASTERY_COINS = (20, 60, 150)                          # Belohnung je Stufe, mal Seltenheitsfaktor
+RARITY_MULT = {"häufig": 1.0, "selten": 1.5, "sehr selten": 2.0}
+MASTERY_GOLD_BONUS = 0.01                              # je Besucher auf Gold: +1 % Wachstum (dauerhaft)
+
+# Farbvarianten («Schillernde»): Chance je Besuch nach Seltenheit, Belohnung beim Begrüssen
+SHINY_CHANCE = {"häufig": 0.05, "selten": 0.08, "sehr selten": 0.12}
+SHINY_GREET_COINS = 15
+
+
+@dataclass(frozen=True)
+class Variant:
+    name: str
+    colors: tuple    # Paare (Originalfarbe, Variantenfarbe) als Hex
+    glow: tuple = ()  # optional: (r, g, b) für leuchtende Besucher
+
+
+VARIANTS = {
+    "marienkaefer": Variant("Goldener Marienkäfer", (("#D62828", "#F2C230"),)),
+    "kohlweissling": Variant("Blauer Kohlweissling", (("#F4F4EE", "#BFD9FF"), ("#EDEDE4", "#A9C7F5"))),
+    "biene": Variant("Blaue Biene", (("#F2C230", "#4FA3E0"),)),
+    "zitronenfalter": Variant("Rosa Zitronenfalter", (("#F3E24A", "#F49AC2"), ("#EFD93C", "#EE86B4"))),
+    "libelle": Variant("Rote Libelle", (("#2E86C1", "#D64541"),)),
+    "tagpfauenauge": Variant("Violettes Tagpfauenauge", (("#B5311F", "#7B4FC4"), ("#8E2718", "#5B3A9E"))),
+    "rotkehlchen": Variant("Weisses Rotkehlchen", (("#7A6650", "#F0ECE0"), ("#E4572E", "#F4C9B8"))),
+    "gluehwuermchen": Variant("Blaues Glühwürmchen", (), (140, 200, 255)),
+}
+
 
 # ---------------------------------------------------------------- Erfolge
 

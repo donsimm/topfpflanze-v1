@@ -14,7 +14,7 @@ from PyQt6.QtGui import QActionGroup, QColor
 from . import config, debug, scaling
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
-from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
+from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_GOLD_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -302,6 +302,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         fz, _ = self.fert()
         m = 1.0 + fz.boost if fz else 1.0
         m *= 1.0 + PRESTIGE_BONUS * self.prestige_level()
+        m *= 1.0 + MASTERY_GOLD_BONUS * self.gold_count()
         if self.helper_on("lampe"):
             m *= 1.0 + LAMP_BOOST
         if self.focus:
@@ -381,6 +382,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
     def check_achievements(self):
         """Merkt erreichte Erfolge zur Abholung vor; die Coins gibt es erst beim Einlösen."""
         self.ensure_periods()
+        self.check_mastery()
         pending = self.state.setdefault("ach_pending", [])
         for a in ACHIEVEMENTS:
             done = self.ach_done_list(a.period)
@@ -402,7 +404,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
     def ach_expired(self):
         """Nicht abgeholte tägliche/wöchentliche Erfolge früherer Perioden."""
         return [e for e in self.state.get("ach_pending", [])
-                if e.get("pid", "") != self.ach_pid(e.get("period", "general"))]
+                if e.get("period") == "mastery" or e.get("pid", "") != self.ach_pid(e.get("period", "general"))]
 
     def ach_pending_total(self):
         return sum(e["reward"] for e in self.state.get("ach_pending", []))
@@ -555,7 +557,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if random.random() < chance:
             self.spawn_visitor()
 
-    def spawn_visitor(self, key=None):
+    def spawn_visitor(self, key=None, shiny=None):
+        """Lässt einen Besucher kommen; shiny: True/False erzwingt, None = Zufall nach Seltenheit."""
         cands = self.visitor_candidates()
         if key:
             v = VISITORS[key]
@@ -563,14 +566,53 @@ class Plant(PlantDrawMixin, ScaledWidget):
             v = random.choices(cands, weights=[c.weight for c in cands])[0]
         else:
             return
+        if shiny is None:
+            shiny = random.random() < SHINY_CHANCE[v.rarity]
         self.visitor = {"key": v.key, "start": self.t, "dur": VISIT_DURATION,
-                        "phase": random.uniform(0, 6.28), "side": random.choice((-1, 1))}
+                        "phase": random.uniform(0, 6.28), "side": random.choice((-1, 1)), "shiny": bool(shiny)}
         book = self.state.setdefault("book", {})
         entry = book.setdefault(v.key, {"count": 0, "first": time.time()})
         entry["count"] += 1
-        if entry["count"] == 1:
+        if shiny:
+            entry["shiny"] = entry.get("shiny", 0) + 1
+            if entry["shiny"] == 1:
+                entry["shiny_first"] = time.time()
+                self.popup(f"Neu: {VARIANTS[v.key].name}!", coin=False)
+            else:
+                self.popup(f"Schillernd: {VARIANTS[v.key].name}", coin=False)
+        elif entry["count"] == 1:
             self.popup(f"Neu: {v.name}!", coin=False)
-            self.save_state()
+        self.check_mastery()
+        self.save_state()
+
+    # ---------- Meisterschaft ----------
+
+    def mastery_tier(self, key):
+        """Erreichte Stufe (0 = keine, 1 Bronze, 2 Silber, 3 Gold) nach Anzahl Besuche."""
+        count = self.state.get("book", {}).get(key, {}).get("count", 0)
+        return sum(1 for s in MASTERY_STEPS if count >= s)
+
+    def gold_count(self):
+        return sum(1 for k in VISITOR_ORDER if self.mastery_tier(k) >= len(MASTERY_STEPS))
+
+    def check_mastery(self):
+        """Merkt Belohnungen für neu erreichte Meisterschaftsstufen zur Abholung vor (auch rückwirkend)."""
+        pending = self.state.setdefault("ach_pending", [])
+        given = self.state.setdefault("mastery_given", {})
+        added = False
+        for key in VISITOR_ORDER:
+            tier = self.mastery_tier(key)
+            while given.get(key, 0) < tier:
+                lvl = given.get(key, 0)
+                given[key] = lvl + 1
+                v = VISITORS[key]
+                reward = round_half_up(MASTERY_COINS[lvl] * RARITY_MULT[v.rarity])
+                pending.append({"key": f"m:{key}:{lvl + 1}", "name": f"{v.name} {MASTERY_NAMES[lvl]}",
+                                "reward": reward, "period": "mastery", "pid": ""})
+                self.popup(f"Meister: {v.name} {MASTERY_NAMES[lvl]}", coin=False)
+                added = True
+        if added:
+            self.ach_win.refresh()
 
     def visitor_pos(self):
         v = self.visitor
@@ -594,9 +636,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
         vp = self.visitor_pos()
         if (vp - pos).manhattanLength() > 22 * VISITOR_SCALE / 1.25:
             return False
-        name = VISITORS[self.visitor["key"]].name
-        self.state["coins"] = self.state.get("coins", 0) + VISIT_GREET_COINS
-        self.popup(f"+{VISIT_GREET_COINS} Hallo, {name}!")
+        shiny = self.visitor.get("shiny", False)
+        name = VARIANTS[self.visitor["key"]].name if shiny else VISITORS[self.visitor["key"]].name
+        coins = SHINY_GREET_COINS if shiny else VISIT_GREET_COINS
+        self.state["coins"] = self.state.get("coins", 0) + coins
+        self.popup(f"+{coins} Hallo, {name}!")
         self.visitor["dur"] = self.t - self.visitor["start"] + 1.2  # fliegt davon
         return True
 

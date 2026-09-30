@@ -270,12 +270,20 @@ def _draw_gnome(p, feet, s, hop=0.0):
     p.restore()
 
 
-def draw_visitor(p, key, pos, scale, t, alpha=1.0, silhouette=False, flip=False):
-    """Besucher-Figur (ca. 20 x 20 Einheiten) an pos."""
+def draw_visitor(p, key, pos, scale, t, alpha=1.0, silhouette=False, flip=False, shiny=False):
+    """Besucher-Figur (ca. 20 x 20 Einheiten) an pos; shiny = Farbvariante mit Funkeln."""
+    from .data import VARIANTS
+    var = VARIANTS.get(key) if shiny and not silhouette else None
+    swap = dict(var.colors) if var else {}
+
     def c(hex_or_rgba):
         if silhouette:
             return QColor(255, 255, 255, 55) if _THEME["dark"] else QColor(0, 0, 0, 70)
-        return QColor(*hex_or_rgba) if isinstance(hex_or_rgba, tuple) else QColor(hex_or_rgba)
+        if isinstance(hex_or_rgba, tuple):
+            if var and var.glow and len(hex_or_rgba) == 4:  # Leuchtfarbe der Variante
+                return QColor(*var.glow, hex_or_rgba[3])
+            return QColor(*hex_or_rgba)
+        return QColor(swap.get(hex_or_rgba, hex_or_rgba))
 
     p.save()
     p.translate(pos)
@@ -382,14 +390,27 @@ def draw_visitor(p, key, pos, scale, t, alpha=1.0, silhouette=False, flip=False)
         if not silhouette:
             from PyQt6.QtGui import QRadialGradient
             g = QRadialGradient(QPointF(0, 1.5), 8)
-            g.setColorAt(0, QColor(220, 255, 120, int(120 + 120 * pulse)))
-            g.setColorAt(1, QColor(220, 255, 120, 0))
+            glow = var.glow if var and var.glow else (220, 255, 120)
+            g.setColorAt(0, QColor(*glow, int(120 + 120 * pulse)))
+            g.setColorAt(1, QColor(*glow, 0))
             p.setBrush(QBrush(g))
             p.drawEllipse(QPointF(0, 1.5), 8, 8)
         p.setBrush(c("#3A3326"))
         p.drawEllipse(QPointF(0, -1.5), 1.8, 3)
         p.setBrush(c((235, 255, 140, int(160 + 90 * pulse))))
         p.drawEllipse(QPointF(0, 2), 1.7, 1.8)
+    if var:  # Funkeln: drei kleine vierzackige Sterne, versetzt pulsierend
+        for i, (sx, sy) in enumerate(((-8, -7), (8, -4), (2, 9))):
+            a = 0.5 + 0.5 * math.sin(t * 5 + i * 2.1)
+            r = 2.0 + 2.4 * a
+            p.setBrush(QColor(255, 240, 150, int(140 + 115 * a)))
+            star = QPainterPath(QPointF(sx, sy - r))
+            for k in range(1, 8):
+                ang = math.radians(-90 + k * 45)
+                rr = r if k % 2 == 0 else r * 0.35
+                star.lineTo(QPointF(sx + math.cos(ang) * rr, sy + math.sin(ang) * rr))
+            star.closeSubpath()
+            p.drawPath(star)
     p.restore()
 
 

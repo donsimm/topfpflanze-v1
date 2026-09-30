@@ -6,7 +6,8 @@ from PyQt6.QtGui import QColor, QFontMetricsF, QPen
 from .config import MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, STAGE_COINS
 from .data import (FERTILIZERS, FERT_ORDER, FOCUS_MULT, FOCUS_PRESETS, HELPER_ORDER, HELPERS, LAMP_BOOST,
                    PLANT_ORDER, PLANT_TYPES, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITOR_ORDER, VISITORS,
-                   VISIT_GREET_COINS)
+                   VISIT_GREET_COINS, MASTERY_COINS, MASTERY_GOLD_BONUS, MASTERY_NAMES, MASTERY_STEPS, RARITY_MULT,
+                   SHINY_CHANCE, SHINY_GREET_COINS)
 from .panels import Panel
 from .theme import T
 from .util import fmt_int, fmt_left
@@ -83,6 +84,14 @@ def blocks(tab):
             ("p", "Jede Minute Chance 10 % (+5 % ab halber Grösse, +10 % bei Blüte). Klick: "
                   f"+{VISIT_GREET_COINS} Coins. " + ", ".join(
                       f"{VISITORS[k].name} ({VISITORS[k].rarity})" for k in VISITOR_ORDER) + "."),
+            ("p", "Meisterschaft: nach " + " / ".join(str(s) for s in MASTERY_STEPS) + " Besuchen eines Besuchers "
+                  + " / ".join(MASTERY_NAMES) + " (Rahmen im Sammelbuch). Belohnung "
+                  + " / ".join(str(c) for c in MASTERY_COINS) + " Coins, bei seltenen ×"
+                  + G(RARITY_MULT["selten"]) + ", bei sehr seltenen ×" + G(RARITY_MULT["sehr selten"])
+                  + f". Jeder Besucher auf Gold: +{pct(MASTERY_GOLD_BONUS)} Wachstum."),
+            ("p", "Schillernde Varianten (Stern im Sammelbuch): Chance je Besuch "
+                  + " / ".join(pct(SHINY_CHANCE[r]) for r in ("häufig", "selten", "sehr selten"))
+                  + f" (häufig / selten / sehr selten). Klick: +{SHINY_GREET_COINS} Coins."),
         ]
     out = [("h", "Dünger (wirkt auf die gewählte Pflanze)"),
            ("t", ["Name", "Preis", "Wachstum", "Wasser", "Dauer"], (92, 38, 76, 60, 50), True)]

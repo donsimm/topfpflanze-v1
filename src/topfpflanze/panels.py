@@ -5,7 +5,7 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .data import ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
+from .data import MASTERY_NAMES, MASTERY_STEPS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
 from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
@@ -13,6 +13,9 @@ from .scaling import ScaledWidget
 
 
 # ---------------------------------------------------------------- Weitere Fenster
+
+TIER_COLORS = (QColor("#B87333"), QColor("#9AA4AE"), QColor("#E0A800"))  # Bronze, Silber, Gold
+
 
 class Panel(ScaledWidget):
     """Gemeinsame Grundlage für Erfolge, Fokus-Timer und Sammelbuch (Stil der Sprechblase)."""
@@ -220,6 +223,8 @@ class AchievementsWin(Panel):
     @staticmethod
     def old_label(e):
         pid = e.get("pid", "")
+        if e.get("period") == "mastery":
+            return "Meisterschaft (Besucher)"
         if e.get("period") == "daily" and len(pid) == 10:
             return f"Täglich, {pid[8:10]}.{pid[5:7]}."
         if e.get("period") == "weekly" and "W" in pid:
@@ -323,7 +328,7 @@ class AchievementsWin(Panel):
             p.setFont(self.font_px(base, 10))
             p.setPen(T("muted"))
             p.drawText(QRectF(W - 152, hy, 140, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                       "aus früheren Perioden")
+                       "bereit zum Abholen")
             for e, row in lay["old_rows"]:
                 self.draw_claim_row(p, row, e["name"], self.old_label(e), e["reward"],
                                     self.hover == ("old", id(e)), base)
@@ -472,7 +477,13 @@ class BookWin(Panel):
         for key, r in self.card_rects():
             v = VISITORS[key]
             found = key in book
-            p.setPen(QPen(QColor("#D4A017"), 1.6) if key == self.hover else QPen(T("cell_border"), 1))
+            tier = plant.mastery_tier(key)
+            if key == self.hover:
+                p.setPen(QPen(QColor("#D4A017"), 1.6))
+            elif tier:
+                p.setPen(QPen(TIER_COLORS[tier - 1], 1.8))
+            else:
+                p.setPen(QPen(T("cell_border"), 1))
             p.setBrush(T("cell"))
             p.drawRoundedRect(r, 7, 7)
             draw_visitor(p, key, QPointF(r.center().x(), r.top() + 34), 2.3, plant.t + hash(key) % 7,
@@ -490,7 +501,23 @@ class BookWin(Panel):
             p.drawText(QRectF(r.left() + 2, r.top() + 76, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter, v.rarity)
             p.setPen(T("text2"))
             p.drawText(QRectF(r.left() + 2, r.top() + 88, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter,
-                       f"{book[key]['count']}× gesehen" if found else "unbekannt")
+                       (f"{book[key]['count']}× gesehen" if book[key]['count'] < 100 else f"{book[key]['count']}×")
+                       if found else "unbekannt")
+            if found:
+                count = book[key]["count"]
+                nxt = next((s for s in MASTERY_STEPS if count < s), None)
+                prev = MASTERY_STEPS[tier - 1] if tier else 0
+                frac = 1.0 if nxt is None else (count - prev) / (nxt - prev)
+                bar = QRectF(r.left() + 8, r.bottom() - 4, r.width() - 16, 2.5)
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(T("sep"))
+                p.drawRoundedRect(bar, 1.2, 1.2)
+                p.setBrush(TIER_COLORS[min(tier, 2)] if nxt is None else TIER_COLORS[tier])
+                p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * frac, 2.5), 1.2, 1.2)
+                has_var = book[key].get("shiny", 0) > 0
+                draw_star(p, QPointF(r.right() - 9, r.top() + 9), 5.5,
+                          "#F2C230" if has_var else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
+                          "#B8860B" if has_var else "#9A958A")
 
         info = QRectF(12, self.height() - 50, self.width() - 24, 42)
         p.setPen(QPen(T("sep"), 1))
@@ -499,8 +526,15 @@ class BookWin(Panel):
             v = VISITORS[self.hover]
             e = book.get(self.hover)
             if e:
-                text = (f"{v.name} ({v.rarity}): zuerst gesehen am {fmt_datetime(e.get('first'))}, "
-                        f"{e['count']}× insgesamt. {v.hint}")
+                tier = plant.mastery_tier(self.hover)
+                nxt = next((s for s in MASTERY_STEPS if e["count"] < s), None)
+                stufe = MASTERY_NAMES[tier - 1] if tier else "keine"
+                weiter = f", nächste bei {nxt}" if nxt else " (Gold: +1 % Wachstum)"
+                n_var = e.get("shiny", 0)
+                var = (f"{VARIANTS[self.hover].name} {n_var}× gesehen" if n_var
+                       else f"{VARIANTS[self.hover].name} noch nicht gesehen")
+                text = (f"{v.name} ({v.rarity}): {e['count']}× seit {fmt_datetime(e.get('first'))}. "
+                        f"Stufe {stufe}{weiter}. Stern: {var}.")
             else:
                 text = f"Noch nicht entdeckt ({v.rarity}). Hinweis: {v.hint}"
             color = T("text3")

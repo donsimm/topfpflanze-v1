@@ -104,7 +104,7 @@ class PlantDrawMixin:
                 flip = math.cos(a * 0.8 + v["phase"]) * v["side"] > 0
             elif vt.move == "sit":
                 flip = v["side"] < 0
-            draw_visitor(p, v["key"], pos, VISITOR_SCALE, self.t, alpha=fade, flip=flip)
+            draw_visitor(p, v["key"], pos, VISITOR_SCALE, self.t, alpha=fade, flip=flip, shiny=v.get("shiny", False))
 
     def draw_soil(self, p):
         cx, sy = WIN_W / 2, self.pot["soil_y"]

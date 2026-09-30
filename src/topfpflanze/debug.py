@@ -8,7 +8,9 @@ im Unterordner «debug» verwendet, der echte Spielstand bleibt unberührt.
 
 from PyQt6.QtGui import QActionGroup
 
-from .data import HELPER_ORDER, STAGE_FRACTIONS, VISITOR_ORDER, VISITORS
+import time
+
+from .data import HELPER_ORDER, STAGE_FRACTIONS, VARIANTS, VISITOR_ORDER, VISITORS
 
 DEBUG = {"on": False, "speed": 1.0}
 SPEEDS = (1, 10, 60, 600)
@@ -65,6 +67,15 @@ def _reset_periods(plant):
     plant.state["daily"] = {}
     plant.state["weekly"] = {}
     plant.ensure_periods()
+    _refresh(plant)
+
+
+def _add_visits(plant, n):
+    """Erhöht den Besuchszähler aller Besucher (zum Testen der Meisterschaft)."""
+    book = plant.state.setdefault("book", {})
+    for key in VISITOR_ORDER:
+        e = book.setdefault(key, {"count": 0, "first": time.time()})
+        e["count"] += n
     _refresh(plant)
 
 
@@ -146,6 +157,11 @@ def build_menu(plant, menu):
         vm.addAction(VISITORS[key].name).triggered.connect(
             lambda _c=False, kk=key: (plant.spawn_visitor(kk), plant.update()))
 
+    sm2 = dm.addMenu("Schillernden Besucher erscheinen lassen")
+    for key in VISITOR_ORDER:
+        sm2.addAction(VARIANTS[key].name).triggered.connect(
+            lambda _c=False, kk=key: (plant.spawn_visitor(kk, shiny=True), plant.update()))
+    dm.addAction("+10 Besuche bei allen Besuchern").triggered.connect(lambda: _add_visits(plant, 10))
     dm.addAction("Fokus-Timer 1 Minute starten").triggered.connect(lambda: plant.start_focus(1))
     dm.addAction("+2'000 Tastendrücke gezählt").triggered.connect(lambda: _add_activity(plant, keys=2000))
     dm.addAction("+20 Klicks gezählt").triggered.connect(lambda: _add_activity(plant, clicks=20))

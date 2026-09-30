@@ -390,3 +390,100 @@ def test_info_window_content_and_scroll(plant):
     plant.save_state()
     assert plant.state["info_pos"] is not None
     assert plant.bubble.tooltip_text("info").startswith("Info öffnen")
+
+
+def test_shiny_variants_defined_and_drawn(plant):
+    from PyQt6.QtGui import QImage, QPainter
+    from PyQt6.QtCore import QPointF
+    from topfpflanze import drawing
+    assert set(data.VARIANTS) == set(data.VISITOR_ORDER)
+    for key in data.VISITOR_ORDER:
+        imgs = []
+        for shiny in (False, True):
+            img = QImage(60, 60, QImage.Format.Format_ARGB32)
+            img.fill(0)
+            p = QPainter(img)
+            drawing.draw_visitor(p, key, QPointF(30, 30), 2.0, 1.0, shiny=shiny)
+            p.end()
+            imgs.append(img)
+        assert imgs[0] != imgs[1], f"Variante von {key} sieht aus wie das Original"
+
+
+def test_shiny_spawn_counts_and_reward(plant):
+    plant.state["coins"] = 0
+    plant.spawn_visitor("marienkaefer", shiny=True)
+    e = plant.state["book"]["marienkaefer"]
+    assert e["count"] == 1 and e["shiny"] == 1 and "shiny_first" in e
+    assert plant.visitor["shiny"] is True
+    plant.visitor_pos = lambda: QPointF(50, 50)
+    assert plant.greet_visitor(QPointF(50, 50))
+    assert plant.state["coins"] == data.SHINY_GREET_COINS
+    plant.spawn_visitor("marienkaefer", shiny=False)
+    plant.greet_visitor(QPointF(50, 50))
+    assert plant.state["coins"] == data.SHINY_GREET_COINS + data.VISIT_GREET_COINS
+    assert plant.state["book"]["marienkaefer"]["count"] == 2
+
+
+def test_shiny_chance_by_rarity(plant, monkeypatch):
+    import random
+    monkeypatch.setattr(random, "random", lambda: 0.0)
+    plant.spawn_visitor("biene")
+    assert plant.visitor["shiny"] is True
+    monkeypatch.setattr(random, "random", lambda: 0.999)
+    plant.spawn_visitor("biene")
+    assert plant.visitor["shiny"] is False
+
+
+def test_mastery_tiers_rewards_and_bonus(plant):
+    plant.state["coins"] = 0
+    plant.state["ach_pending"] = []
+    plant.state["book"] = {"marienkaefer": {"count": 9, "first": 0}}
+    plant.check_mastery()
+    assert plant.mastery_tier("marienkaefer") == 0 and not plant.state["ach_pending"]
+    plant.state["book"]["marienkaefer"]["count"] = 10
+    plant.check_mastery()
+    assert plant.mastery_tier("marienkaefer") == 1
+    e = plant.state["ach_pending"][0]
+    assert e["reward"] == data.MASTERY_COINS[0] and e["period"] == "mastery"
+    plant.check_mastery()  # nicht doppelt
+    assert len(plant.state["ach_pending"]) == 1
+    plant.state["book"]["marienkaefer"]["count"] = 200  # überspringt Stufen: alle fehlenden werden vorgemerkt
+    plant.check_mastery()
+    assert [x["reward"] for x in plant.state["ach_pending"]] == list(data.MASTERY_COINS)
+    assert plant.gold_count() == 1
+    assert plant.mastery_tier("marienkaefer") == 3
+    # Rotkehlchen (sehr selten) zahlt mehr
+    plant.state["book"]["rotkehlchen"] = {"count": 10, "first": 0}
+    plant.check_mastery()
+    assert plant.state["ach_pending"][-1]["reward"] == round(data.MASTERY_COINS[0] * data.RARITY_MULT["sehr selten"])
+    # Gold-Bonus wirkt auf das Wachstum
+    base = plant.growth_mult()
+    plant.state["book"]["kohlweissling"] = {"count": 200, "first": 0}
+    assert abs(plant.growth_mult() / base - (1 + data.MASTERY_GOLD_BONUS * 2) / (1 + data.MASTERY_GOLD_BONUS)) < 1e-9
+
+
+def test_mastery_rewards_are_claimable_in_list(plant):
+    plant.state["ach_pending"] = []
+    plant.state["coins"] = 0
+    debug._add_visits(plant, 10)
+    exp = plant.ach_expired()
+    assert len(exp) == len(data.VISITOR_ORDER) and all(e["period"] == "mastery" for e in exp)
+    win = plant.ach_win
+    win.show()
+    lay = win.layout()
+    assert lay["old_rows"] and win.old_label(exp[0]) == "Meisterschaft (Besucher)"
+    entry = exp[0]
+    win.on_click(("old", id(entry)))
+    assert plant.state["coins"] == entry["reward"]
+    win.on_click("all")
+    assert not plant.state["ach_pending"]
+
+
+def test_book_window_draws_tiers_and_star(plant):
+    plant.state["book"] = {"marienkaefer": {"count": 60, "first": 0, "shiny": 2},
+                           "biene": {"count": 3, "first": 0}}
+    win = plant.book_win
+    win.show()
+    for hover in (None, "marienkaefer", "biene", "libelle"):
+        win.hover = hover
+        assert not win.grab().isNull()
