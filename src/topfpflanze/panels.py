@@ -5,10 +5,10 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .data import MASTERY_NAMES, MASTERY_STEPS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
+from .data import MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
 from .drawing import draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
-from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
+from .util import fmt_age, fmt_date, fmt_int, fmt_left
 from .scaling import ScaledWidget
 
 
@@ -456,7 +456,7 @@ class BookWin(Panel):
     COLS = 4
 
     def __init__(self, plant):
-        super().__init__(plant, 300, 352, "book_pos")
+        super().__init__(plant, 300, 360, "book_pos")
 
     def card_rects(self):
         gap, x0, y0 = 8, 12, 58
@@ -522,30 +522,98 @@ class BookWin(Panel):
                           "#F2C230" if has_var else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
                           "#B8860B" if has_var else "#9A958A")
 
-        info = QRectF(12, self.height() - 50, self.width() - 24, 42)
+        info = QRectF(12, self.height() - 60, self.width() - 24, 3 * self.ROW)
         p.setPen(QPen(T("sep"), 1))
         p.drawLine(QPointF(12, info.top() - 4), QPointF(self.width() - 12, info.top() - 4))
-        if self.hover:
-            v = VISITORS[self.hover]
-            e = book.get(self.hover)
-            if e:
-                tier = plant.mastery_tier(self.hover)
-                nxt = next((s for s in MASTERY_STEPS if e["count"] < s), None)
-                stufe = MASTERY_NAMES[tier - 1] if tier else "keine"
-                weiter = f", nächste bei {nxt}" if nxt else " (Gartenbewohner: +1 % Wachstum)"
-                n_var = e.get("shiny", 0)
-                var = (f"{VARIANTS[self.hover].name} {n_var}× gesehen" if n_var
-                       else f"{VARIANTS[self.hover].name} noch nicht gesehen")
-                text = (f"{v.name} ({v.rarity}): {e['count']}× seit {fmt_datetime(e.get('first'))}. "
-                        f"Stufe {stufe}{weiter}. Stern: {var}.")
-            else:
-                text = f"Noch nicht entdeckt ({v.rarity}). Hinweis: {v.hint}"
-            color = T("text3")
-        else:
-            text = (f"Besucher kommen von selbst zur Pflanze. Ein Klick auf einen Besucher begrüsst ihn "
-                    f"und bringt {VISIT_GREET_COINS} Gold.")
-            color = T("muted")
-        p.setFont(self.font_px(base, 10))
-        p.setPen(color)
-        p.drawText(info, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextWordWrap, text)
+        self.draw_info(p, info, base, book, rarity_col)
         p.end()
+
+    ROW = 16  # Zeilenhöhe im Infobereich
+
+    def info_row(self, p, info, i, parts, base, icon=None, right=None):
+        """Zeile i des Infobereichs: optionales Symbol links, farbige Textteile (Text, Farbe, fett),
+        optional rechtsbündiger Text. Zu lange Zeilen werden leicht verkleinert."""
+        y = info.top() + i * self.ROW
+        x0 = info.left() + (18 if icon else 0)
+        avail = info.right() - x0
+        px = 10
+
+        def width(size):
+            w = 0.0
+            for text, _c, bold in parts:
+                p.setFont(self.font_px(base, size, bold))
+                w += p.fontMetrics().horizontalAdvance(text)
+            if right:
+                p.setFont(self.font_px(base, size))
+                w += p.fontMetrics().horizontalAdvance(right[0]) + 8
+            return w
+
+        while px > 8 and width(px) > avail:
+            px -= 1
+        if icon:
+            icon(QPointF(info.left() + 7, y + self.ROW / 2))
+        x = x0
+        for text, color, bold in parts:
+            p.setFont(self.font_px(base, px, bold))
+            p.setPen(color)
+            w = p.fontMetrics().horizontalAdvance(text)
+            p.drawText(QRectF(x, y, w + 2, self.ROW), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
+            x += w
+        if right:
+            p.setFont(self.font_px(base, px))
+            p.setPen(right[1])
+            p.drawText(QRectF(info.left(), y, info.width(), self.ROW),
+                       Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, right[0])
+
+    def draw_info(self, p, info, base, book, rarity_col):
+        """Infobereich: Legende, solange nichts markiert ist, sonst Angaben zum Besucher in drei Zeilen."""
+        plant = self.plant
+        ok, gold, muted, text = T("ok"), T("coin"), T("muted"), T("text")
+
+        def seedling(leaves, color):
+            return lambda c: draw_seedling(p, c + QPointF(0, 5.2), 14, leaves, color)
+
+        def star(filled):
+            return lambda c: draw_star(p, c, 5.5, "#F2C230" if filled else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
+                                       "#B8860B" if filled else "#9A958A")
+
+        if not self.hover:  # Legende
+            steps = " / ".join(str(s) for s in MASTERY_STEPS)
+            self.info_row(p, info, 0, [(f"Ein Klick auf einen Besucher bringt {VISIT_GREET_COINS} Gold.", muted, False)], base)
+            self.info_row(p, info, 1, [("Setzling", ok, True), (f"  Stufe nach {steps} Besuchen", muted, False)], base,
+                          icon=seedling(3, TIER_COLORS[2]))
+            self.info_row(p, info, 2, [("Stern", gold, True), ("  schillernde Variante gesehen", muted, False)], base,
+                          icon=star(True))
+            return
+        key = self.hover
+        v = VISITORS[key]
+        e = book.get(key)
+        if not e:
+            self.info_row(p, info, 0, [("???", text, True), (f"  {v.rarity}", rarity_col[v.rarity], False)], base)
+            p.setFont(self.font_px(base, 10))
+            p.setPen(muted)
+            p.drawText(QRectF(info.left(), info.top() + self.ROW, info.width(), 2 * self.ROW),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop | Qt.TextFlag.TextWordWrap,
+                       f"Noch nicht entdeckt. Hinweis: {v.hint}")
+            return
+        tier = plant.mastery_tier(key)
+        count = e["count"]
+        nxt = next((s for s in MASTERY_STEPS if count < s), None)
+        self.info_row(p, info, 0, [(v.name, text, True), (f"  {v.rarity}", rarity_col[v.rarity], False)], base,
+                      right=(f"{count}× · seit {fmt_date(e.get('first'))}", muted))
+        if tier:
+            stufe = [(MASTERY_NAMES[tier - 1], ok, True)]
+        else:
+            stufe = [("Noch keine Stufe", muted, True)]
+        if nxt:
+            stufe.append((f"  noch {nxt - count} bis {MASTERY_NAMES[tier]}", muted, False))
+        else:
+            stufe.append((f"  höchste Stufe · +{MASTERY_TOP_BONUS * 100:g} % Wachstum", muted, False))
+        self.info_row(p, info, 1, stufe, base, icon=seedling(tier, TIER_COLORS[tier - 1] if tier else TIER_COLORS[0]))
+        n_var = e.get("shiny", 0)
+        vname = VARIANTS[key].name
+        if n_var:
+            parts = [("Schillernd", gold, True), (f"  {vname} · {n_var}× gesehen", muted, False)]
+        else:
+            parts = [("Schillernd", muted, True), (f"  {vname} · offen", muted, False)]
+        self.info_row(p, info, 2, parts, base, icon=star(n_var > 0))
