@@ -5,6 +5,7 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
+from .i18n import tr
 from .config import (BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, PRESTIGE_AURA_PERIOD,
                      TOOL, TOOL_GAP, TOOL_ORDER)
 from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
@@ -110,27 +111,30 @@ class Bubble(ScaledWidget):
     def tooltip_text(self, key):
         """Text beim Überfahren eines Symbols: zuerst, was der Klick auslöst, darunter Angaben dazu."""
         pl = self.plant
-        if key in TOOL_ORDER:
-            verb = "schliessen" if pl.windows[key].isVisible() else "öffnen"
+        opened = key in TOOL_ORDER and pl.windows[key].isVisible()
         if key == "shop":
-            return (f"Dünger-Shop {verb}\nGold: {fmt_int(pl.state.get('coins', 0))} "
-                    f"(+{PASSIVE_PER_HOUR} pro Stunde)")
+            head = tr("Dünger-Shop schliessen") if opened else tr("Dünger-Shop öffnen")
+            return head + tr("\nGold: {coins} (+{rate} pro Stunde)", coins=fmt_int(pl.state.get("coins", 0)), rate=PASSIVE_PER_HOUR)
         if key == "garden":
-            return f"Gartenhaus {verb}\n{len(pl.state.get('garden', []))} Pflanze(n) eingelagert"
+            head = tr("Gartenhaus schliessen") if opened else tr("Gartenhaus öffnen")
+            return head + tr("\n{garden} Pflanze(n) eingelagert", garden=len(pl.state.get("garden", [])))
         if key == "ach":
             pend = len(pl.state.get("ach_pending", []))
-            return f"Erfolge {verb}\n{pl.ach_summary()}" + (f"\n{pend} zum Abholen bereit" if pend else "")
+            head = tr("Erfolge schliessen") if opened else tr("Erfolge öffnen")
+            return head + "\n" + pl.ach_summary() + (tr("\n{pend} zum Abholen bereit", pend=pend) if pend else "")
         if key == "focus":
-            return f"Fokus-Timer {verb}\n{pl.focus_summary()}"
+            head = tr("Fokus-Timer schliessen") if opened else tr("Fokus-Timer öffnen")
+            return head + "\n" + pl.focus_summary()
         if key == "info":
-            return f"Info {verb}\nSpielregeln und Werte"
+            head = tr("Info schliessen") if opened else tr("Info öffnen")
+            return head + tr("\nSpielregeln und Werte")
         if key == "book":
-            return (f"Besucher-Sammelbuch {verb}\n"
-                    f"{len(pl.state.get('book', {}))} / {len(VISITORS)} entdeckt")
+            head = tr("Besucher-Sammelbuch schliessen") if opened else tr("Besucher-Sammelbuch öffnen")
+            return head + tr("\n{book} / {total} entdeckt", book=len(pl.state.get("book", {})), total=len(VISITORS))
         if key in PLANT_TYPES:
             k = PLANT_TYPES[key]
             pst = pl.state["plants"].get(key)
-            text = f"{k.name} auswählen ({k.difficulty})"
+            text = tr("{v} auswählen ({difficulty})", v=k.name, difficulty=k.difficulty)
             if pst:
                 text += f"\n{stage_name(k, pst['growth'])}"
             return text
@@ -140,8 +144,7 @@ class Bubble(ScaledWidget):
         if self.over_seed(pos):
             pl = self.plant
             lvl = pl.prestige_level()
-            return (f"{pl.kind.name} einlagern & neu aussäen\n"
-                    f"Prestige-Stufe {lvl} → {lvl + 1}, Topf wählen und bestätigen")
+            return (tr("{v} einlagern & neu aussäen\nPrestige-Stufe {lvl} → {lvl2}, Topf wählen und bestätigen", v=pl.kind.name, lvl=lvl, lvl2=lvl + 1))
         return self.tooltip_text(self.icon_at(pos))
 
     def paintEvent(self, _e):
@@ -154,16 +157,16 @@ class Bubble(ScaledWidget):
         p.drawRoundedRect(rect, 10, 10)
 
         rows = [
-            ("Pflanze", k.name),
-            ("Stadium", stage_name(k, s["growth"])),
-            ("Wachstum", f"{s['growth']:.1f} / {fmt_int(k.bloom_at)}"),
-            ("Wasser", f"{s['water']:.0f} % · {water_status(k, s['water'])[0]}"),
-            ("Dünger", self.plant.fert_summary()),
-            ("Prestige", self.plant.prestige_summary()),
-            ("Klicks", fmt_int(s["clicks_total"])),
-            ("Tasten", fmt_int(s["keys_total"]) if k.growth_per_key > 0 else "– (nur Klicks)"),
-            ("Alter", fmt_age(time.time() - s["created"])),
-            ("Gold", fmt_int(self.plant.state.get("coins", 0))),
+            (tr("Pflanze"), k.name),
+            (tr("Stadium"), stage_name(k, s["growth"])),
+            (tr("Wachstum"), f"{s['growth']:.1f} / {fmt_int(k.bloom_at)}"),
+            (tr("Wasser"), f"{s['water']:.0f} % · {water_status(k, s['water'])[0]}"),
+            (tr("Dünger"), self.plant.fert_summary()),
+            (tr("Prestige"), self.plant.prestige_summary()),
+            (tr("Klicks"), fmt_int(s["clicks_total"])),
+            (tr("Tasten"), fmt_int(s["keys_total"]) if k.growth_per_key > 0 else tr("– (nur Klicks)")),
+            (tr("Alter"), fmt_age(time.time() - s["created"])),
+            (tr("Gold"), fmt_int(self.plant.state.get("coins", 0))),
         ]
         font = QFont(self.font())
         font.setPixelSize(12)
@@ -174,20 +177,20 @@ class Bubble(ScaledWidget):
             r = QRectF(inner.left(), inner.top() + i * line_h, inner.width(), line_h)
             p.setPen(T("text2"))
             p.drawText(r, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
-            ok = label != "Wasser" or water_status(k, s["water"])[1]
+            ok = label != tr("Wasser") or water_status(k, s["water"])[1]
             color = T("text") if ok else T("bad")
-            if label == "Dünger" and value != "–":
+            if label == tr("Dünger") and value != "–":
                 color = T("ok")
-            elif label == "Prestige" and value != "–":
+            elif label == tr("Prestige") and value != "–":
                 color = T("coin")
-            elif label == "Gold":
+            elif label == tr("Gold"):
                 color = T("coin")
-            ready = label == "Stadium" and self.plant.prestige_ready()
+            ready = label == tr("Stadium") and self.plant.prestige_ready()
             if ready:  # bereit fürs Prestige: Stadium in Gold, dahinter das Symbol für «einlagern & neu aussäen»
                 color = T("coin")
             p.setPen(color)
             vr = QRectF(r)
-            if label == "Gold":
+            if label == tr("Gold"):
                 draw_coin(p, QPointF(r.right() - 5, r.center().y()), 5)
                 p.setPen(color)
                 vr.setRight(r.right() - 14)

@@ -12,10 +12,11 @@ from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMenu, QMessageB
 from PyQt6.QtCore import QPointF, QTimer, Qt
 from PyQt6.QtGui import QActionGroup, QColor
 
-from . import config, debug, pots, scaling, sound, tooltip
+from .i18n import tr
+from . import config, debug, i18n, pots, scaling, sound, tooltip
 from .bubble import Bubble
-from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
-from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_DEFAULT, FOCUS_MULT, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
+from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
+from .data import TOOL_NAMES, ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_DEFAULT, FOCUS_MULT, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -110,7 +111,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_DEFAULT, "pot_offer": {},
-                "focus_mode": True, "volume": sound.DEFAULT_VOLUME}
+                "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto"}
 
     def load_state(self):
         state = self.default_state()
@@ -170,7 +171,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 json.dump(self.state, f, indent=2)
             os.replace(tmp, config.STATE_FILE)
         except OSError as e:
-            print(f"Speichern fehlgeschlagen: {e}", file=sys.stderr)
+            print(tr("Speichern fehlgeschlagen: {v}", v=e), file=sys.stderr)
 
     def activate(self, key, offline=False):
         """Wählt die aktive Pflanze. Nicht aktive Pflanzen pausieren."""
@@ -301,8 +302,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def update_tooltip(self):
         s, k = self.ps, self.kind
-        self.tip_text = (f"{k.name} · {stage_name(k, s['growth'])}\n"
-                         f"Wachstum {s['growth']:.0f} · Wasser {s['water']:.0f} %")
+        self.tip_text = (tr("{v} · {growth}\nWachstum {growth2:.0f} · Wasser {water:.0f} %", v=k.name, growth=stage_name(k, s['growth']), growth2=s['growth'], water=s['water']))
 
     def tooltip_at(self, pos):
         return getattr(self, "tip_text", "")
@@ -338,7 +338,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def prestige_summary(self):
         lvl = self.prestige_level()
-        return f"Stufe {lvl} · +{lvl * PRESTIGE_BONUS * 100:.0f} %" if lvl else "–"
+        return tr("Stufe {lvl} · +{lvl2:.0f} %", lvl=lvl, lvl2=lvl * PRESTIGE_BONUS * 100) if lvl else "–"
 
     def add_growth(self, amount):
         self.ps["growth"] += amount
@@ -448,7 +448,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def ach_summary(self):
         done = sum(1 for a in ACHIEVEMENTS if self.ach_is_done(a))
-        return f"{done} von {len(ACHIEVEMENTS)} erreicht"
+        return tr("{done} von {v} erreicht", done=done, v=len(ACHIEVEMENTS))
 
     def check_achievements(self):
         """Merkt erreichte Erfolge zur Abholung vor; das Gold gibt es erst beim Einlösen."""
@@ -461,7 +461,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 done.append(a.key)
                 pending.append({"key": a.key, "name": a.name, "reward": a.reward,
                                 "period": a.period, "pid": self.ach_pid(a.period)})
-                self.popup(f"Erfolg: {a.name}", coin=False)
+                self.popup(tr("Erfolg: {a}", a=a.name), coin=False)
                 self.save_state()
                 self.ach_win.refresh()
 
@@ -500,7 +500,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if total:
             self.state["coins"] = self.state.get("coins", 0) + total
             self.state["ach_pending"] = []
-            self.popup(f"+{fmt_int(total)} Erfolge")
+            self.popup(tr("+{v} Erfolge", v=fmt_int(total)))
             self.save_state()
             self.bubble.update()
             self.shop.update()
@@ -523,20 +523,20 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if key in owned:
             if key in off:
                 off.remove(key)
-                msg = f"{hp.name} ist wieder eingeschaltet."
+                msg = tr("{hp} ist wieder eingeschaltet.", hp=hp.name)
             else:
                 off.append(key)
-                msg = f"{hp.name} ist ausgeschaltet."
+                msg = tr("{hp} ist ausgeschaltet.", hp=hp.name)
             self.save_state()
             return True, msg
         coins = self.state.get("coins", 0)
         if coins < hp.price:
-            return False, f"Zu wenig Gold für {hp.name}: es fehlen {fmt_int(hp.price - coins)}."
+            return False, tr("Zu wenig Gold für {hp}: es fehlen {coins}.", hp=hp.name, coins=fmt_int(hp.price - coins))
         self.state["coins"] = coins - hp.price
         self.count_purchase(hp.price)
         owned.append(key)
         self.save_state()
-        return True, f"{hp.name} gekauft und aktiv."
+        return True, tr("{hp} gekauft und aktiv.", hp=hp.name)
 
     def run_helpers(self, dt):
         s, k = self.ps, self.kind
@@ -550,7 +550,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 self.bee_timer = random.uniform(*BEE_INTERVAL)
                 self.add_growth(k.bloom_at * BEE_BOOST * self.growth_mult())
                 self.bee_anim = 7.0
-                self.popup("Hummel: Wachstum!", coin=False)
+                self.popup(tr("Hummel: Wachstum!"), coin=False)
         self.bee_anim = max(0.0, self.bee_anim - dt)
         if self.helper_on("zwerg"):
             self.gnome_acc += dt
@@ -569,12 +569,12 @@ class Plant(PlantDrawMixin, ScaledWidget):
         now = time.monotonic()
         self.focus = {"minutes": minutes, "start": now, "end": now + minutes * 60}
         self.focus_msg = ("", True, 0.0)
-        self.popup(f"Fokus: {minutes} min", coin=False)
+        self.popup(tr("Fokus: {minutes} min", minutes=minutes), coin=False)
         self.enter_focus_mode()
 
     def abort_focus(self):
         self.focus = None
-        self.focus_msg = ("abgebrochen, kein Bonus", False, time.monotonic() + 30)
+        self.focus_msg = (tr("abgebrochen, kein Bonus"), False, time.monotonic() + 30)
         self.exit_focus_mode()
 
     def enter_focus_mode(self):
@@ -614,10 +614,10 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def focus_summary(self):
         if not self.focus:
-            return "bereit"
+            return tr("bereit")
         rem, _ = self.focus_remaining()
         m, sec = divmod(int(rem), 60)
-        return f"läuft, noch {m:02d}:{sec:02d}"
+        return tr("läuft, noch {m:02d}:{sec:02d}", m=m, sec=sec)
 
     def run_focus(self):
         if self.focus and time.monotonic() >= self.focus["end"]:
@@ -632,8 +632,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             stats["focus"] = stats.get("focus", 0) + 1
             stats["focus_max"] = max(stats.get("focus_max", 0), minutes)
             self.state["coins"] = self.state.get("coins", 0) + reward
-            self.focus_msg = (f"geschafft! +{reward} Gold", True, time.monotonic() + 120)
-            self.popup(f"+{reward} Fokus geschafft")
+            self.focus_msg = (tr("geschafft! +{reward} Gold", reward=reward), True, time.monotonic() + 120)
+            self.popup(tr("+{reward} Fokus geschafft", reward=reward))
             self.exit_focus_mode()
             self.sound.play("gong")
             self.save_state()
@@ -692,12 +692,12 @@ class Plant(PlantDrawMixin, ScaledWidget):
             if entry["shiny"] == 1:
                 entry["shiny_first"] = time.time()
                 self.mark_book_new(v.key)
-                self.popup(f"Neu: {VARIANTS[v.key].name}!", coin=False)
+                self.popup(tr("Neu: {key}!", key=VARIANTS[v.key].name), coin=False)
             else:
                 self.popup(f"{VARIANTS[v.key].name}!", coin=False)
         elif entry["count"] == 1:
             self.mark_book_new(v.key)
-            self.popup(f"Neu: {v.name}!", coin=False)
+            self.popup(tr("Neu: {v}!", v=v.name), coin=False)
         self.check_mastery()
         self.save_state()
 
@@ -770,7 +770,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         name = VARIANTS[self.visitor["key"]].name if shiny else VISITORS[self.visitor["key"]].name
         coins = SHINY_GREET_COINS if shiny else VISIT_GREET_COINS
         self.state["coins"] = self.state.get("coins", 0) + coins
-        self.popup(f"+{coins} Hallo, {name}!")
+        self.popup(tr("+{coins} Hallo, {v}!", coins=coins, v=name))
         self.visitor["dur"] = self.t - self.visitor["start"] + 1.2  # fliegt davon
         return True
 
@@ -792,18 +792,18 @@ class Plant(PlantDrawMixin, ScaledWidget):
         fz = FERTILIZERS[key]
         coins = self.state.get("coins", 0)
         if coins < fz.price:
-            return False, f"Zu wenig Gold für {fz.name}: es fehlen {fmt_int(fz.price - coins)}."
+            return False, tr("Zu wenig Gold für {fz}: es fehlen {coins}.", fz=fz.name, coins=fmt_int(fz.price - coins))
         self.state["coins"] = coins - fz.price
         self.count_purchase(fz.price)
         self.ps["last_fert"] = key
         cur, left = self.fert()
         if cur and cur.key == key:
             self.ps["fert"]["left"] = left + fz.minutes * 60
-            msg = f"{fz.name} verlängert: wirkt noch {fmt_left(self.ps['fert']['left'])} auf {self.kind.name}."
+            msg = tr("{fz} verlängert: wirkt noch {left} auf {v}.", fz=fz.name, left=fmt_left(self.ps['fert']['left']), v=self.kind.name)
         else:
             self.ps["fert"] = {"key": key, "left": fz.minutes * 60}
-            msg = f"{fz.name} wirkt jetzt auf {self.kind.name}"
-            msg += f" (ersetzt {cur.name})." if cur else "."
+            msg = tr("{fz} wirkt jetzt auf {v}", fz=fz.name, v=self.kind.name)
+            msg += tr(" (ersetzt {cur}).", cur=cur.name) if cur else "."
         self.save_state()
         self.bubble.update()
         return True, msg
@@ -877,7 +877,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 if self.helper_on("automat") and last in FERTILIZERS \
                         and self.state.get("coins", 0) >= FERTILIZERS[last].price:
                     self.buy_fertilizer(last)
-                    self.popup(f"Automat: {FERTILIZERS[last].name}", coin=False)
+                    self.popup(tr("Automat: {last}", last=FERTILIZERS[last].name), coin=False)
 
         self.ensure_periods()
         n = self.keys.take()
@@ -1035,7 +1035,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         act.setDefaultWidget(box)
         return act
 
-    def scale_slider_action(self, parent, kind="plant", title="Pflanzengrösse"):
+    def scale_slider_action(self, parent, kind="plant", title=tr("Pflanzengrösse")):
         """Regler (50 bis 200 %) für das Einstellungsmenü; kind: «plant» oder «menu»."""
         return self.slider_action(parent, title, int(scaling.SCALE_MIN * 100), int(scaling.SCALE_MAX * 100),
                                   int(round(scaling.get_scale(kind) * 100)),
@@ -1049,13 +1049,35 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def volume_slider_action(self, parent):
         """Regler «Lautstärke» (0–100 %); beim Loslassen ertönt zur Probe der Giesssound."""
-        return self.slider_action(parent, "Lautstärke", 0, 100, self.state.get("volume", sound.DEFAULT_VOLUME),
+        return self.slider_action(parent, tr("Lautstärke"), 0, 100, self.state.get("volume", sound.DEFAULT_VOLUME),
                                   self.set_volume, sound.DEFAULT_VOLUME, f"{sound.DEFAULT_VOLUME} %", snap=1,
                                   on_release=lambda: self.sound.play("giessen"))
 
+    @staticmethod
+    def restart_command():
+        """Programm und Argumente, um das Spiel neu zu starten (auch als gepackte Anwendung)."""
+        if getattr(sys, "frozen", False):
+            return sys.executable, sys.argv[1:]
+        return sys.executable, ["-m", "topfpflanze", *sys.argv[1:]]
+
+    def choose_language(self, code):
+        """Speichert die Sprache und startet das Spiel neu (die Texte werden beim Start geladen)."""
+        if code == i18n.language() and self.state.get("language") == code:
+            return
+        self.state["language"] = code
+        self.save_state()
+        if code == i18n.language():
+            return
+        from PyQt6.QtCore import QProcess
+        program, args = self.restart_command()
+        app = QApplication.instance()
+        # Der Start erfolgt erst nach dem Speichern beim Beenden (aboutToQuit), damit der Spielstand nicht kollidiert
+        app.aboutToQuit.connect(lambda: QProcess.startDetached(program, args))
+        app.quit()
+
     def show_menu(self, global_pos):
         m = QMenu(self)
-        sub = m.addMenu("Pflanze wählen")
+        sub = m.addMenu(tr("Pflanze wählen"))
         group = QActionGroup(sub)
         group.setExclusive(True)
         for key in PLANT_ORDER:
@@ -1071,8 +1093,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             group.addAction(a)
 
         m.addSeparator()
-        win_menu = m.addMenu("Fenster")
-        a_bubble = win_menu.addAction("Status-Sprechblase (Mittelklick)")
+        win_menu = m.addMenu(tr("Fenster"))
+        a_bubble = win_menu.addAction(tr("Status-Sprechblase (Mittelklick)"))
         a_bubble.setCheckable(True)
         a_bubble.setChecked(self.state.get("bubble", True))
         win_menu.addSeparator()
@@ -1082,29 +1104,39 @@ class Plant(PlantDrawMixin, ScaledWidget):
             a.setCheckable(True)
             a.setChecked(self.windows[key].isVisible())
             win_actions[a] = key
-        set_menu = m.addMenu("Einstellungen")
-        a_kb = set_menu.addAction("Tastaturanschläge zählen")
+        set_menu = m.addMenu(tr("Einstellungen"))
+        a_kb = set_menu.addAction(tr("Tastaturanschläge zählen"))
         a_kb.setCheckable(True)
         a_kb.setChecked(self.state.get("keyboard_enabled", True))
         if not self.key_source:
-            a_kb.setText("Tastaturanschläge zählen (nicht verfügbar)")
+            a_kb.setText(tr("Tastaturanschläge zählen (nicht verfügbar)"))
             a_kb.setEnabled(False)
-        set_menu.addAction(self.scale_slider_action(set_menu, "plant", "Pflanzengrösse"))
-        set_menu.addAction(self.scale_slider_action(set_menu, "menu", "Menügrösse"))
+        set_menu.addAction(self.scale_slider_action(set_menu, "plant", tr("Pflanzengrösse")))
+        set_menu.addAction(self.scale_slider_action(set_menu, "menu", tr("Menügrösse")))
         set_menu.addAction(self.volume_slider_action(set_menu))
-        a_dark = set_menu.addAction("Dunkelmodus")
+        lang_menu = set_menu.addMenu("Sprache / Language")
+        lang_group = QActionGroup(lang_menu)
+        lang_group.setExclusive(True)
+        lang_actions = {}
+        for code, name in i18n.LANGUAGES.items():
+            a = lang_menu.addAction(name)
+            a.setCheckable(True)
+            a.setChecked(code == i18n.language())
+            lang_group.addAction(a)
+            lang_actions[a] = code
+        a_dark = set_menu.addAction(tr("Dunkelmodus"))
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))
-        a_top = set_menu.addAction("Immer im Vordergrund")
+        a_top = set_menu.addAction(tr("Immer im Vordergrund"))
         a_top.setCheckable(True)
         a_top.setChecked(self.state.get("on_top", True))
         m.addSeparator()
         debug.build_menu(self, m)
-        a_focus = m.addAction("Fokus abbrechen") if self.focus else None
-        a_status = m.addAction("Status anzeigen")
-        a_reset = m.addAction(f"«{self.kind.name}» einlagern & neu aussäen …")
+        a_focus = m.addAction(tr("Fokus abbrechen")) if self.focus else None
+        a_status = m.addAction(tr("Status anzeigen"))
+        a_reset = m.addAction(tr("«{v}» einlagern & neu aussäen …", v=self.kind.name))
         m.addSeparator()
-        a_quit = m.addAction("Beenden")
+        a_quit = m.addAction(tr("Beenden"))
 
         chosen = m.exec(global_pos)
         if chosen is None:
@@ -1119,6 +1151,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.show_status()
         elif chosen is a_bubble:
             self.set_bubble(a_bubble.isChecked())
+        elif chosen in lang_actions:
+            self.choose_language(lang_actions[chosen])
         elif chosen is a_dark:
             self.set_dark(a_dark.isChecked())
         elif chosen is a_kb:
@@ -1142,24 +1176,13 @@ class Plant(PlantDrawMixin, ScaledWidget):
         s, k = self.ps, self.kind
         days = (time.time() - s["created"]) / 86400
         src = {"evdev": "evdev (/dev/input)", "pynput": "pynput"}.get(
-            self.key_source, "nicht verfügbar")
-        keys = fmt_int(s["keys_total"]) if k.growth_per_key > 0 else "zählen bei dieser Pflanze nicht"
+            self.key_source, tr("nicht verfügbar"))
+        keys = fmt_int(s["keys_total"]) if k.growth_per_key > 0 else tr("zählen bei dieser Pflanze nicht")
         QMessageBox.information(
             self, "Topfpflanze",
-            f"Pflanze: {k.name} (Schwierigkeit: {k.difficulty})\n"
-            + (f"Hinweis: {k.note}\n" if k.note else "")
-            + f"Stadium: {stage_name(k, s['growth'])}\n"
-            f"Wachstum: {s['growth']:.1f} (Blüte ab {fmt_int(k.bloom_at)})\n"
-            f"Wasser: {s['water']:.0f} % (leer nach ca. {k.drain_hours:g} h)\n"
-            f"Klicks gesamt: {fmt_int(s['clicks_total'])}\n"
-            f"Tastendrücke gesamt: {keys}\n"
-            f"Dünger: {self.fert_summary()}\n"
-            f"Prestige: {self.prestige_summary()}\n"
-            f"Helfer: {', '.join(HELPERS[h].name for h in HELPER_ORDER if self.helper_on(h)) or '–'}\n"
-            f"Alter: {days:.1f} Tage\n"
-            f"Gold: {fmt_int(self.state.get('coins', 0))}\n"
-            f"Tastaturquelle: {src}\n"
-            f"Speicherort: {config.STATE_FILE}")
+            tr("Pflanze: {v} (Schwierigkeit: {difficulty})\n", v=k.name, difficulty=k.difficulty)
+            + (tr("Hinweis: {note}\n", note=k.note) if k.note else "")
+            + tr("Stadium: {growth}\nWachstum: {growth2:.1f} (Blüte ab {bloom_at})\nWasser: {water:.0f} % (leer nach ca. {drain_hours:g} h)\nKlicks gesamt: {clicks_total}\nTastendrücke gesamt: {v}\nDünger: {fert_summary}\nPrestige: {prestige_summary}\nHelfer: {v2}\nAlter: {days:.1f} Tage\nGold: {coins}\nTastaturquelle: {src}\nSpeicherort: {config}", growth=stage_name(k, s['growth']), growth2=s['growth'], bloom_at=fmt_int(k.bloom_at), water=s['water'], drain_hours=k.drain_hours, clicks_total=fmt_int(s['clicks_total']), v=keys, fert_summary=self.fert_summary(), prestige_summary=self.prestige_summary(), v2=', '.join(HELPERS[h].name for h in HELPER_ORDER if self.helper_on(h)) or '–', days=days, coins=fmt_int(self.state.get('coins', 0)), src=src, config=config.STATE_FILE))
 
     def reset_plant(self):
         """Öffnet den Dialog «Einlagern & neu aussäen» (Topfwahl und Bestätigung)."""
@@ -1181,7 +1204,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
     def sow_choices(self):
         """Wählbare Töpfe: Originaltopf (gratis), ein günstiges und ein edles Design."""
         offer = self.pot_offer()
-        out = [{"id": "orig", "name": "Originaltopf", "price": 0, "skin": None, "tier": "orig"}]
+        out = [{"id": "orig", "name": tr("Originaltopf"), "price": 0, "skin": None, "tier": "orig"}]
         for tier in ("cheap", "premium"):
             d = pots.design(offer[tier])
             out.append({"id": tier, "name": d["name"], "price": d["price"], "skin": d["id"], "tier": tier})
@@ -1214,7 +1237,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         del self.ps
         self.activate(key)
         if choice["skin"]:
-            self.popup(f"Neuer Topf: {choice['name']}", coin=False)
+            self.popup(tr("Neuer Topf: {choice}", choice=choice['name']), coin=False)
         self.save_state()
         self.update_tooltip()
         self.bubble.update()

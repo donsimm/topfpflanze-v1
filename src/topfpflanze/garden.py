@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
+from .i18n import tr
 from .config import GARDEN_H, GARDEN_W
 from .data import PLANT_TYPES
 from .drawing import draw_seed_packet, draw_star
@@ -93,8 +94,8 @@ class Garden(ScaledWidget):
         kind = PLANT_TYPES.get(e["key"])
         name = kind.name if kind else e["key"]
         answer = QMessageBox.question(
-            self, "Karte löschen",
-            f"Die Karte «{name}» vom {fmt_datetime(e.get('archived_at'))} endgültig aus dem Gartenhaus löschen?")
+            self, tr("Karte löschen"),
+            tr("Die Karte «{v}» vom {archived_at} endgültig aus dem Gartenhaus löschen?", v=name, archived_at=fmt_datetime(e.get('archived_at'))))
         if answer != QMessageBox.StandardButton.Yes:
             return
         garden = self.plant.state.get("garden", [])
@@ -185,7 +186,7 @@ class Garden(ScaledWidget):
         p.setFont(font)
         p.setPen(T("text"))
         p.drawText(QRectF(12, 7, 200, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   "Gartenhaus")
+                   tr("Gartenhaus"))
         cr = self.close_rect()
         p.setPen(QPen(T("muted"), 1.6))
         p.drawLine(cr.topLeft() + QPointF(5, 5), cr.bottomRight() - QPointF(5, 5))
@@ -196,7 +197,7 @@ class Garden(ScaledWidget):
         p.setPen(T("text2"))
         n = len(entries)
         p.drawText(QRectF(12, 28, 250, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   f"Ehrenhalle · {n} Pflanze{'n' if n != 1 else ''}")
+                   (tr("Ehrenhalle · {n} Pflanze", n=n) if n == 1 else tr("Ehrenhalle · {n} Pflanzen", n=n)))
         p.setPen(QPen(T("sep"), 1))
         p.drawLine(QPointF(12, 51), QPointF(GARDEN_W - 12, 51))
 
@@ -211,7 +212,7 @@ class Garden(ScaledWidget):
             p.setFont(font)
             p.drawText(view.adjusted(20, 0, -20, 0),
                        Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap,
-                       "Noch leer.\n\nBlühende Pflanzen kommen beim Neu-Aussäen mit Datum und Uhrzeit hierher.")
+                       tr("Noch leer.\n\nBlühende Pflanzen kommen beim Neu-Aussäen mit Datum und Uhrzeit hierher."))
         p.save()
         p.setClipRect(view)
         for i, r in self.card_rects():
@@ -269,7 +270,7 @@ class Garden(ScaledWidget):
                        Qt.AlignmentFlag.AlignCenter, fmt_date(ts))
             p.drawText(QRectF(r.left() + 2, r.top() + 146, r.width() - 4, 14),
                        Qt.AlignmentFlag.AlignCenter,
-                       time.strftime("%H:%M Uhr", time.localtime(ts)) if ts else "")
+                       time.strftime(tr("%H:%M Uhr"), time.localtime(ts)) if ts else "")
         p.restore()
 
         ms = self.max_scroll()
@@ -288,27 +289,22 @@ class Garden(ScaledWidget):
         if self.hover_button:
             if bloomed:
                 lvl = plant.prestige_level()
-                text = (f"{plant.kind.name} blüht: Prestige-Stufe {lvl} → {lvl + 1}, kommt ins Gartenhaus "
-                        f"und wird neu ausgesät.")
+                text = (tr("{v} blüht: Prestige-Stufe {lvl} → {lvl2}, kommt ins Gartenhaus und wird neu ausgesät.", v=plant.kind.name, lvl=lvl, lvl2=lvl + 1))
                 color = T("ok")
             else:
-                text = (f"{plant.kind.name} ({stage_name(plant.kind, plant.ps['growth'])}) kommt nur ins "
-                        f"Gartenhaus, ohne Prestige-Stufe. Danach wird neu ausgesät.")
+                text = (tr("{v} ({growth}) kommt nur ins Gartenhaus, ohne Prestige-Stufe. Danach wird neu ausgesät.", v=plant.kind.name, growth=stage_name(plant.kind, plant.ps['growth'])))
                 color = T("text2")
         elif getattr(self, "hover_delete", False):
-            text, color = "Karte löschen (mit Rückfrage).", T("bad")
+            text, color = tr("Karte löschen (mit Rückfrage)."), T("bad")
         elif self.hover is not None and self.hover < len(entries):
             e = entries[self.hover]
             kind = PLANT_TYPES[e["key"]]
-            text = ((f"Prestige-Stufe {e['prestige']} · " if e.get("prestige") else "")
-                    + f"{kind.name} ({stage_name(kind, e.get('growth', 0))}): gepflanzt {fmt_date(e.get('created'))}, "
-                    f"Blüte {fmt_date(e.get('bloomed_at'))}, "
-                    f"ins Gartenhaus {fmt_datetime(e.get('archived_at'))}. "
-                    f"Wachstum {e.get('growth', 0):.0f}, {fmt_int(e.get('clicks_total', 0))} Klicks"
-                    + (f", {fmt_int(e.get('keys_total', 0))} Tasten." if kind.growth_per_key > 0 else "."))
+            text = ((tr("Prestige-Stufe {prestige} · ", prestige=e['prestige']) if e.get("prestige") else "")
+                    + tr("{v} ({growth}): gepflanzt {created}, Blüte {bloomed_at}, ins Gartenhaus {archived_at}. Wachstum {growth2:.0f}, {clicks_total} Klicks", v=kind.name, growth=stage_name(kind, e.get('growth', 0)), created=fmt_date(e.get('created')), bloomed_at=fmt_date(e.get('bloomed_at')), archived_at=fmt_datetime(e.get('archived_at')), growth2=e.get('growth', 0), clicks_total=fmt_int(e.get('clicks_total', 0)))
+                    + (tr(", {keys_total} Tasten.", keys_total=fmt_int(e.get('keys_total', 0))) if kind.growth_per_key > 0 else "."))
             color = T("text3")
         else:
-            text = "Mausrad zum Blättern. Zeiger auf eine Karte zeigt Details, × oben links löscht sie."
+            text = tr("Mausrad zum Blättern. Zeiger auf eine Karte zeigt Details, × oben links löscht sie.")
             color = T("muted")
         p.setFont(small)
         p.setPen(color)
@@ -335,4 +331,4 @@ class Garden(ScaledWidget):
         p.setFont(font)
         p.setPen(T("button_text"))
         p.drawText(btn.adjusted(36, 0, -8, 0), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   "Einlagern & neu aussäen")
+                   tr("Einlagern & neu aussäen"))

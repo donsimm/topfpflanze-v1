@@ -1261,3 +1261,91 @@ def test_every_achievement_series_has_at_least_five_ascending_tiers(plant):
         targets = [t.target for t in tiers if t.key not in ("g_zen", "g_helpers")]   # andere Messgrösse
         assert targets == sorted(set(targets)), name
     assert len([a for a in series["blueten"]]) == 5 and len(series["farben"]) == 8
+
+
+# ---------------------------------------------------------------- Sprachen
+
+def _tr_keys():
+    import ast, pathlib
+    root = pathlib.Path(__file__).parent.parent / "src" / "topfpflanze"
+    keys = set()
+    for path in root.glob("*.py"):
+        for n in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if (isinstance(n, ast.Call) and getattr(n.func, "id", None) == "tr" and n.args
+                    and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str)):
+                keys.add(n.args[0].value)
+    return keys
+
+
+def test_english_catalog_is_complete_and_consistent():
+    import string
+    from topfpflanze.lang import en
+    keys = _tr_keys()
+    assert not keys - set(en.STRINGS), sorted(keys - set(en.STRINGS))[:5]      # nichts unübersetzt
+    assert not set(en.STRINGS) - keys, sorted(set(en.STRINGS) - keys)[:5]      # keine veralteten Einträge
+
+    def fields(text):
+        return sorted(f for _l, f, _s, _c in string.Formatter().parse(text) if f is not None)
+    for de, english in en.STRINGS.items():
+        assert english.strip(), de
+        assert fields(de) == fields(english), (de, english)                    # gleiche Platzhalter
+
+
+def test_tr_uses_catalog_and_falls_back_to_german():
+    from topfpflanze import i18n
+    try:
+        assert i18n.set_language("en") == "en"
+        assert i18n.tr("Dünger") == "Fertilizer"
+        assert i18n.tr("{m} min", m=5) == "5 min"
+        assert i18n.tr("ein ungeübersetzter Text") == "ein ungeübersetzter Text"
+        assert i18n.set_language("xx") == "de" and i18n.tr("Dünger") == "Dünger"
+    finally:
+        i18n.set_language("de")
+
+
+def test_game_starts_in_english_in_a_fresh_process(tmp_path):
+    import subprocess, sys, textwrap, os
+    code = textwrap.dedent(f"""
+        from topfpflanze import config, i18n
+        config.STATE_DIR = config.Path({str(tmp_path)!r}); config.STATE_FILE = config.STATE_DIR / "state.json"
+        i18n.set_language("en")
+        from PyQt6.QtWidgets import QApplication
+        app = QApplication([])
+        from topfpflanze.data import PLANT_TYPES, VISITORS, ACHIEVEMENTS, RARITY_LABEL
+        from topfpflanze.plant import Plant
+        p = Plant()
+        assert PLANT_TYPES["kaktus"].name == "Cactus" and VISITORS["biene"].name == "Honeybee"
+        assert RARITY_LABEL["sehr selten"] == "very rare"
+        assert all(a.name and not any(c in a.name for c in "äöü") for a in ACHIEVEMENTS), "Umlaut im Namen"
+        for w in (p, p.bubble, p.shop, p.garden, p.ach_win, p.focus_win, p.book_win, p.info_win, p.sow_win):
+            assert not w.grab().isNull()
+        print("OK")
+    """)
+    env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
+    res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=120)
+    assert "OK" in res.stdout, res.stderr[-800:]
+
+
+def test_saved_language_and_choose_language(plant, tmp_path, monkeypatch):
+    import json
+    from PyQt6.QtCore import QProcess
+    from PyQt6.QtWidgets import QApplication
+    from topfpflanze import i18n
+    f = tmp_path / "s.json"
+    f.write_text(json.dumps({"language": "en"}))
+    assert i18n.saved_language(f) == "en"
+    f.write_text(json.dumps({"language": "auto"}))
+    monkeypatch.setattr(i18n, "system_language", lambda: "de")
+    assert i18n.saved_language(f) == "de"
+    assert i18n.saved_language(tmp_path / "fehlt.json") == "de"
+    # Sprachwechsel: speichert, beendet und startet danach neu
+    started = []
+    monkeypatch.setattr(QProcess, "startDetached", staticmethod(lambda prog, args: started.append((prog, args))))
+    app = QApplication.instance()
+    monkeypatch.setattr(app, "quit", lambda: app.aboutToQuit.emit())
+    plant.choose_language("en")
+    assert plant.state["language"] == "en" and json.load(open(config.STATE_FILE, encoding="utf-8"))["language"] == "en"
+    assert started and started[0] == plant.restart_command()
+    started.clear()
+    plant.choose_language("de")           # gleiche Sprache wie die laufende: nur speichern, kein Neustart
+    assert plant.state["language"] == "de" and not started

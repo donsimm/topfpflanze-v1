@@ -72,9 +72,8 @@ import sys
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
 
-from . import config, debug
+from . import config, i18n
 from .config import APP_NAME
-from .plant import Plant
 
 
 def parse_args(argv=None):
@@ -90,13 +89,16 @@ def main(argv=None):
     # Qt Multimedia meldet beim Start viele harmlose Suchmeldungen (z. B. fehlende optionale Bibliotheken)
     os.environ.setdefault("QT_LOGGING_RULES", "qt.multimedia.symbolsresolver=false;qt.multimedia.ffmpeg=false")
     args, qt_args = parse_args(sys.argv[1:] if argv is None else argv)
-    if args.debug:
-        debug.enable(args.speed)
     if args.data_dir:
         config.set_data_dir(args.data_dir)
     elif args.debug:
         config.set_data_dir(config.STATE_DIR / "debug")
+    # Die Sprache steht fest, bevor die Spielmodule geladen werden (ihre Texte werden beim Import übersetzt)
+    i18n.init(config.STATE_FILE)
+    from . import debug
+    from .plant import Plant
     if args.debug:
+        debug.enable(args.speed)
         print(f"Debug-Modus, Spielstand: {config.STATE_FILE}", flush=True)
     app = QApplication([sys.argv[0]] + qt_args)
     app.setApplicationName(APP_NAME)

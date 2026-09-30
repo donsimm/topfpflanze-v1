@@ -3,6 +3,7 @@
 from PyQt6.QtCore import QPointF, QRectF, Qt
 from PyQt6.QtGui import QColor, QFontMetricsF, QPen
 
+from .i18n import tr
 from . import pots
 from .data import PRESTIGE_BONUS
 from .drawing import draw_coin
@@ -12,7 +13,7 @@ from .util import fmt_int, stage_name
 
 CARD_H = 152
 PREVIEW_H = 74
-TIER_LABEL = {"orig": "Gratis", "cheap": "Günstig", "premium": "Edel"}
+TIER_LABEL = {"orig": tr("Gratis"), "cheap": tr("Günstig"), "premium": tr("Edel")}
 
 
 class SowWin(Panel):
@@ -49,11 +50,10 @@ class SowWin(Panel):
         k = pl.kind
         if pl.prestige_ready():
             lvl = pl.prestige_level()
-            return (f"«{k.name}» ist ausgewachsen",
-                    f"Prestige-Stufe {lvl} → {lvl + 1}: dauerhaft +{(lvl + 1) * PRESTIGE_BONUS * 100:.0f} % Wachstum "
-                    f"und Gold für alle künftigen {k.name}. Die Pflanze kommt ins Gartenhaus.", True)
-        return (f"«{k.name}» ist noch nicht ausgewachsen",
-                f"Stadium: {stage_name(k, pl.ps['growth'])}. Sie kommt nur ins Gartenhaus, ohne Prestige-Stufe.", False)
+            return (tr("«{v}» ist ausgewachsen", v=k.name),
+                    tr("Prestige-Stufe {lvl} → {lvl2}: dauerhaft +{lvl3:.0f} % Wachstum und Gold für alle künftigen {v}. Die Pflanze kommt ins Gartenhaus.", lvl=lvl, lvl2=lvl + 1, lvl3=(lvl + 1) * PRESTIGE_BONUS * 100, v=k.name), True)
+        return (tr("«{v}» ist noch nicht ausgewachsen", v=k.name),
+                tr("Stadium: {growth}. Sie kommt nur ins Gartenhaus, ohne Prestige-Stufe.", growth=stage_name(k, pl.ps['growth'])), False)
 
     def layout(self):
         base = self.font()
@@ -134,7 +134,7 @@ class SowWin(Panel):
         pl = self.plant
         lay = self.layout()
         title, text, ready = self.info_blocks()
-        p = self.begin("Einlagern & neu aussäen", pl.kind.name)
+        p = self.begin(tr("Einlagern & neu aussäen"), pl.kind.name)
         base = self.font()
         p.setFont(lay["head"])
         p.setPen(T("coin") if ready else T("text"))
@@ -146,7 +146,7 @@ class SowWin(Panel):
         p.setFont(self.font_px(base, 12, True))
         p.setPen(T("text"))
         p.drawText(lay["heading"], Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   "Topf für die neue Pflanze")
+                   tr("Topf für die neue Pflanze"))
 
         for c, r in lay["cards"]:
             sel = c["id"] == self.choice
@@ -172,7 +172,7 @@ class SowWin(Panel):
             p.setFont(self.font_px(base, 11, True))
             if c["price"] == 0:
                 p.setPen(T("ok"))
-                p.drawText(price_rect, Qt.AlignmentFlag.AlignCenter, "Gratis")
+                p.drawText(price_rect, Qt.AlignmentFlag.AlignCenter, tr("Gratis"))
             else:
                 txt = fmt_int(c["price"])
                 tw = p.fontMetrics().horizontalAdvance(txt)
@@ -196,7 +196,7 @@ class SowWin(Panel):
         p.setFont(self.font_px(base, 11))
         p.setPen(T("text2"))
         fm = p.fontMetrics()
-        label = fm.elidedText(f"Gewählt: {sel['name']}", Qt.TextElideMode.ElideRight, int(lay["chosen"].width() - 70))
+        label = fm.elidedText(tr("Gewählt: {sel}", sel=sel['name']), Qt.TextElideMode.ElideRight, int(lay["chosen"].width() - 70))
         p.drawText(lay["chosen"], Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
         p.setFont(self.font_px(base, 11, True))
         if sel["price"]:
@@ -208,13 +208,13 @@ class SowWin(Panel):
                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, txt)
         else:
             p.setPen(T("ok"))
-            p.drawText(lay["chosen"], Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, "Gratis")
+            p.drawText(lay["chosen"], Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, tr("Gratis"))
         p.setFont(self.font_px(base, 10))
         p.setPen(T("muted"))
         coins = pl.state.get("coins", 0)
-        note = "" if self.affordable(sel) else f" · es fehlen {fmt_int(sel['price'] - coins)}"
+        note = "" if self.affordable(sel) else tr(" · es fehlen {coins}", coins=fmt_int(sel['price'] - coins))
         p.drawText(lay["gold"], Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   f"Dein Gold: {fmt_int(coins)}{note}")
+                   tr("Dein Gold: {coins}{note}", coins=fmt_int(coins), note=note))
 
         # Knöpfe
         hov = self.hover
@@ -224,7 +224,7 @@ class SowWin(Panel):
         p.drawRoundedRect(r, 8, 8)
         p.setFont(self.font_px(base, 12, True))
         p.setPen(T("text2"))
-        p.drawText(r, Qt.AlignmentFlag.AlignCenter, "Abbrechen")
+        p.drawText(r, Qt.AlignmentFlag.AlignCenter, tr("Abbrechen"))
         r = lay["ok"]
         can_ok = self.affordable(sel)
         p.setOpacity(1.0 if can_ok else 0.5)
@@ -232,6 +232,6 @@ class SowWin(Panel):
         p.setBrush(T("active_bg_hover") if hov == "ok" and can_ok else T("active_bg"))
         p.drawRoundedRect(r, 8, 8)
         p.setPen(T("button_text"))
-        p.drawText(r, Qt.AlignmentFlag.AlignCenter, "Einlagern & neu aussäen")
+        p.drawText(r, Qt.AlignmentFlag.AlignCenter, tr("Einlagern & neu aussäen"))
         p.setOpacity(1.0)
         p.end()

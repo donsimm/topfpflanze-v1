@@ -5,7 +5,8 @@ import time
 from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .data import MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_DEFAULT, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
+from .i18n import tr
+from .data import RARITY_LABEL, MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_DEFAULT, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
 from .drawing import draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_date, fmt_int, fmt_left
@@ -164,9 +165,9 @@ class AchievementsWin(Panel):
         now = time.localtime()
         secs_day = 86400 - (now.tm_hour * 3600 + now.tm_min * 60 + now.tm_sec)
         secs_week = secs_day + (6 - now.tm_wday) * 86400
-        sections = (("daily", "Täglich", f"neu in {fmt_left(secs_day)}"),
-                    ("weekly", "Wöchentlich", f"neu in {fmt_age(secs_week)}"),
-                    ("general", "Allgemein", "einmalig"))
+        sections = (("daily", tr("Täglich"), tr("neu in {secs_day}", secs_day=fmt_left(secs_day))),
+                    ("weekly", tr("Wöchentlich"), tr("neu in {secs_week}", secs_week=fmt_age(secs_week))),
+                    ("general", tr("Allgemein"), tr("einmalig")))
         y = 58.0
         heads, rows = [], []
         for period, heading, right in sections:
@@ -235,11 +236,11 @@ class AchievementsWin(Panel):
     def old_label(e):
         pid = e.get("pid", "")
         if e.get("period") == "mastery":
-            return "Meisterschaft (Besucher)"
+            return tr("Meisterschaft (Besucher)")
         if e.get("period") == "daily" and len(pid) == 10:
-            return f"Täglich, {pid[8:10]}.{pid[5:7]}."
+            return tr("Täglich, {pid}.{pid2}.", pid=pid[8:10], pid2=pid[5:7])
         if e.get("period") == "weekly" and "W" in pid:
-            return f"Wöchentlich, KW {int(pid.split('W')[1])}"
+            return tr("Wöchentlich, KW {split}", split=int(pid.split('W')[1]))
         return ""
 
     @staticmethod
@@ -284,14 +285,14 @@ class AchievementsWin(Panel):
         p.drawRoundedRect(pill, 6.5, 6.5)
         p.setFont(self.font_px(base, 10, True))
         p.setPen(QColor("#3B2A00"))
-        p.drawText(pill, Qt.AlignmentFlag.AlignCenter, "Abholen")
+        p.drawText(pill, Qt.AlignmentFlag.AlignCenter, tr("Abholen"))
 
     def paintEvent(self, _e):
         plant = self.plant
         lay = self.layout()
         done_n = sum(1 for a in ACHIEVEMENTS if plant.ach_is_done(a))
         total = plant.ach_pending_total()
-        p = self.begin("Erfolge", f"{done_n} von {len(ACHIEVEMENTS)} erreicht")
+        p = self.begin(tr("Erfolge"), tr("{done_n} von {v} erreicht", done_n=done_n, v=len(ACHIEVEMENTS)))
         base = self.font()
         W = self.width()
         for heading, right, hy in lay["heads"]:
@@ -339,7 +340,7 @@ class AchievementsWin(Panel):
             p.setPen(T("ok") if done else T("muted"))
             p.drawText(QRectF(row.right() - 90, row.top() + 15, 82, 13),
                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                       "abgeholt" if done else f"{fmt_int(val)} / {fmt_int(a.target)}")
+                       tr("abgeholt") if done else f"{fmt_int(val)} / {fmt_int(a.target)}")
             bar = QRectF(row.left() + 26, row.bottom() - 4.5, row.width() - 34, 2)
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(T("sep"))
@@ -352,11 +353,11 @@ class AchievementsWin(Panel):
             p.setFont(self.font_px(base, 12, True))
             p.setPen(T("text"))
             p.drawText(QRectF(12, hy, 190, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                       "Nicht abgeholt")
+                       tr("Nicht abgeholt"))
             p.setFont(self.font_px(base, 10))
             p.setPen(T("muted"))
             p.drawText(QRectF(W - 152, hy, 140, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                       "bereit zum Abholen")
+                       tr("bereit zum Abholen"))
             for e, row in lay["old_rows"]:
                 self.draw_claim_row(p, row, e["name"], self.old_label(e), e["reward"],
                                     self.hover == ("old", id(e)), base)
@@ -366,7 +367,7 @@ class AchievementsWin(Panel):
                 p.setFont(self.font_px(base, 10))
                 p.setPen(T("muted"))
                 p.drawText(QRectF(12, last.bottom() + 3, W - 24, 13), Qt.AlignmentFlag.AlignCenter,
-                           f"… und {more} weitere (Knopf unten holt alle)")
+                           tr("… und {more} weitere (Knopf unten holt alle)", more=more))
 
         br = lay["btn"]
         if total > 0:
@@ -375,7 +376,7 @@ class AchievementsWin(Panel):
             p.setBrush(T("gold_bg"))
             p.drawRoundedRect(br, 8, 8)
             p.setFont(self.font_px(base, 12, True))
-            label = f"Alle abholen  +{fmt_int(total)}"
+            label = tr("Alle abholen  +{v}", v=fmt_int(total))
             tw = p.fontMetrics().horizontalAdvance(label)
             p.setPen(T("coin"))
             p.drawText(QRectF(br.center().x() - tw / 2 - 8, br.top(), tw + 2, br.height()),
@@ -387,7 +388,7 @@ class AchievementsWin(Panel):
             p.drawRoundedRect(br, 8, 8)
             p.setFont(self.font_px(base, 11))
             p.setPen(T("muted"))
-            p.drawText(br, Qt.AlignmentFlag.AlignCenter, "nichts abzuholen")
+            p.drawText(br, Qt.AlignmentFlag.AlignCenter, tr("nichts abzuholen"))
         p.end()
 
 
@@ -447,13 +448,13 @@ class FocusWin(Panel):
     def tooltip_at(self, pos):
         if self.compact:
             if self.abort_rect().contains(pos):
-                return "Fokus abbrechen\nKein Bonus für diese Sitzung."
+                return tr("Fokus abbrechen\nKein Bonus für diese Sitzung.")
             rem, _ = self.plant.focus_remaining()
             m, sec = divmod(int(math.ceil(rem)), 60)
-            return f"Fokus läuft: noch {m:02d}:{sec:02d}\nRechtsklick: Menü, Fokus abbrechen"
+            return tr("Fokus läuft: noch {m:02d}:{sec:02d}\nRechtsklick: Menü, Fokus abbrechen", m=m, sec=sec)
         if self.mode_rect().contains(pos):
-            return ("Fokusmodus\nBeim Start werden alle anderen Fenster ausgeblendet, nur Pflanze und Zeit bleiben. "
-                    "Nach dem Ablauf kommen sie zurück.")
+            return (tr("Fokusmodus\nBeim Start werden alle anderen Fenster ausgeblendet, nur Pflanze und Zeit bleiben. "
+                    "Nach dem Ablauf kommen sie zurück."))
         return super().tooltip_at(pos)
 
     def paint_compact(self):
@@ -539,7 +540,7 @@ class FocusWin(Panel):
             self.paint_compact()
             return
         plant = self.plant
-        p = self.begin("Fokus-Timer", f"Wachstum ×{FOCUS_MULT:g} während der Sitzung")
+        p = self.begin(tr("Fokus-Timer"), tr("Wachstum ×{v:g} während der Sitzung", v=FOCUS_MULT))
         base = self.font()
         running = plant.focus is not None
         chosen = plant.state.get("focus_minutes", FOCUS_DEFAULT)
@@ -553,7 +554,7 @@ class FocusWin(Panel):
             p.drawRoundedRect(r, 6, 6)
             p.setFont(self.font_px(base, 12, sel))
             p.setPen(T("button_text") if sel else T("text2"))
-            p.drawText(r, Qt.AlignmentFlag.AlignCenter, f"{m} min")
+            p.drawText(r, Qt.AlignmentFlag.AlignCenter, tr("{m} min", m=m))
             p.setOpacity(1.0)
 
         c = QPointF(self.width() / 2, 143)
@@ -579,7 +580,7 @@ class FocusWin(Panel):
         p.setFont(self.font_px(base, 10))
         p.setPen(T("ok") if ok else T("muted"))
         p.drawText(QRectF(c.x() - R, c.y() + 8, 2 * R, 16), Qt.AlignmentFlag.AlignCenter,
-                   "läuft" if running else msg or "bereit")
+                   tr("läuft") if running else msg or tr("bereit"))
 
         br = self.button_rect()
         hov = self.hover == "start"
@@ -592,7 +593,7 @@ class FocusWin(Panel):
         p.drawRoundedRect(br, 8, 8)
         p.setFont(self.font_px(base, 12, True))
         p.setPen(T("bad") if running else T("button_text"))
-        p.drawText(br, Qt.AlignmentFlag.AlignCenter, "Abbrechen" if running else "Fokus starten")
+        p.drawText(br, Qt.AlignmentFlag.AlignCenter, tr("Abbrechen") if running else tr("Fokus starten"))
 
         # Schalter «Fokusmodus»
         mr = self.mode_rect()
@@ -601,7 +602,7 @@ class FocusWin(Panel):
         p.setFont(self.font_px(base, 11, True))
         p.setPen(T("text"))
         p.drawText(QRectF(mr.left(), mr.top(), 120, mr.height()), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   "Fokusmodus")
+                   tr("Fokusmodus"))
         sw = QRectF(mr.right() - 38, mr.center().y() - 9, 38, 18)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QColor("#2E9E44") if on else T("cell_border"))
@@ -611,14 +612,14 @@ class FocusWin(Panel):
         p.setFont(self.font_px(base, 10, True))
         p.setPen(T("ok") if on else T("muted"))
         p.drawText(QRectF(sw.left() - 34, mr.top(), 30, mr.height()), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                   "an" if on else "aus")
+                   tr("an") if on else tr("aus"))
         p.setOpacity(1.0)
 
         d = plant.state.get("daily", {})
         p.setFont(self.font_px(base, 10))
         p.setPen(T("muted"))
         p.drawText(QRectF(12, self.height() - 22, self.width() - 24, 16), Qt.AlignmentFlag.AlignCenter,
-                   f"Heute: {d.get('focus', 0)} Sitzung(en) · {d.get('focus_min', 0)} min")
+                   tr("Heute: {focus} Sitzung(en) · {focus_min} min", focus=d.get('focus', 0), focus_min=d.get('focus_min', 0)))
         p.end()
 
 
@@ -647,7 +648,7 @@ class BookWin(Panel):
         plant = self.plant
         book = plant.state.get("book", {})
         fresh = plant.state.get("book_new", [])
-        p = self.begin("Besucher-Sammelbuch", f"{len(book)} von {len(VISITORS)} entdeckt")
+        p = self.begin(tr("Besucher-Sammelbuch"), tr("{book} von {v} entdeckt", book=len(book), v=len(VISITORS)))
         base = self.font()
         rarity_col = {"häufig": T("muted"), "selten": QColor("#3B82C4"), "sehr selten": QColor("#9B59B6")}
         for key, r in self.card_rects():
@@ -674,11 +675,11 @@ class BookWin(Panel):
                        v.name if found else "???")
             p.setFont(self.font_px(base, 9))
             p.setPen(rarity_col[v.rarity])
-            p.drawText(QRectF(r.left() + 2, r.top() + 78, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter, v.rarity)
+            p.drawText(QRectF(r.left() + 2, r.top() + 78, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter, RARITY_LABEL[v.rarity])
             p.setPen(T("text2"))
             p.drawText(QRectF(r.left() + 2, r.top() + 90, r.width() - 4, 12), Qt.AlignmentFlag.AlignCenter,
-                       (f"{book[key]['count']}× gesehen" if book[key]['count'] < 100 else f"{book[key]['count']}×")
-                       if found else "unbekannt")
+                       (tr("{count}× gesehen", count=book[key]['count']) if book[key]['count'] < 100 else f"{book[key]['count']}×")
+                       if found else tr("unbekannt"))
             if found:
                 count = book[key]["count"]
                 nxt = next((s for s in MASTERY_STEPS if count < s), None)
@@ -759,41 +760,41 @@ class BookWin(Panel):
 
         if not self.hover:  # Legende
             steps = " / ".join(str(s) for s in MASTERY_STEPS)
-            self.info_row(p, info, 0, [(f"Ein Klick auf einen Besucher bringt {VISIT_GREET_COINS} Gold.", muted, False)], base)
-            self.info_row(p, info, 1, [("Setzling", ok, True), (f"  Stufe nach {steps} Besuchen", muted, False)], base,
+            self.info_row(p, info, 0, [(tr("Ein Klick auf einen Besucher bringt {v} Gold.", v=VISIT_GREET_COINS), muted, False)], base)
+            self.info_row(p, info, 1, [(tr("Setzling"), ok, True), (tr("  Stufe nach {steps} Besuchen", steps=steps), muted, False)], base,
                           icon=seedling(3, TIER_COLORS[2]))
-            self.info_row(p, info, 2, [("Stern", gold, True), ("  Farbvariante gesehen", muted, False)], base,
+            self.info_row(p, info, 2, [(tr("Stern"), gold, True), (tr("  Farbvariante gesehen"), muted, False)], base,
                           icon=star(True))
             return
         key = self.hover
         v = VISITORS[key]
         e = book.get(key)
         if not e:
-            self.info_row(p, info, 0, [("???", text, True), (f"  {v.rarity}", rarity_col[v.rarity], False)], base)
+            self.info_row(p, info, 0, [("???", text, True), (f"  {RARITY_LABEL[v.rarity]}", rarity_col[v.rarity], False)], base)
             p.setFont(self.font_px(base, 10))
             p.setPen(muted)
             p.drawText(QRectF(info.left(), info.top() + self.ROW, info.width(), 2 * self.ROW),
                        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop | Qt.TextFlag.TextWordWrap,
-                       f"Noch nicht entdeckt. Hinweis: {v.hint}")
+                       tr("Noch nicht entdeckt. Hinweis: {hint}", hint=v.hint))
             return
         tier = plant.mastery_tier(key)
         count = e["count"]
         nxt = next((s for s in MASTERY_STEPS if count < s), None)
-        self.info_row(p, info, 0, [(v.name, text, True), (f"  {v.rarity}", rarity_col[v.rarity], False)], base,
-                      right=(f"{count}× · seit {fmt_date(e.get('first'))}", muted))
+        self.info_row(p, info, 0, [(v.name, text, True), (f"  {RARITY_LABEL[v.rarity]}", rarity_col[v.rarity], False)], base,
+                      right=(tr("{count}× · seit {first}", count=count, first=fmt_date(e.get('first'))), muted))
         if tier:
             stufe = [(MASTERY_NAMES[tier - 1], tier_text_color(tier), True)]
         else:
-            stufe = [("Noch keine Stufe", muted, True)]
+            stufe = [(tr("Noch keine Stufe"), muted, True)]
         if nxt:
-            stufe.append((f"  noch {nxt - count} bis {MASTERY_NAMES[tier]}", muted, False))
+            stufe.append((tr("  noch {count} bis {tier}", count=nxt - count, tier=MASTERY_NAMES[tier]), muted, False))
         else:
-            stufe.append((f"  Höchste Stufe, +{MASTERY_TOP_BONUS * 100:g} %", muted, False))
+            stufe.append((tr("  Höchste Stufe, +{v:g} %", v=MASTERY_TOP_BONUS * 100), muted, False))
         self.info_row(p, info, 1, stufe, base, icon=seedling(tier, TIER_COLORS[tier - 1] if tier else TIER_COLORS[0]))
         n_var = e.get("shiny", 0)
         vname = VARIANTS[key].name
         if n_var:
-            parts = [(vname, gold, True), (f"  {n_var}× gesehen", muted, False)]
+            parts = [(vname, gold, True), (tr("  {n_var}× gesehen", n_var=n_var), muted, False)]
         else:
-            parts = [(vname, muted, True), ("  offen", muted, False)]
+            parts = [(vname, muted, True), (tr("  offen"), muted, False)]
         self.info_row(p, info, 2, parts, base, icon=star(n_var > 0))

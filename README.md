@@ -62,6 +62,20 @@ Rechtsklick → Einstellungen → zwei getrennte Regler (50 bis 200 %, «100 %»
 
 Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösser als der Bildschirm.
 
+## Sprachen
+
+Deutsch (Standard) und Englisch. Umschalten: Rechtsklick → Einstellungen → Sprache / Language (das Spiel startet dabei neu).
+Ohne Auswahl gilt die Systemsprache, sonst Deutsch.
+
+Der deutsche Text ist der Schlüssel: im Code steht `tr("Dünger")`, mit Werten `tr("noch {n} bis {name}", n=3, name=x)`
+(`i18n.py`). Die Übersetzungen stehen je Sprache in `src/topfpflanze/lang/<code>.py` (Wörterbuch `STRINGS`). Fehlt ein
+Eintrag, erscheint der deutsche Text.
+
+Neue Sprache: `lang/en.py` nach `lang/<code>.py` kopieren, die Werte übersetzen (Platzhalter `{…}` unverändert lassen),
+den Code in `i18n.LANGUAGES` und in `i18n._load` eintragen. Ein Test (`test_english_catalog_is_complete_and_consistent`)
+prüft, dass kein Text fehlt und die Platzhalter stimmen. Neuer Text im Code: immer mit `tr(…)` schreiben und den
+englischen Eintrag ergänzen, sonst schlägt der Test fehl.
+
 ## Aufbau (`src/topfpflanze/`)
 
 | Modul | Inhalt |
@@ -74,6 +88,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 | `bubble.py`, `shop.py`, `garden.py`, `panels.py`, `info.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch, Info-Fenster (Werte aus `data.py`, Release Notes aus `changelog.py`) |
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
+| `i18n.py`, `lang/` | Mehrsprachigkeit: `tr()`, Sprachwahl, Übersetzungen |
 | `sound.py` | Ton: Giesssound und Gong (selbst erzeugt), Lautstärke |
 | `sow.py`, `pots.py` | Dialog «Einlagern & neu aussäen», zufällige Topf-Varianten (Skins) |
 | `scaling.py` | Skalierung der Oberfläche (Basisklasse `ScaledWidget`) |

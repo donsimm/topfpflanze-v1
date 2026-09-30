@@ -4,6 +4,7 @@ import time
 from PyQt6.QtCore import QPointF, QRectF
 from PyQt6.QtGui import QColor, QPainterPath
 
+from .i18n import tr
 from .data import STAGE_FRACTIONS
 
 
@@ -38,10 +39,10 @@ def fmt_age(seconds):
     h, rest = divmod(rest, 3600)
     m = rest // 60
     if d:
-        return f"{d} T {h} h"
+        return tr("{d} T {h} h", d=d, h=h)
     if h:
-        return f"{h} h {m} min"
-    return f"{m} min"
+        return tr("{h} h {m} min", h=h, m=m)
+    return tr("{m} min", m=m)
 
 
 def fmt_left(seconds):
@@ -50,23 +51,23 @@ def fmt_left(seconds):
     m = rest // 60
     if h:
         return f"{h}:{m:02d} h"
-    return f"{max(1, m) if seconds else 0} min"
+    return tr("{seconds} min", seconds=max(1, m) if seconds else 0)
 
 
 def fmt_date(ts):
-    return time.strftime("%d.%m.%Y", time.localtime(ts)) if ts else "–"
+    return time.strftime(tr("%d.%m.%Y"), time.localtime(ts)) if ts else "–"
 
 
 def fmt_datetime(ts):
-    return time.strftime("%d.%m.%Y %H:%M", time.localtime(ts)) if ts else "–"
+    return time.strftime(tr("%d.%m.%Y %H:%M"), time.localtime(ts)) if ts else "–"
 
 
 def fert_description(fz):
-    text = f"{fz.name}: Wachstum +{fz.boost * 100:.0f} % für {fmt_left(fz.minutes * 60)}"
+    text = tr("{fz}: Wachstum +{boost:.0f} % für {minutes}", fz=fz.name, boost=fz.boost * 100, minutes=fmt_left(fz.minutes * 60))
     if fz.water:
-        text += f", Wasserverbrauch +{fz.water * 100:.0f} %."
+        text += tr(", Wasserverbrauch +{water:.0f} %.", water=fz.water * 100)
     else:
-        text += ", kein Mehrverbrauch an Wasser."
+        text += tr(", kein Mehrverbrauch an Wasser.")
     return text
 
 
@@ -110,9 +111,9 @@ def drop_path(cx, cy, r):
 def water_status(kind, water):
     """Liefert (Text, ok) für den Wasserstand der Pflanze."""
     if water < kind.wilt_below:
-        return "zu trocken", False
+        return tr("zu trocken"), False
     if water > kind.water_high:
-        return "zu nass", False
+        return tr("zu nass"), False
     if water < kind.water_low:
-        return "knapp", True
-    return "gut", True
+        return tr("knapp"), True
+    return tr("gut"), True

@@ -9,6 +9,7 @@ from PyQt6.QtCore import QEvent, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent, QPainter
 from PyQt6.QtWidgets import QApplication, QWidget
 
+from .i18n import tr
 from . import tooltip
 
 SCALE_MIN, SCALE_MAX = 0.5, 2.0
@@ -81,7 +82,7 @@ class ScaledWidget(QWidget):
     def tooltip_at(self, pos):
         """Text für einen Tooltip an der (logischen) Position; leer = keiner. Unterklassen überschreiben das."""
         if hasattr(self, "close_rect") and self.close_rect().contains(pos):
-            return "Schliessen"
+            return tr("Schliessen")
         return ""
 
     def event(self, ev):

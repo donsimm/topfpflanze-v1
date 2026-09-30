@@ -11,6 +11,7 @@ import random
 from PyQt6.QtCore import QPointF, QRectF, Qt
 from PyQt6.QtGui import QBrush, QColor, QImage, QPainter, QPainterPath, QPen, QRadialGradient
 
+from .i18n import tr
 from .config import SCENE_H, WIN_W
 
 GOLD = "#D9B24A"
@@ -246,58 +247,58 @@ def _d(pot, id_, name, tier, price, ramp, *ops):
 
 
 # --- Wiesenblume (Terrakottatopf)
-_d("terrakotta", "sand-band", "Sand, breites Band", TIER_CHEAP, 30, "sand", ("band", .50, .66, CREAM))
-_d("terrakotta", "salbei-punkte", "Salbei, grosse Punkte", TIER_CHEAP, 30, "salbei",
+_d("terrakotta", "sand-band", tr("Sand, breites Band"), TIER_CHEAP, 30, "sand", ("band", .50, .66, CREAM))
+_d("terrakotta", "salbei-punkte", tr("Salbei, grosse Punkte"), TIER_CHEAP, 30, "salbei",
    ("dots", 5.5, 26, 22, .34, .88, CREAM))
-_d("terrakotta", "glasur-salbei", "Tauchglasur Salbei", TIER_CHEAP, 40, "creme", ("dip", .52, "#8FA58A", 3))
-_d("terrakotta", "gesprenkelt-creme", "Gesprenkelt Creme", TIER_CHEAP, 40, "creme",
+_d("terrakotta", "glasur-salbei", tr("Tauchglasur Salbei"), TIER_CHEAP, 40, "creme", ("dip", .52, "#8FA58A", 3))
+_d("terrakotta", "gesprenkelt-creme", tr("Gesprenkelt Creme"), TIER_CHEAP, 40, "creme",
    ("speckle", 90, ("#8A6E4E", "#B59B76", "#6A523A"), .7, 1.6, 3))
-_d("terrakotta", "salbei-rauten", "Salbei, grosse Rauten", TIER_CHEAP, 45, "salbei",
+_d("terrakotta", "salbei-rauten", tr("Salbei, grosse Rauten"), TIER_CHEAP, 45, "salbei",
    ("diamonds", 12, .30, .95, CREAM, 2.2))
-_d("terrakotta", "anthrazit-goldlinien", "Anthrazit, Goldlinien", TIER_PREMIUM, 180, "anthrazit",
+_d("terrakotta", "anthrazit-goldlinien", tr("Anthrazit, Goldlinien"), TIER_PREMIUM, 180, "anthrazit",
    ("lines", (.46, .56, .66), 1.6, GOLD))
-_d("terrakotta", "elfenbein-goldrand", "Elfenbein, Goldrand", TIER_PREMIUM, 180, "elfenbein",
+_d("terrakotta", "elfenbein-goldrand", tr("Elfenbein, Goldrand"), TIER_PREMIUM, 180, "elfenbein",
    ("band", .0, .13, GOLD), ("lines", (.19,), 1.4, GOLD))
-_d("terrakotta", "kintsugi-schwarz", "Kintsugi Schwarz", TIER_PREMIUM, 260, "schwarz", ("kintsugi", GOLD))
-_d("terrakotta", "kintsugi-weiss", "Kintsugi Weiss", TIER_PREMIUM, 260, "elfenbein", ("kintsugi", "#C9A23A"))
+_d("terrakotta", "kintsugi-schwarz", tr("Kintsugi Schwarz"), TIER_PREMIUM, 260, "schwarz", ("kintsugi", GOLD))
+_d("terrakotta", "kintsugi-weiss", tr("Kintsugi Weiss"), TIER_PREMIUM, 260, "elfenbein", ("kintsugi", "#C9A23A"))
 # --- Kaktus (Betontopf)
-_d("beton", "lehm-streifen", "Lehm, breite Streifen", TIER_CHEAP, 30, "lehm",
+_d("beton", "lehm-streifen", tr("Lehm, breite Streifen"), TIER_CHEAP, 30, "lehm",
    ("band", .42, .55, "#B77E6E"), ("band", .64, .77, "#B77E6E"))
-_d("beton", "sprenkel-sand", "Sprenkel Sand", TIER_CHEAP, 40, "sand",
+_d("beton", "sprenkel-sand", tr("Sprenkel Sand"), TIER_CHEAP, 40, "sand",
    ("speckle", 80, ("#5E4E36", "#8C7A5E", "#F1E6CF"), .7, 1.5, 4))
-_d("beton", "terrazzo-hell", "Terrazzo hell", TIER_CHEAP, 45, "kalk",
+_d("beton", "terrazzo-hell", tr("Terrazzo hell"), TIER_CHEAP, 45, "kalk",
    ("terrazzo", 40, ("#B9A98C", "#8FA58A", "#C7B7AE", "#6A6E74"), 2))
-_d("beton", "schwarz-kupferband", "Schwarz, Kupferband", TIER_PREMIUM, 180, "schwarz", ("band", .48, .60, "#C8703F"))
-_d("beton", "schwarz-goldrand", "Schwarz, Goldrand", TIER_PREMIUM, 200, "schwarz", ("band", .0, .12, GOLD))
-_d("beton", "waldgruen-goldlinien", "Waldgrün, Goldlinien", TIER_PREMIUM, 200, "waldgruen",
+_d("beton", "schwarz-kupferband", tr("Schwarz, Kupferband"), TIER_PREMIUM, 180, "schwarz", ("band", .48, .60, "#C8703F"))
+_d("beton", "schwarz-goldrand", tr("Schwarz, Goldrand"), TIER_PREMIUM, 200, "schwarz", ("band", .0, .12, GOLD))
+_d("beton", "waldgruen-goldlinien", tr("Waldgrün, Goldlinien"), TIER_PREMIUM, 200, "waldgruen",
    ("lines", (.44, .52), 1.6, GOLD))
-_d("beton", "marmor-weiss", "Marmor weiss", TIER_PREMIUM, 240, "kalk", ("marble", "#6A6E74"))
-_d("beton", "kintsugi-stein", "Kintsugi Stein", TIER_PREMIUM, 260, "stein", ("kintsugi", GOLD, 7))
+_d("beton", "marmor-weiss", tr("Marmor weiss"), TIER_PREMIUM, 240, "kalk", ("marble", "#6A6E74"))
+_d("beton", "kintsugi-stein", tr("Kintsugi Stein"), TIER_PREMIUM, 260, "stein", ("kintsugi", GOLD, 7))
 # --- Tulpe (Keramiktopf)
-_d("keramik", "creme-salbeiband", "Creme, Salbeiband", TIER_CHEAP, 30, "creme", ("band", .35, .55, "#A7B8A0"))
-_d("keramik", "glasur-rose", "Tauchglasur Rosé", TIER_CHEAP, 40, "weiss", ("dip", .50, "#E2B8B6", 3))
-_d("keramik", "sprenkel-weiss", "Sprenkel Weiss", TIER_CHEAP, 40, "weiss",
+_d("keramik", "creme-salbeiband", tr("Creme, Salbeiband"), TIER_CHEAP, 30, "creme", ("band", .35, .55, "#A7B8A0"))
+_d("keramik", "glasur-rose", tr("Tauchglasur Rosé"), TIER_CHEAP, 40, "weiss", ("dip", .50, "#E2B8B6", 3))
+_d("keramik", "sprenkel-weiss", tr("Sprenkel Weiss"), TIER_CHEAP, 40, "weiss",
    ("speckle", 70, ("#3E4A63", "#7C8AA8", "#A7AEB8"), .7, 1.5, 5))
-_d("keramik", "terrazzo-rose", "Terrazzo Rosé", TIER_CHEAP, 45, "blush",
+_d("keramik", "terrazzo-rose", tr("Terrazzo Rosé"), TIER_CHEAP, 45, "blush",
    ("terrazzo", 36, ("#FFF2EE", "#B9857F", "#8A5A54", "#F2D7D0"), 3))
-_d("keramik", "weiss-goldring", "Weiss, Goldring", TIER_PREMIUM, 180, "weiss",
+_d("keramik", "weiss-goldring", tr("Weiss, Goldring"), TIER_PREMIUM, 180, "weiss",
    ("band", .0, .10, GOLD), ("lines", (.15,), 1.3, GOLD))
-_d("keramik", "nachtblau-goldlinien", "Nachtblau, Goldlinien", TIER_PREMIUM, 200, "nachtblau",
+_d("keramik", "nachtblau-goldlinien", tr("Nachtblau, Goldlinien"), TIER_PREMIUM, 200, "nachtblau",
    ("lines", (.34, .42, .50), 1.6, GOLD))
-_d("keramik", "weiss-gold-zickzack", "Weiss, Gold-Zickzack", TIER_PREMIUM, 220, "weiss",
+_d("keramik", "weiss-gold-zickzack", tr("Weiss, Gold-Zickzack"), TIER_PREMIUM, 220, "weiss",
    ("chevron", 7, 18, .50, 2.4, GOLD), ("chevron", 7, 18, .66, 2.4, GOLD))
-_d("keramik", "kintsugi-nachtblau", "Kintsugi Nachtblau", TIER_PREMIUM, 260, "nachtblau", ("kintsugi", GOLD, 9))
+_d("keramik", "kintsugi-nachtblau", tr("Kintsugi Nachtblau"), TIER_PREMIUM, 260, "nachtblau", ("kintsugi", GOLD, 9))
 # --- Sonnenblume (Zinkeimer)
-_d("zink", "sprenkel-grau", "Sprenkel Grau", TIER_CHEAP, 40, "stein",
+_d("zink", "sprenkel-grau", tr("Sprenkel Grau"), TIER_CHEAP, 40, "stein",
    ("speckle", 100, ("#3E4145", "#F2F2EF", "#7A7E82"), .8, 1.8, 6))
-_d("zink", "messing-gebuerstet", "Messing gebürstet", TIER_PREMIUM, 200, "messing", ("brush", "#FFFFFF", 30))
-_d("zink", "kupfer-gehaemmert", "Kupfer gehämmert", TIER_PREMIUM, 220, "kupfer",
+_d("zink", "messing-gebuerstet", tr("Messing gebürstet"), TIER_PREMIUM, 200, "messing", ("brush", "#FFFFFF", 30))
+_d("zink", "kupfer-gehaemmert", tr("Kupfer gehämmert"), TIER_PREMIUM, 220, "kupfer",
    ("hammer", 34, 4, "#FFFFFF", "#3A1408"))
-_d("zink", "gold-getaucht", "Gold getaucht", TIER_PREMIUM, 240, "anthrazit", ("dip", .62, "#D6AD3E", 3))
-_d("zink", "gold-gehaemmert", "Gold gehämmert", TIER_PREMIUM, 300, "gold", ("hammer", 34, 8, "#FFFFFF", "#5A3C08"))
+_d("zink", "gold-getaucht", tr("Gold getaucht"), TIER_PREMIUM, 240, "anthrazit", ("dip", .62, "#D6AD3E", 3))
+_d("zink", "gold-gehaemmert", tr("Gold gehämmert"), TIER_PREMIUM, 300, "gold", ("hammer", 34, 8, "#FFFFFF", "#5A3C08"))
 # --- Bonsai (Schale): nur zwei Töpfe
-_d("schale", "weisse-keramik", "Weisse Keramik", TIER_CHEAP, 40, "weiss", ("lines", (.12,), 1.2, "#C9CDD2"))
-_d("schale", "gold", "Gold", TIER_PREMIUM, 250, "gold", ("lines", (.12,), 1.2, "#8A6512"))
+_d("schale", "weisse-keramik", tr("Weisse Keramik"), TIER_CHEAP, 40, "weiss", ("lines", (.12,), 1.2, "#C9CDD2"))
+_d("schale", "gold", tr("Gold"), TIER_PREMIUM, 250, "gold", ("lines", (.12,), 1.2, "#8A6512"))
 
 
 def design(ref):

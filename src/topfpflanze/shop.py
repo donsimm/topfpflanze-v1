@@ -4,6 +4,7 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
+from .i18n import tr
 from .config import PASSIVE_PER_HOUR, SHOP_H, SHOP_W
 from .data import FERTILIZERS, FERT_ORDER, HELPERS, HELPER_ORDER
 from .drawing import draw_coin, draw_fert_icon, draw_helper_icon, fit_font
@@ -135,7 +136,7 @@ class Shop(ScaledWidget):
         p.setFont(font)
         p.setPen(T("text"))
         p.drawText(QRectF(12, 7, 150, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   "Shop")
+                   tr("Shop"))
 
         cr = self.close_rect()
         p.setPen(QPen(T("muted"), 1.6))
@@ -147,7 +148,7 @@ class Shop(ScaledWidget):
         p.setFont(font)
         p.setPen(T("text2"))
         p.drawText(QRectF(12, 28, 170, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   f"für: {plant.kind.name}" if self.tab == "duenger" else "für alle Pflanzen")
+                   tr("für: {v}", v=plant.kind.name) if self.tab == "duenger" else tr("für alle Pflanzen"))
         draw_coin(p, QPointF(SHOP_W - 18, 37), 6)
         p.setPen(T("coin"))
         p.drawText(QRectF(SHOP_W - 140, 28, 112, 18),
@@ -168,7 +169,7 @@ class Shop(ScaledWidget):
             tabfont.setBold(sel)
             p.setFont(tabfont)
             p.setPen(T("button_text") if sel else T("text2"))
-            p.drawText(r, Qt.AlignmentFlag.AlignCenter, "Dünger" if tab == "duenger" else "Helfer")
+            p.drawText(r, Qt.AlignmentFlag.AlignCenter, tr("Dünger") if tab == "duenger" else tr("Helfer"))
         if self.tab == "helfer":
             self.paint_helpers(p, small, coins)
         else:
@@ -181,17 +182,16 @@ class Shop(ScaledWidget):
         elif self.hover and self.tab == "helfer":
             hp = HELPERS[self.hover]
             have = self.hover in plant.state.get("helpers", [])
-            text = f"{hp.name}: {hp.desc} " + ("Klick schaltet ein oder aus." if have else "Klick kauft den Helfer.")
+            text = f"{hp.name}: {hp.desc} " + (tr("Klick schaltet ein oder aus.") if have else tr("Klick kauft den Helfer."))
             color = T("text3")
         elif self.tab == "helfer":
-            text, color = "Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen.", T("muted")
+            text, color = tr("Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen."), T("muted")
         elif self.hover:
             text, color = fert_description(FERTILIZERS[self.hover]), T("text3")
         elif active_fz:
-            text, color = f"Aktiv: {plant.fert_summary()}", T("ok")
+            text, color = tr("Aktiv: {fert_summary}", fert_summary=plant.fert_summary()), T("ok")
         else:
-            text, color = (f"Dünger anklicken, um ihn für die ausgewählte Pflanze zu kaufen. "
-                           f"Passives Einkommen: {PASSIVE_PER_HOUR} Gold pro Stunde."), T("muted")
+            text, color = (tr("Dünger anklicken, um ihn für die ausgewählte Pflanze zu kaufen. Passives Einkommen: {v} Gold pro Stunde.", v=PASSIVE_PER_HOUR)), T("muted")
         p.setFont(small)
         p.setPen(color)
         p.drawText(info, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextWordWrap, text)
@@ -260,7 +260,7 @@ class Shop(ScaledWidget):
             if have:
                 p.setPen(T("ok") if on else T("muted"))
                 p.drawText(QRectF(r.left() + 2, r.top() + 57, r.width() - 4, 14),
-                           Qt.AlignmentFlag.AlignCenter, "aktiv" if on else "ausgeschaltet")
+                           Qt.AlignmentFlag.AlignCenter, tr("aktiv") if on else tr("ausgeschaltet"))
             else:
                 price = fmt_int(hp.price)
                 tw = p.fontMetrics().horizontalAdvance(price)
