@@ -9,7 +9,8 @@ Bei einem Release: den Eintrag «Unveröffentlicht» in die neue Versionsnummer 
 CHANGELOG = [
     ("Unveröffentlicht", None, [
         "Besucher auf der Pflanze sind 30 % grösser.",
-        "Meisterschaft: Bronze, Silber und Gold je Besucher, Belohnung in Coins; Gold gibt +1 % Wachstum.",
+        "Die Währung heisst jetzt Gold (statt Coins), das Symbol bleibt.",
+        "Meisterschaft: Stufen Bronze, Silber und Gold je Besucher, Belohnung in Gold; Stufe Gold gibt +1 % Wachstum.",
         "Schillernde Farbvarianten der Besucher, mit Stern im Sammelbuch.",
         "Info-Fenster mit Reiter «Version» und Release Notes.",
     ]),

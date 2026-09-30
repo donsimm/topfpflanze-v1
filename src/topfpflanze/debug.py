@@ -137,7 +137,7 @@ def build_menu(plant, menu):
         a.triggered.connect(lambda _c=False, s=spd: _set_speed(s))
         grp.addAction(a)
 
-    dm.addAction("+1'000 Coins").triggered.connect(lambda: _add_coins(plant, 1000))
+    dm.addAction("+1'000 Gold").triggered.connect(lambda: _add_coins(plant, 1000))
 
     gm = dm.addMenu("Wachstum setzen")
     k = plant.kind

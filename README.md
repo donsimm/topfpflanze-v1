@@ -49,7 +49,7 @@ python -m topfpflanze --data-dir ~/test    # beliebiger Spielstandordner (auch o
 ```
 
 Im Debug-Modus zeigt das Pflanzenfenster oben links «DEBUG», und das Rechtsklick-Menü hat den Eintrag **Debug**:
-Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer, passives Einkommen), Coins, Wachstum und Wasser setzen,
+Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer, passives Einkommen), Gold, Wachstum und Wasser setzen,
 Besucher erscheinen lassen, Fokus-Timer (1 Minute), Tastendrücke/Klicks für Erfolge, Tages-/Wochenerfolge zurücksetzen,
 alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 
@@ -67,7 +67,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 | Modul | Inhalt |
 |---|---|
 | `app.py` | Programmstart, Kommandozeile, Spielanleitung im Kopf |
-| `config.py` | Pfade, Fenstergrössen, Coin-Konstanten |
+| `config.py` | Pfade, Fenstergrössen, Gold-Konstanten |
 | `data.py` | Pflanzenarten, Dünger, Helfer, Besucher, Erfolge, Topfgeometrie |
 | `plant.py` | Pflanzenfenster: Spielzustand, Logik, Eingaben, Menü |
 | `plant_draw.py` | Zeichnen von Topf, Erde, Partikeln, Pflanzen |

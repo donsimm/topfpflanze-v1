@@ -1,4 +1,4 @@
-"""Pfade und Konstanten (Fenstergrössen, Coin-Werte)."""
+"""Pfade und Konstanten (Fenstergrössen, Gold-Werte)."""
 
 import os
 import sys
@@ -46,9 +46,9 @@ VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze 
 SHOP_W, SHOP_H = 270, 304
 GARDEN_W, GARDEN_H = 300, 444
 
-STAGE_COINS = (0, 5, 10, 20, 35, 50, 100)  # Coins beim Erreichen der Stufen 1–6
+STAGE_COINS = (0, 5, 10, 20, 35, 50, 100)  # Gold beim Erreichen der Stufen 1–6
 MILESTONE_STEP = 0.25                      # nach der Blüte: je +25 % des Blütewerts ...
-MILESTONE_COINS = 25                       # ... diese Anzahl Coins
+MILESTONE_COINS = 25                       # ... diese Anzahl Gold
 PASSIVE_PER_HOUR = 2                       # passives Einkommen während das Programm läuft
 WATER_MAX = 100.0
 SEED_FRAC = 0.00625  # Anteil am Blütewert, ab dem die Pflanze keimt

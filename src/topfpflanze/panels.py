@@ -529,7 +529,7 @@ class BookWin(Panel):
                 tier = plant.mastery_tier(self.hover)
                 nxt = next((s for s in MASTERY_STEPS if e["count"] < s), None)
                 stufe = MASTERY_NAMES[tier - 1] if tier else "keine"
-                weiter = f", nächste bei {nxt}" if nxt else " (Gold: +1 % Wachstum)"
+                weiter = f", nächste bei {nxt}" if nxt else " (Stufe Gold: +1 % Wachstum)"
                 n_var = e.get("shiny", 0)
                 var = (f"{VARIANTS[self.hover].name} {n_var}× gesehen" if n_var
                        else f"{VARIANTS[self.hover].name} noch nicht gesehen")
@@ -540,7 +540,7 @@ class BookWin(Panel):
             color = T("text3")
         else:
             text = (f"Besucher kommen von selbst zur Pflanze. Ein Klick auf einen Besucher begrüsst ihn "
-                    f"und bringt {VISIT_GREET_COINS} Coins.")
+                    f"und bringt {VISIT_GREET_COINS} Gold.")
             color = T("muted")
         p.setFont(self.font_px(base, 10))
         p.setPen(color)

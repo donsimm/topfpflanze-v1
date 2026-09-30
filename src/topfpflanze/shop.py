@@ -191,7 +191,7 @@ class Shop(ScaledWidget):
             text, color = f"Aktiv: {plant.fert_summary()}", T("ok")
         else:
             text, color = (f"Dünger anklicken, um ihn für die ausgewählte Pflanze zu kaufen. "
-                           f"Passives Einkommen: {PASSIVE_PER_HOUR} Coins pro Stunde."), T("muted")
+                           f"Passives Einkommen: {PASSIVE_PER_HOUR} Gold pro Stunde."), T("muted")
         p.setFont(small)
         p.setPen(color)
         p.drawText(info, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextWordWrap, text)

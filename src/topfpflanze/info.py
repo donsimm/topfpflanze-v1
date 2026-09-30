@@ -48,7 +48,7 @@ def blocks(tab, plant=None):
                 ("p", f"Wasser: leer nach {G(k.drain_hours)} h · Klick +{G(k.water_per_click)} %"
                       + (f" · Taste −{G(k.water_per_key)} %" if k.water_per_key else "")),
                 ("p", f"Wächst voll bei {G(k.water_low)}–{G(k.water_high)} % · welkt unter {G(k.wilt_below)} %"
-                      f" · Coins ×{G(k.coin_mult)}"),
+                      f" · Gold ×{G(k.coin_mult)}"),
             ]
             if k.note:
                 out.append(("p", k.note))
@@ -67,31 +67,31 @@ def blocks(tab, plant=None):
             ("h", "Wasser"),
             ("p", "Sinkt laufend, auch bei ausgeschaltetem PC. Nicht gewählte Pflanzen pausieren. "
                   "Unter der Welkgrenze welkt die Pflanze sichtbar."),
-            ("h", "Coins"),
-            ("p", "Stufen 1–6: " + " / ".join(str(c) for c in STAGE_COINS[1:]) + " Coins × Coin-Faktor der Pflanze."),
-            ("p", f"Nach der Blüte je +{pct(MILESTONE_STEP)} des Blütewerts: {MILESTONE_COINS} Coins × Faktor. "
-                  f"Passiv {PASSIVE_PER_HOUR} Coins pro Stunde."),
+            ("h", "Gold"),
+            ("p", "Stufen 1–6: " + " / ".join(str(c) for c in STAGE_COINS[1:]) + " Gold × Faktor der Pflanze."),
+            ("p", f"Nach der Blüte je +{pct(MILESTONE_STEP)} des Blütewerts: {MILESTONE_COINS} Gold × Faktor. "
+                  f"Passiv {PASSIVE_PER_HOUR} Gold pro Stunde."),
             ("h", "Prestige"),
             ("p", f"Blühende Pflanze einlagern: Stufe der Art +1 (dauerhaft +{pct(PRESTIGE_BONUS)} Wachstum und "
-                  "Coins). Nicht ausgewachsene kommen nur ins Gartenhaus."),
+                  "Gold). Nicht ausgewachsene kommen nur ins Gartenhaus."),
             ("h", "Fokus-Timer"),
             ("p", f"{' / '.join(str(m) for m in FOCUS_PRESETS)} min mit ×{G(FOCUS_MULT)} Wachstum. "
-                  "Belohnung: Minuten ÷ 5 Coins. Abbruch kostet nur den Bonus."),
+                  "Belohnung: Minuten ÷ 5 Gold. Abbruch kostet nur den Bonus."),
             ("h", "Erfolge"),
             ("p", "3 täglich, 3 wöchentlich, 6 einmalig. Belohnung einzeln oder gesammelt abholen; "
                   "Nicht Abgeholtes bleibt in der Liste."),
             ("h", "Besucher"),
             ("p", "Jede Minute Chance 10 % (+5 % ab halber Grösse, +10 % bei Blüte). Klick: "
-                  f"+{VISIT_GREET_COINS} Coins. " + ", ".join(
+                  f"+{VISIT_GREET_COINS} Gold. " + ", ".join(
                       f"{VISITORS[k].name} ({VISITORS[k].rarity})" for k in VISITOR_ORDER) + "."),
-            ("p", "Meisterschaft: nach " + " / ".join(str(s) for s in MASTERY_STEPS) + " Besuchen eines Besuchers "
+            ("p", "Meisterschaft: nach " + " / ".join(str(s) for s in MASTERY_STEPS) + " Besuchen eines Besuchers Stufe "
                   + " / ".join(MASTERY_NAMES) + " (Rahmen im Sammelbuch). Belohnung "
-                  + " / ".join(str(c) for c in MASTERY_COINS) + " Coins, bei seltenen ×"
+                  + " / ".join(str(c) for c in MASTERY_COINS) + " Gold, bei seltenen ×"
                   + G(RARITY_MULT["selten"]) + ", bei sehr seltenen ×" + G(RARITY_MULT["sehr selten"])
-                  + f". Jeder Besucher auf Gold: +{pct(MASTERY_GOLD_BONUS)} Wachstum."),
+                  + f". Jeder Besucher auf Stufe Gold: +{pct(MASTERY_GOLD_BONUS)} Wachstum."),
             ("p", "Schillernde Varianten (Stern im Sammelbuch): Chance je Besuch "
                   + " / ".join(pct(SHINY_CHANCE[r]) for r in ("häufig", "selten", "sehr selten"))
-                  + f" (häufig / selten / sehr selten). Klick: +{SHINY_GREET_COINS} Coins."),
+                  + f" (häufig / selten / sehr selten). Klick: +{SHINY_GREET_COINS} Gold."),
         ]
     if tab == "ver":
         return version_blocks(plant)
@@ -106,7 +106,7 @@ def blocks(tab, plant=None):
     out.append(("h", "Helfer (einmal kaufen, einzeln schaltbar)"))
     for key in HELPER_ORDER:
         h = HELPERS[key]
-        out += [("b", h.name, f"{fmt_int(h.price)} Coins"), ("p", h.desc)]
+        out += [("b", h.name, f"{fmt_int(h.price)} Gold"), ("p", h.desc)]
     return out
 
 
@@ -229,7 +229,7 @@ class InfoWin(Panel):
             elif kind == "b":
                 p.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, data[1])
                 if data[2]:
-                    p.setPen(T("coin") if data[2].endswith("Coins") else T("muted"))
+                    p.setPen(T("coin") if data[2].endswith("Gold") else T("muted"))
                     p.drawText(rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, data[2])
             elif kind == "t":
                 x = 0.0

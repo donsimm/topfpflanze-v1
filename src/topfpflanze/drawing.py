@@ -1,4 +1,4 @@
-"""Zeichenfunktionen für Symbole (Coin, Dünger, Helfer, Besucher)."""
+"""Zeichenfunktionen für Symbole (Münze, Dünger, Helfer, Besucher)."""
 
 import math
 from PyQt6.QtGui import QBrush, QColor, QFont, QPainterPath, QPen

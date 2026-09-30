@@ -91,7 +91,7 @@ class Bubble(ScaledWidget):
         if key in TOOL_ORDER:
             verb = "schliessen" if pl.windows[key].isVisible() else "öffnen"
         if key == "shop":
-            return (f"Dünger-Shop {verb}\nCoins: {fmt_int(pl.state.get('coins', 0))} "
+            return (f"Dünger-Shop {verb}\nGold: {fmt_int(pl.state.get('coins', 0))} "
                     f"(+{PASSIVE_PER_HOUR} pro Stunde)")
         if key == "garden":
             return f"Gartenhaus {verb}\n{len(pl.state.get('garden', []))} Pflanze(n) eingelagert"
@@ -136,7 +136,7 @@ class Bubble(ScaledWidget):
             ("Klicks", fmt_int(s["clicks_total"])),
             ("Tasten", fmt_int(s["keys_total"]) if k.growth_per_key > 0 else "– (nur Klicks)"),
             ("Alter", fmt_age(time.time() - s["created"])),
-            ("Coins", fmt_int(self.plant.state.get("coins", 0))),
+            ("Gold", fmt_int(self.plant.state.get("coins", 0))),
         ]
         font = QFont(self.font())
         font.setPixelSize(12)
@@ -153,11 +153,11 @@ class Bubble(ScaledWidget):
                 color = T("ok")
             elif label == "Prestige" and value != "–":
                 color = T("coin")
-            elif label == "Coins":
+            elif label == "Gold":
                 color = T("coin")
             p.setPen(color)
             vr = QRectF(r)
-            if label == "Coins":
+            if label == "Gold":
                 draw_coin(p, QPointF(r.right() - 5, r.center().y()), 5)
                 p.setPen(color)
                 vr.setRight(r.right() - 14)

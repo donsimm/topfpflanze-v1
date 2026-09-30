@@ -380,7 +380,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         return f"{done} von {len(ACHIEVEMENTS)} erreicht"
 
     def check_achievements(self):
-        """Merkt erreichte Erfolge zur Abholung vor; die Coins gibt es erst beim Einlösen."""
+        """Merkt erreichte Erfolge zur Abholung vor; das Gold gibt es erst beim Einlösen."""
         self.ensure_periods()
         self.check_mastery()
         pending = self.state.setdefault("ach_pending", [])
@@ -410,7 +410,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         return sum(e["reward"] for e in self.state.get("ach_pending", []))
 
     def claim_achievement(self, entry):
-        """Löst einen einzelnen vorgemerkten Erfolg ein; gibt die Coins zurück."""
+        """Löst einen einzelnen vorgemerkten Erfolg ein; gibt das Gold zurück."""
         pending = self.state.get("ach_pending", [])
         if not any(e is entry for e in pending):
             return 0
@@ -455,7 +455,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             return True, msg
         coins = self.state.get("coins", 0)
         if coins < hp.price:
-            return False, f"Zu wenig Coins für {hp.name}: es fehlen {fmt_int(hp.price - coins)}."
+            return False, f"Zu wenig Gold für {hp.name}: es fehlen {fmt_int(hp.price - coins)}."
         self.state["coins"] = coins - hp.price
         owned.append(key)
         self.save_state()
@@ -520,7 +520,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 bucket["focus"] = bucket.get("focus", 0) + 1
             self.state["daily"]["focus_min"] = self.state["daily"].get("focus_min", 0) + minutes
             self.state["coins"] = self.state.get("coins", 0) + reward
-            self.focus_msg = (f"geschafft! +{reward} Coins", True, time.monotonic() + 120)
+            self.focus_msg = (f"geschafft! +{reward} Gold", True, time.monotonic() + 120)
             self.popup(f"+{reward} Fokus geschafft")
             self.save_state()
 
@@ -662,7 +662,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         fz = FERTILIZERS[key]
         coins = self.state.get("coins", 0)
         if coins < fz.price:
-            return False, f"Zu wenig Coins für {fz.name}: es fehlen {fmt_int(fz.price - coins)}."
+            return False, f"Zu wenig Gold für {fz.name}: es fehlen {fmt_int(fz.price - coins)}."
         self.state["coins"] = coins - fz.price
         self.ps["last_fert"] = key
         cur, left = self.fert()
@@ -996,7 +996,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             f"Prestige: {self.prestige_summary()}\n"
             f"Helfer: {', '.join(HELPERS[h].name for h in HELPER_ORDER if self.helper_on(h)) or '–'}\n"
             f"Alter: {days:.1f} Tage\n"
-            f"Coins: {fmt_int(self.state.get('coins', 0))}\n"
+            f"Gold: {fmt_int(self.state.get('coins', 0))}\n"
             f"Tastaturquelle: {src}\n"
             f"Speicherort: {config.STATE_FILE}")
 
@@ -1008,7 +1008,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         lvl = self.prestige_level(key)
         if bloomed:
             text = (f"«{name}» ist voll ausgewachsen: Prestige-Stufe {lvl} → {lvl + 1}.\n"
-                    f"Dauerhaft +{(lvl + 1) * PRESTIGE_BONUS * 100:.0f} % Wachstum und Coins für alle "
+                    f"Dauerhaft +{(lvl + 1) * PRESTIGE_BONUS * 100:.0f} % Wachstum und Gold für alle "
                     f"künftigen {name}-Pflanzen.\n\nDie Pflanze kommt ins Gartenhaus und wird neu ausgesät "
                     f"(zufällige Farbe). Fortfahren?")
         else:

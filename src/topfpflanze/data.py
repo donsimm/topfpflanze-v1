@@ -25,7 +25,7 @@ class PlantType:
     stages: tuple = ("Samen", "Keimling", "Jungpflanze", "Pflanze",
                      "Grosse Pflanze", "Knospe", "Blühend")
     note: str = ""
-    coin_mult: float = 1.0   # Faktor für Coin-Belohnungen
+    coin_mult: float = 1.0   # Faktor für Gold-Belohnungen
     colors: tuple = ("#E85D75", "#C44DD8", "#F2A541", "#5D8CE8", "#F25C54")  # alte Farbberechnung
     palette: tuple = ("#E85D75", "#C44DD8", "#F2A541", "#5D8CE8", "#F25C54", "#F7F3E8",
                       "#FFD23F", "#FF8FB1", "#7B2CBF", "#E63946", "#2EC4B6")  # neue Pflanzen
@@ -130,7 +130,7 @@ BEE_INTERVAL = (480, 720)     # Hummel: alle 8–12 Minuten
 BEE_BOOST = 0.005             # ... Anteil des Blütewerts
 GNOME_INTERVAL = 30.0         # Gartenzwerg: alle 30 Sekunden
 LAMP_BOOST = 0.10             # Pflanzenlampe: +10 %
-PRESTIGE_BONUS = 0.10         # je Prestige-Stufe: +10 % Wachstum und Coins
+PRESTIGE_BONUS = 0.10         # je Prestige-Stufe: +10 % Wachstum und Gold
 FOCUS_MULT = 2.0              # Fokus-Timer: doppeltes Wachstum
 FOCUS_PRESETS = (25, 45, 60)
 

@@ -25,13 +25,13 @@ Helfer (Shop > Reiter «Helfer», einmal kaufen, einzeln ein-/ausschaltbar):
 
 Prestige:
   Eine voll ausgewachsene Pflanze einlagern erhöht die Prestige-Stufe dieser Art um 1
-  (je Stufe dauerhaft +10 % Wachstum und Coins). Nicht ausgewachsene Pflanzen kommen
+  (je Stufe dauerhaft +10 % Wachstum und Gold). Nicht ausgewachsene Pflanzen kommen
   nur ins Gartenhaus.
 
 Erfolge: 3 tägliche, 3 wöchentliche und 6 einmalige. Erreichte Erfolge holt man einzeln (Geschenk-Symbol)
   oder mit «Alle abholen» ab; nicht abgeholte tägliche/wöchentliche stehen unten in der Liste «Nicht abgeholt».
 Fokus-Timer: 25, 45 oder 60 Minuten mit doppeltem Wachstum, Abbruch kostet nur den Bonus.
-Besucher: kommen von selbst; Klick auf einen Besucher begrüsst ihn (+3 Coins).
+Besucher: kommen von selbst; Klick auf einen Besucher begrüsst ihn (+3 Gold).
 
 Gartenhaus:
   - Wird eine Pflanze neu ausgesät, kommt sie in jedem Stadium mit Datum und Uhrzeit ins Gartenhaus.
@@ -40,10 +40,10 @@ Gartenhaus:
   - Karten lassen sich über das × oben links auf der Karte löschen (mit Rückfrage).
   - Neu ausgesäte Pflanzen erhalten eine zufällige Blütenfarbe.
 
-Coins und Dünger:
-  - Jede erreichte Wachstumsstufe bringt Coins (je schwieriger die Pflanze, desto mehr).
-  - Nach der Blüte bringt jedes weitere Viertel des Blütewerts erneut Coins.
-  - Passives Einkommen: 2 Coins pro Stunde, solange das Programm läuft.
+Gold und Dünger:
+  - Jede erreichte Wachstumsstufe bringt Gold (je schwieriger die Pflanze, desto mehr).
+  - Nach der Blüte bringt jedes weitere Viertel des Blütewerts erneut Gold.
+  - Passives Einkommen: 2 Gold pro Stunde, solange das Programm läuft.
   - Im Shop gekaufter Dünger wirkt auf die ausgewählte Pflanze: mehr Wachstum,
     teilweise aber höherer Wasserverbrauch. Die Laufzeit zählt nur, solange die
     Pflanze ausgewählt ist und das Programm läuft.
