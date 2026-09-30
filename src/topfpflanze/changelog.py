@@ -1,0 +1,23 @@
+"""Release Notes für das Info-Fenster (Reiter «Version»). Neueste Version zuerst.
+
+Bei einem Release: den Eintrag «Unveröffentlicht» in die neue Versionsnummer mit Datum umbenennen,
+`__version__` in __init__.py und `version` in pyproject.toml anpassen und oben einen neuen leeren
+«Unveröffentlicht»-Eintrag anlegen (oder weglassen, solange nichts Neues da ist).
+"""
+
+# (Version, Datum oder None, [Punkte])
+CHANGELOG = [
+    ("Unveröffentlicht", None, [
+        "Besucher auf der Pflanze sind 30 % grösser.",
+        "Meisterschaft: Bronze, Silber und Gold je Besucher, Belohnung in Coins; Gold gibt +1 % Wachstum.",
+        "Schillernde Farbvarianten der Besucher, mit Stern im Sammelbuch.",
+        "Info-Fenster mit Reiter «Version» und Release Notes.",
+    ]),
+    ("0.1.0", "29.09.2026", [
+        "Fünf Pflanzen mit eigenen Töpfen und Spielständen; Wachstum durch Klicks und Tastendrücke.",
+        "Shop mit sechs Düngern und fünf Helfern: Tropfbewässerung, Hummel, Gartenzwerg, Pflanzenlampe, Düngerautomat.",
+        "Gartenhaus, Prestige, Erfolge (einzeln abholbar), Fokus-Timer und Besucher-Sammelbuch.",
+        "Regler für Pflanzen- und Menügrösse, Dunkelmodus, eigene Tooltips, Info-Fenster.",
+        "Programme für Windows, macOS und Linux; Debug-Modus zum Testen.",
+    ]),
+]

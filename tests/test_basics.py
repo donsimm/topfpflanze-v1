@@ -487,3 +487,23 @@ def test_book_window_draws_tiers_and_star(plant):
     for hover in (None, "marienkaefer", "biene", "libelle"):
         win.hover = hover
         assert not win.grab().isNull()
+
+
+def test_version_tab_and_changelog(plant):
+    from topfpflanze import __version__, info
+    from topfpflanze.changelog import CHANGELOG
+    assert ("ver", "Version") in info.TABS
+    text = " ".join(str(b) for b in info.blocks("ver", plant))
+    assert __version__ in text and "Release Notes" in text and "Spielstand" in text
+    for version, _date, items in CHANGELOG:
+        assert version in text and items
+    # Die neueste veröffentlichte Version im Changelog entspricht der Programmversion
+    released = [v for v, d, _i in CHANGELOG if d]
+    assert released[0] == __version__
+    w = plant.info_win
+    w.tab = "ver"
+    w.cache.clear()
+    assert w.layout()[1] > 0 and not w.grab().isNull()
+    import re, pathlib
+    pyproject = (pathlib.Path(__file__).parent.parent / "pyproject.toml").read_text(encoding="utf-8")
+    assert re.search(rf'^version = "{re.escape(__version__)}"$', pyproject, re.M)

@@ -363,11 +363,11 @@ class Bubble(ScaledWidget):
         elif key == "info":
             p.setPen(QPen(QColor("#2F6DB5"), 1.3))
             p.setBrush(QColor("#DCEBFA"))
-            p.drawEllipse(QPointF(15, 15), 10.5, 10.5)
+            p.drawEllipse(QPointF(15, 15), 7.8, 7.8)
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QColor("#2F6DB5"))
-            p.drawEllipse(QPointF(15, 9.3), 1.7, 1.7)
-            p.drawRoundedRect(QRectF(13.5, 12.6, 3, 9), 1.2, 1.2)
+            p.drawEllipse(QPointF(15, 11.2), 1.3, 1.3)
+            p.drawRoundedRect(QRectF(13.9, 13.4, 2.2, 6.4), 1.0, 1.0)
 
         elif key == "book":
             p.setPen(QPen(QColor("#2E5A2E"), 0.9))

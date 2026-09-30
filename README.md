@@ -71,7 +71,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 | `data.py` | Pflanzenarten, Dünger, Helfer, Besucher, Erfolge, Topfgeometrie |
 | `plant.py` | Pflanzenfenster: Spielzustand, Logik, Eingaben, Menü |
 | `plant_draw.py` | Zeichnen von Topf, Erde, Partikeln, Pflanzen |
-| `bubble.py`, `shop.py`, `garden.py`, `panels.py`, `info.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch, Info-Fenster (Werte aus `data.py`) |
+| `bubble.py`, `shop.py`, `garden.py`, `panels.py`, `info.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch, Info-Fenster (Werte aus `data.py`, Release Notes aus `changelog.py`) |
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
 | `scaling.py` | Skalierung der Oberfläche (Basisklasse `ScaledWidget`) |

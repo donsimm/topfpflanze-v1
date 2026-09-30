@@ -12,7 +12,7 @@ from .panels import Panel
 from .theme import T
 from .util import fmt_int, fmt_left
 
-TABS = (("bed", "Bedienung"), ("pfl", "Pflanzen"), ("reg", "Regeln"), ("shop", "Shop"))
+TABS = (("bed", "Bedienung"), ("pfl", "Pflanzen"), ("reg", "Regeln"), ("shop", "Shop"), ("ver", "Version"))
 G = "{:g}".format
 T_GREEN = QColor("#2E9E44")
 
@@ -21,7 +21,7 @@ def pct(x):
     return f"{x * 100:g} %"
 
 
-def blocks(tab):
+def blocks(tab, plant=None):
     """Inhalt eines Reiters: ("h", Titel) | ("p", Text) | ("b", Fettgedruckt, Text) | ("t", [Zellen], [Breiten], fett) | ("s",) Abstand."""
     if tab == "bed":
         return [
@@ -93,6 +93,8 @@ def blocks(tab):
                   + " / ".join(pct(SHINY_CHANCE[r]) for r in ("häufig", "selten", "sehr selten"))
                   + f" (häufig / selten / sehr selten). Klick: +{SHINY_GREET_COINS} Coins."),
         ]
+    if tab == "ver":
+        return version_blocks(plant)
     out = [("h", "Dünger (wirkt auf die gewählte Pflanze)"),
            ("t", ["Name", "Preis", "Wachstum", "Wasser", "Dauer"], (92, 38, 76, 60, 50), True)]
     for key in FERT_ORDER:
@@ -108,8 +110,30 @@ def blocks(tab):
     return out
 
 
+def version_blocks(plant):
+    """Reiter «Version»: Programmangaben und Release Notes."""
+    import platform
+    from PyQt6.QtCore import PYQT_VERSION_STR, QT_VERSION_STR
+    from . import __version__, config, debug
+    from .changelog import CHANGELOG
+    src = {"evdev": "evdev", "pynput": "pynput"}.get(getattr(plant, "key_source", None), "nicht verfügbar")
+    out = [("h", f"Topfpflanze {__version__}"),
+           ("p", f"System: {platform.system()} {platform.release()}"),
+           ("p", f"Python {platform.python_version()} · Qt {QT_VERSION_STR} · PyQt {PYQT_VERSION_STR}"),
+           ("p", f"Tastaturzählung: {src}"),
+           ("p", f"Spielstand: {config.STATE_FILE}")]
+    if debug.enabled():
+        out.append(("p", "Debug-Modus aktiv (eigener Spielstand)."))
+    out.append(("p", "Quellcode und Downloads: github.com/donsimm/topfpflanze-v1"))
+    out.append(("h", "Release Notes"))
+    for version, date, items in CHANGELOG:
+        out.append(("b", version, date or ""))
+        out += [("p", "• " + text) for text in items]
+    return out
+
+
 class InfoWin(Panel):
-    W, H = 340, 500
+    W, H = 350, 500
     TOP = 88            # Beginn des scrollbaren Bereichs
     BOTTOM = 10
 
@@ -122,7 +146,7 @@ class InfoWin(Panel):
     # ---------- Layout ----------
 
     def tab_rects(self):
-        w = (self.width() - 24 - 3 * 5) / len(TABS)
+        w = (self.width() - 24 - (len(TABS) - 1) * 5) / len(TABS)
         return [(key, QRectF(12 + i * (w + 5), 58, w, 22)) for i, (key, _n) in enumerate(TABS)]
 
     def view_height(self):
@@ -136,7 +160,7 @@ class InfoWin(Panel):
         head, bold, body = (self.font_px(base, 12, True), self.font_px(base, 11, True), self.font_px(base, 11))
         width = self.width() - 24 - 8
         y, out = 0.0, []
-        for blk in blocks(self.tab):
+        for blk in blocks(self.tab, self.plant):
             kind = blk[0]
             if kind == "h":
                 y += 8 if y else 0
@@ -185,7 +209,7 @@ class InfoWin(Panel):
             p.setPen(QPen(T_GREEN, 1.6) if sel else QPen(T("cell_border"), 1))
             p.setBrush(T("active_bg") if sel else T("cell"))
             p.drawRoundedRect(r, 6, 6)
-            p.setFont(self.font_px(base, 11, sel))
+            p.setFont(self.font_px(base, 10, sel))
             p.setPen(T("button_text") if sel else T("text2"))
             p.drawText(r, Qt.AlignmentFlag.AlignCenter, dict(TABS)[key])
         items, total = self.layout()
@@ -205,7 +229,7 @@ class InfoWin(Panel):
             elif kind == "b":
                 p.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, data[1])
                 if data[2]:
-                    p.setPen(T("coin"))
+                    p.setPen(T("coin") if data[2].endswith("Coins") else T("muted"))
                     p.drawText(rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, data[2])
             elif kind == "t":
                 x = 0.0
