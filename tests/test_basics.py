@@ -1248,3 +1248,16 @@ def test_visitor_achievement_series_one_per_visitor(plant):
         assert [a.target for a in tiers] == list(range(1, n + 1))
     plant.state["book"] = {"biene": {"count": 60}, "marienkaefer": {"count": 250}, "libelle": {"count": 3}}
     assert plant.ach_value("g_disc3") == 3 and plant.ach_value("g_reg2") == 2 and plant.ach_value("g_master1") == 1
+
+
+def test_every_achievement_series_has_at_least_five_ascending_tiers(plant):
+    from topfpflanze.data import ACHIEVEMENTS
+    series = {}
+    for a in ACHIEVEMENTS:
+        if a.series:
+            series.setdefault(a.series, []).append(a)
+    for name, tiers in series.items():
+        assert len(tiers) >= 5, name
+        targets = [t.target for t in tiers if t.key != "g_zen"]
+        assert targets == sorted(set(targets)), name
+    assert len([a for a in series["blueten"]]) == 5 and len(series["farben"]) == 8
