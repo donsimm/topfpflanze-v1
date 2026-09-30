@@ -579,7 +579,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 entry["shiny_first"] = time.time()
                 self.popup(f"Neu: {VARIANTS[v.key].name}!", coin=False)
             else:
-                self.popup(f"Schillernd: {VARIANTS[v.key].name}", coin=False)
+                self.popup(f"{VARIANTS[v.key].name}!", coin=False)
         elif entry["count"] == 1:
             self.popup(f"Neu: {v.name}!", coin=False)
         self.check_mastery()

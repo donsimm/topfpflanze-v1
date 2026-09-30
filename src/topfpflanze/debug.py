@@ -157,7 +157,7 @@ def build_menu(plant, menu):
         vm.addAction(VISITORS[key].name).triggered.connect(
             lambda _c=False, kk=key: (plant.spawn_visitor(kk), plant.update()))
 
-    sm2 = dm.addMenu("Schillernden Besucher erscheinen lassen")
+    sm2 = dm.addMenu("Farbvariante erscheinen lassen")
     for key in VISITOR_ORDER:
         sm2.addAction(VARIANTS[key].name).triggered.connect(
             lambda _c=False, kk=key: (plant.spawn_visitor(kk, shiny=True), plant.update()))

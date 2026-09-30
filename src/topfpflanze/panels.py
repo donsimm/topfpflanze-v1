@@ -589,7 +589,7 @@ class BookWin(Panel):
             self.info_row(p, info, 0, [(f"Ein Klick auf einen Besucher bringt {VISIT_GREET_COINS} Gold.", muted, False)], base)
             self.info_row(p, info, 1, [("Setzling", ok, True), (f"  Stufe nach {steps} Besuchen", muted, False)], base,
                           icon=seedling(3, TIER_COLORS[2]))
-            self.info_row(p, info, 2, [("Stern", gold, True), ("  schillernde Variante gesehen", muted, False)], base,
+            self.info_row(p, info, 2, [("Stern", gold, True), ("  Farbvariante gesehen", muted, False)], base,
                           icon=star(True))
             return
         key = self.hover
@@ -620,7 +620,7 @@ class BookWin(Panel):
         n_var = e.get("shiny", 0)
         vname = VARIANTS[key].name
         if n_var:
-            parts = [("Schillernd", gold, True), (f"  {vname} · {n_var}× gesehen", muted, False)]
+            parts = [(vname, gold, True), (f"  {n_var}× gesehen", muted, False)]
         else:
-            parts = [("Schillernd", muted, True), (f"  {vname} · offen", muted, False)]
+            parts = [(vname, muted, True), ("  offen", muted, False)]
         self.info_row(p, info, 2, parts, base, icon=star(n_var > 0))

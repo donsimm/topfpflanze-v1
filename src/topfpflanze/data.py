@@ -179,7 +179,7 @@ MASTERY_COINS = (20, 60, 150)                          # Belohnung je Stufe, mal
 RARITY_MULT = {"häufig": 1.0, "selten": 1.5, "sehr selten": 2.0}
 MASTERY_TOP_BONUS = 0.01                              # je Gartenbewohner: +1 % Wachstum (dauerhaft)
 
-# Farbvarianten («Schillernde»): Chance je Besuch nach Seltenheit, Belohnung beim Begrüssen
+# Seltene Farbvarianten: Chance je Besuch nach Seltenheit, Belohnung beim Begrüssen
 SHINY_CHANCE = {"häufig": 0.05, "selten": 0.08, "sehr selten": 0.12}
 SHINY_GREET_COINS = 15
 

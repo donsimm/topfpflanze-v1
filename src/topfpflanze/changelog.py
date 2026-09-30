@@ -11,7 +11,7 @@ CHANGELOG = [
         "Besucher auf der Pflanze sind 30 % grösser.",
         "Die Währung heisst jetzt Gold (statt Coins), das Symbol bleibt.",
         "Besucher-Stufen Besucher, Stammgast und Gartenbewohner (Setzling mit 1–3 Blättern im Sammelbuch), Belohnung in Gold; jeder Gartenbewohner gibt +1 % Wachstum.",
-        "Schillernde Farbvarianten der Besucher, mit Stern im Sammelbuch.",
+        "Seltene Farbvarianten der Besucher, mit Stern im Sammelbuch; der Name wird in Gold angezeigt, sobald gefunden.",
         "Info-Fenster mit Reiter «Version» und Release Notes.",
     ]),
     ("0.1.0", "29.09.2026", [

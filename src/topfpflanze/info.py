@@ -89,7 +89,7 @@ def blocks(tab, plant=None):
                   + " / ".join(str(c) for c in MASTERY_COINS) + " Gold, bei seltenen ×"
                   + G(RARITY_MULT["selten"]) + ", bei sehr seltenen ×" + G(RARITY_MULT["sehr selten"])
                   + f". Jeder Gartenbewohner: +{pct(MASTERY_TOP_BONUS)} Wachstum."),
-            ("p", "Schillernde Varianten (Stern im Sammelbuch): Chance je Besuch "
+            ("p", "Farbvarianten (Stern im Sammelbuch, Name in Gold): Chance je Besuch "
                   + " / ".join(pct(SHINY_CHANCE[r]) for r in ("häufig", "selten", "sehr selten"))
                   + f" (häufig / selten / sehr selten). Klick: +{SHINY_GREET_COINS} Gold."),
         ]
