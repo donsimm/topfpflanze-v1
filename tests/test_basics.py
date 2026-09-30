@@ -121,9 +121,9 @@ def test_claim_all(plant):
     debug._reset_periods(plant)
     debug._add_activity(plant, keys=2000, clicks=20)
     total = plant.ach_pending_total()
-    assert total == 25
-    assert plant.claim_achievements() == 25
-    assert plant.state["coins"] == 25
+    assert total == 45                      # 15 + 10 täglich, 20 für «Tipper» (1'000 Tasten insgesamt)
+    assert plant.claim_achievements() == 45
+    assert plant.state["coins"] == 45
     assert plant.claim_achievements() == 0
 
 
@@ -1187,3 +1187,54 @@ def test_sound_is_muted_by_default_and_needs_the_slider(tmp_path, monkeypatch):
     p2 = Plant()
     p2.timer.stop()
     assert p2.state["volume"] == 50 and p2.sound.volume == 50
+
+
+def test_general_achievements_are_series_with_one_row_each(plant):
+    from topfpflanze.data import ACHIEVEMENTS
+    gen = [a for a in ACHIEVEMENTS if a.period == "general"]
+    assert all(a.series for a in gen) and len({a.key for a in ACHIEVEMENTS}) == len(ACHIEVEMENTS)
+    for a in ACHIEVEMENTS:                          # jeder Erfolg hat einen Wert
+        assert plant.ach_value(a.key) >= 0
+    series = {a.series: [x for x in gen if x.series == a.series] for a in gen}
+    assert len(series["tasten"]) == 5 and len(series["shop"]) == 5 and len(series["besuche"]) == 5
+    assert [a.target for a in series["tasten"]][-1] == 1_000_000
+    rows = plant.ach_rows("general")
+    assert len(rows) == len(series)
+    assert rows[[r[0].series for r in rows].index("tasten")][1:] == (1, 5)
+    plant.state["stats"]["keys"] = 12000
+    plant.check_achievements()
+    assert {e["key"] for e in plant.state["ach_pending"]} >= {"g_keys1", "g_keys10"}
+    row = plant.ach_rows("general")[[r[0].series for r in rows].index("tasten")]
+    assert row[0].key == "g_keys1" and row[1:] == (1, 5)         # abholbare Stufe zuerst
+    plant.claim_achievement(plant.ach_pending_entry("g_keys1"))
+    assert plant.ach_rows("general")[[r[0].series for r in rows].index("tasten")][0].key == "g_keys10"
+    assert not plant.ach_win.grab().isNull() and plant.ach_win.height() > 600
+
+
+def test_shop_visit_and_focus_stats_feed_achievements(plant):
+    plant.state["coins"] = 10000
+    plant.buy_fertilizer("kompost")
+    plant.helper_action("tropf")
+    st = plant.state["stats"]
+    assert st["purchases"] == 2 and st["spent"] == 20 + 250
+    assert plant.ach_value("g_shop1") == 2 and plant.ach_value("g_spent") == 270
+    plant.state["book"] = {"biene": {"count": 40, "shiny": 1}, "marienkaefer": {"count": 12}}
+    assert plant.ach_value("g_vis50") == 52 and plant.ach_value("g_variant1") == 1
+    plant.start_focus(60)
+    plant.focus["end"] = 0.0
+    plant.run_focus()
+    assert st["focus"] == 1 and plant.ach_value("g_zen") == 60
+    plant.check_achievements()
+    assert plant.ach_pending_entry("g_zen") is not None
+
+
+def test_play_streak_counts_consecutive_days(plant):
+    import datetime
+    plant.state["stats"].update({"streak": 6, "last_day": (datetime.date.today() - datetime.timedelta(days=1)).isoformat()})
+    plant.ensure_periods()
+    assert plant.state["stats"]["streak"] == 7
+    plant.ensure_periods()
+    assert plant.state["stats"]["streak"] == 7                   # am selben Tag nicht doppelt
+    plant.state["stats"].update({"last_day": "2000-01-01"})
+    plant.ensure_periods()
+    assert plant.state["stats"]["streak"] == 1

@@ -4,7 +4,7 @@ from PyQt6.QtCore import QPointF, QRectF, Qt
 from PyQt6.QtGui import QColor, QFontMetricsF, QPen
 
 from .config import MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, STAGE_COINS
-from .data import (FERTILIZERS, FERT_ORDER, FOCUS_MULT, FOCUS_PRESETS, HELPER_ORDER, HELPERS, LAMP_BOOST,
+from .data import (ACHIEVEMENTS, FERTILIZERS, FERT_ORDER, FOCUS_MULT, FOCUS_PRESETS, HELPER_ORDER, HELPERS, LAMP_BOOST,
                    PLANT_ORDER, PLANT_TYPES, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITOR_ORDER, VISITORS,
                    VISIT_GREET_COINS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, RARITY_MULT,
                    SHINY_CHANCE, SHINY_GREET_COINS)
@@ -15,6 +15,7 @@ from .util import fmt_int, fmt_left
 
 TABS = (("bed", "Bedienung"), ("pfl", "Pflanzen"), ("reg", "Regeln"), ("shop", "Shop"), ("ver", "Version"))
 G = "{:g}".format
+_GENERAL = [a for a in ACHIEVEMENTS if a.period == "general"]
 T_GREEN = QColor("#2E9E44")
 
 
@@ -88,7 +89,9 @@ def blocks(tab, plant=None):
                   "Fenster, nur die Pflanze und die Zeit mit Ring bleiben. Nach Ablauf oder Abbruch (Rechtsklick → "
                   "«Fokus abbrechen») kommen die vorher offenen Fenster zurück."),
             ("h", "Erfolge"),
-            ("p", "3 täglich, 3 wöchentlich, 6 einmalig. Belohnung einzeln oder gesammelt abholen; "
+            ("p", f"3 täglich, 3 wöchentlich, {len(_GENERAL)} einmalige in {len({a.series for a in _GENERAL})} Reihen "
+                  "(Tasten, Klicks, Shop, Besuche, Fokus u. a.): Im Fenster erscheint je Reihe die nächste Stufe. "
+                  "Belohnung einzeln oder gesammelt abholen; "
                   "Nicht Abgeholtes bleibt in der Liste."),
             ("h", "Besucher"),
             ("p", "Jede Minute Chance 10 % (+5 % ab halber Grösse, +10 % bei Blüte). Klick: "

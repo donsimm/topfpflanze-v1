@@ -214,6 +214,7 @@ class Achievement:
     desc: str
     target: int
     reward: int
+    series: str = ""   # nur allgemeine Erfolge: Reihe mit mehreren Stufen, ein Eintrag im Fenster
 
 
 ACHIEVEMENTS = [
@@ -223,12 +224,44 @@ ACHIEVEMENTS = [
     Achievement("w_keys", "weekly", "Tastenmarathon", "20'000 Tasten diese Woche", 20000, 60),
     Achievement("w_growth", "weekly", "Wachstumsschub", "300 Wachstum diese Woche", 300, 60),
     Achievement("w_focus", "weekly", "Fokus-Woche", "5 Fokus-Sitzungen diese Woche", 5, 80),
-    Achievement("g_bloom", "general", "Erste Blüte", "Eine Pflanze blühen lassen", 1, 50),
-    Achievement("g_garden", "general", "Sammler", "5 Pflanzen im Gartenhaus", 5, 75),
-    Achievement("g_prestige", "general", "Aufstieg", "Erste Prestige-Stufe erreichen", 1, 100),
-    Achievement("g_species", "general", "Artenvielfalt", "Alle 5 Arten blühen lassen", 5, 200),
-    Achievement("g_keys", "general", "Tastenmeister", "100'000 Tasten insgesamt", 100000, 150),
-    Achievement("g_visitors", "general", "Naturfreund", "5 Besucherarten entdecken", 5, 100),
+    # Allgemein: einmalig, in Reihen (Stufen) zusammengefasst; das Fenster zeigt je Reihe die nächste Stufe
+    Achievement("g_bloom", "general", "Erste Blüte", "Eine Pflanze blühen lassen", 1, 50, "blueten"),
+    Achievement("g_species", "general", "Artenvielfalt", "Alle 5 Arten blühen lassen", 5, 200, "blueten"),
+    Achievement("g_garden", "general", "Sammler", "5 Pflanzen im Gartenhaus", 5, 75, "garten"),
+    Achievement("g_garden15", "general", "Gartenhaus-Besitzer", "15 Pflanzen im Gartenhaus", 15, 150, "garten"),
+    Achievement("g_prestige", "general", "Aufstieg", "Erste Prestige-Stufe erreichen", 1, 100, "prestige"),
+    Achievement("g_prestige5", "general", "Aufsteiger", "5 Prestige-Stufen insgesamt", 5, 200, "prestige"),
+    Achievement("g_prestige15", "general", "Veteran", "15 Prestige-Stufen insgesamt", 15, 400, "prestige"),
+    Achievement("g_keys1", "general", "Tipper", "1'000 Tasten insgesamt", 1000, 20, "tasten"),
+    Achievement("g_keys10", "general", "Vieltipper", "10'000 Tasten insgesamt", 10000, 50, "tasten"),
+    Achievement("g_keys", "general", "Tastenmeister", "100'000 Tasten insgesamt", 100000, 150, "tasten"),
+    Achievement("g_keys500", "general", "Tastenheld", "500'000 Tasten insgesamt", 500000, 300, "tasten"),
+    Achievement("g_keys1m", "general", "Tastenlegende", "1'000'000 Tasten insgesamt", 1000000, 500, "tasten"),
+    Achievement("g_clicks100", "general", "Giesskännchen", "100-mal klicken insgesamt", 100, 20, "klicks"),
+    Achievement("g_clicks1k", "general", "Wasserträger", "1'000-mal klicken insgesamt", 1000, 60, "klicks"),
+    Achievement("g_clicks10k", "general", "Regenmacher", "10'000-mal klicken insgesamt", 10000, 200, "klicks"),
+    Achievement("g_shop1", "general", "Erster Einkauf", "1 Kauf im Shop", 1, 25, "shop"),
+    Achievement("g_shop25", "general", "Stammkunde", "25 Käufe im Shop", 25, 75, "shop"),
+    Achievement("g_helpers", "general", "Vollausstattung", "Alle 5 Helfer besitzen", 5, 150, "shop"),
+    Achievement("g_shop100", "general", "Grosseinkauf", "100 Käufe im Shop", 100, 200, "shop"),
+    Achievement("g_spent", "general", "Grosszügig", "10'000 Gold im Shop ausgeben", 10000, 300, "shop"),
+    Achievement("g_vis10", "general", "Erste Gäste", "10 Besuche im Garten", 10, 30, "besuche"),
+    Achievement("g_vis50", "general", "Offene Tür", "50 Besuche im Garten", 50, 60, "besuche"),
+    Achievement("g_vis250", "general", "Gastgeber", "250 Besuche im Garten", 250, 120, "besuche"),
+    Achievement("g_vis1k", "general", "Beliebtes Plätzchen", "1'000 Besuche im Garten", 1000, 250, "besuche"),
+    Achievement("g_vis5k", "general", "Gartenparadies", "5'000 Besuche im Garten", 5000, 500, "besuche"),
+    Achievement("g_visitors", "general", "Naturfreund", "5 Besucherarten entdecken", 5, 100, "entdecker"),
+    Achievement("g_variant1", "general", "Farbenfroh", "Eine Farbvariante entdecken", 1, 100, "entdecker"),
+    Achievement("g_variant3", "general", "Glückskind", "3 Farbvarianten entdecken", 3, 200, "entdecker"),
+    Achievement("g_visitors8", "general", "Vollständiges Buch", "Alle 8 Besucherarten", 8, 200, "entdecker"),
+    Achievement("g_master1", "general", "Gartenbewohner", "1 Gartenbewohner (Stufe 3)", 1, 100, "meister"),
+    Achievement("g_master8", "general", "Zu Hause", "Alle 8 als Gartenbewohner", 8, 500, "meister"),
+    Achievement("g_focus10", "general", "Konzentriert", "10 Fokus-Sitzungen", 10, 60, "fokus"),
+    Achievement("g_zen", "general", "Zen-Gärtner", "Eine 60-Minuten-Sitzung", 60, 100, "fokus"),
+    Achievement("g_focus50", "general", "Ruhepol", "50 Fokus-Sitzungen", 50, 200, "fokus"),
+    Achievement("g_focus200", "general", "Meister der Stille", "200 Fokus-Sitzungen", 200, 500, "fokus"),
+    Achievement("g_streak7", "general", "Treue Seele", "7 Tage in Folge gespielt", 7, 100, "treue"),
+    Achievement("g_streak30", "general", "Gartenfreund fürs Leben", "30 Tage in Folge gespielt", 30, 400, "treue"),
 ]
 
 # Topfgeometrie: Höhe der Erdoberfläche, Erd-Ellipse, Wassertropfen (Mittelpunkt des Bauchs, Radius)

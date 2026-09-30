@@ -172,8 +172,8 @@ class AchievementsWin(Panel):
         for period, heading, right in sections:
             heads.append((heading, right, y))
             y += 20
-            for a in (a for a in ACHIEVEMENTS if a.period == period):
-                rows.append((a, QRectF(12, y, W - 24, self.ROW_H - 3)))
+            for a, tier, tiers in self.plant.ach_rows(period):
+                rows.append((a, QRectF(12, y, W - 24, self.ROW_H - 3), tier, tiers))
                 y += self.ROW_H
             y += 4
         expired = self.plant.ach_expired()
@@ -207,7 +207,7 @@ class AchievementsWin(Panel):
     def items(self):
         lay = self.layout()
         out = []
-        for a, r in lay["rows"]:
+        for a, r, _t, _n in lay["rows"]:
             e = self.plant.ach_pending_entry(a.key)
             out.append((("row", a.key), r, e is not None))
         for e, r in lay["old_rows"]:
@@ -250,7 +250,7 @@ class AchievementsWin(Panel):
         draw_gift(p, QPointF(row.left() + 13, row.center().y()), 8)
         p.setFont(self.font_px(base, 11, True))
         p.setPen(T("text"))
-        p.drawText(QRectF(row.left() + 26, row.top() + 1, 150, 15),
+        p.drawText(QRectF(row.left() + 26, row.top() + 1, 175, 15),
                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, name)
         text = f"+{reward}"
         tw = p.fontMetrics().horizontalAdvance(text)
@@ -285,12 +285,13 @@ class AchievementsWin(Panel):
             p.setFont(self.font_px(base, 10))
             p.setPen(T("muted"))
             p.drawText(QRectF(W - 162, hy, 150, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, right)
-        for a, row in lay["rows"]:
+        for a, row, tier, tiers in lay["rows"]:
+            title = f"{a.name} · {tier}/{tiers}" if tiers > 1 else a.name
             done = plant.ach_is_done(a)
             claimable = plant.ach_pending_entry(a.key) is not None
             val = min(plant.ach_value(a.key), a.target)
             if claimable:
-                self.draw_claim_row(p, row, a.name, a.desc, a.reward, self.hover == ("row", a.key), base)
+                self.draw_claim_row(p, row, title, a.desc, a.reward, self.hover == ("row", a.key), base)
                 continue
             p.setPen(QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
             p.setBrush(T("active_bg") if done else T("cell"))
@@ -307,8 +308,8 @@ class AchievementsWin(Panel):
                 draw_star(p, icon_c, 7, "#D8D3C4" if not _THEME["dark"] else "#6A6A62", "#9A958A")
             p.setFont(self.font_px(base, 11, True))
             p.setPen(T("text"))
-            p.drawText(QRectF(row.left() + 26, row.top() + 1, 150, 15),
-                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.name)
+            p.drawText(QRectF(row.left() + 26, row.top() + 1, 175, 15),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, title)
             reward = f"+{a.reward}"
             tw = p.fontMetrics().horizontalAdvance(reward)
             draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)

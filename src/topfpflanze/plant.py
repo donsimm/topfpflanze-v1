@@ -1,5 +1,6 @@
 """Pflanzenfenster: Spielzustand, Logik, Eingaben, Menü."""
 
+import datetime
 import json
 import math
 import os
@@ -133,6 +134,12 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if state["stats"].get("keys") is None:
             state["stats"]["keys"] = sum(pl.get("keys_total", 0) for pl in state["plants"].values()) + sum(
                 e.get("keys_total", 0) or 0 for e in state.get("garden", []))
+        stats = state["stats"]
+        if stats.get("clicks") is None:
+            stats["clicks"] = sum(pl.get("clicks_total", 0) for pl in state["plants"].values()) + sum(
+                e.get("clicks_total", 0) or 0 for e in state.get("garden", []))
+        for k in ("purchases", "spent", "focus", "focus_max", "streak"):
+            stats.setdefault(k, 0)
         bloomed = set(state.get("bloomed_species", []))
         for key, pl in state["plants"].items():
             if key in PLANT_TYPES and pl.get("growth", 0) >= PLANT_TYPES[key].bloom_at:
@@ -357,6 +364,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
             st["daily"] = {"date": today, "keys": 0, "clicks": 0, "focus": 0, "focus_min": 0, "done": []}
         if st.get("weekly", {}).get("week") != week:
             st["weekly"] = {"week": week, "keys": 0, "growth": 0.0, "focus": 0, "done": []}
+        stats = st["stats"]
+        if stats.get("last_day") != today:   # Tage in Folge: gestern gespielt = weiter, sonst von vorn
+            yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+            stats["streak"] = stats.get("streak", 0) + 1 if stats.get("last_day") == yesterday else 1
+            stats["last_day"] = today
         for e in st.get("ach_pending", []):  # ältere Einträge ohne Periode ergänzen
             if "period" not in e:
                 e["period"] = next((a.period for a in ACHIEVEMENTS if a.key == e["key"]), "general")
@@ -373,13 +385,49 @@ class Plant(PlantDrawMixin, ScaledWidget):
     def ach_value(self, key):
         st = self.state
         d, w = st["daily"], st["weekly"]
+        stats = st["stats"]
+        keys, clicks, buys = stats["keys"], stats.get("clicks", 0), stats.get("purchases", 0)
+        prestige = sum(st["prestige"].values())
+        visits = sum(e.get("count", 0) for e in st["book"].values())
+        variants = sum(1 for e in st["book"].values() if e.get("shiny", 0) > 0)
         return {
             "d_keys": d.get("keys", 0), "d_clicks": d.get("clicks", 0), "d_focus": d.get("focus", 0),
             "w_keys": w.get("keys", 0), "w_growth": int(w.get("growth", 0)), "w_focus": w.get("focus", 0),
             "g_bloom": len(st["bloomed_species"]), "g_garden": len(st["garden"]),
             "g_prestige": max(st["prestige"].values(), default=0), "g_species": len(st["bloomed_species"]),
-            "g_keys": st["stats"]["keys"], "g_visitors": len(st["book"]),
+            "g_keys": keys, "g_keys1": keys, "g_keys10": keys, "g_keys500": keys, "g_keys1m": keys,
+            "g_garden15": len(st["garden"]), "g_prestige5": prestige, "g_prestige15": prestige,
+            "g_clicks100": clicks, "g_clicks1k": clicks, "g_clicks10k": clicks,
+            "g_shop1": buys, "g_shop25": buys, "g_shop100": buys, "g_helpers": len(st["helpers"]),
+            "g_spent": stats.get("spent", 0),
+            "g_vis10": visits, "g_vis50": visits, "g_vis250": visits, "g_vis1k": visits, "g_vis5k": visits,
+            "g_visitors": len(st["book"]), "g_visitors8": len(st["book"]),
+            "g_variant1": variants, "g_variant3": variants,
+            "g_master1": self.top_count(), "g_master8": self.top_count(),
+            "g_focus10": stats.get("focus", 0), "g_focus50": stats.get("focus", 0), "g_focus200": stats.get("focus", 0),
+            "g_zen": stats.get("focus_max", 0),
+            "g_streak7": stats.get("streak", 0), "g_streak30": stats.get("streak", 0),
         }[key]
+
+    def ach_rows(self, period):
+        """Einträge fürs Erfolge-Fenster: (Erfolg, Stufe, Anzahl Stufen). Allgemeine Erfolge sind in Reihen
+        zusammengefasst; gezeigt wird die erste abholbare, sonst die nächste offene Stufe (zuletzt die letzte)."""
+        out, series = [], {}
+        for a in (a for a in ACHIEVEMENTS if a.period == period):
+            if not a.series:
+                out.append((a, 1, 1))
+            elif a.series not in series:
+                series[a.series] = []
+                out.append(series[a.series])      # Platzhalter: Stelle der Reihe in der Anzeige
+            if a.series:
+                series[a.series].append(a)
+        for i, item in enumerate(out):
+            if isinstance(item, list):
+                pick = next((j for j, a in enumerate(item) if self.ach_pending_entry(a.key)), None)
+                if pick is None:
+                    pick = next((j for j, a in enumerate(item) if not self.ach_is_done(a)), len(item) - 1)
+                out[i] = (item[pick], pick + 1, len(item))
+        return out
 
     def ach_done_list(self, period):
         self.ensure_periods()
@@ -458,6 +506,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
     def helper_on(self, key):
         return key in self.state.get("helpers", []) and key not in self.state.get("helpers_off", [])
 
+    def count_purchase(self, price):
+        stats = self.state["stats"]
+        stats["purchases"] = stats.get("purchases", 0) + 1
+        stats["spent"] = stats.get("spent", 0) + price
+
     def helper_action(self, key):
         hp = HELPERS[key]
         owned, off = self.state.setdefault("helpers", []), self.state.setdefault("helpers_off", [])
@@ -474,6 +527,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if coins < hp.price:
             return False, f"Zu wenig Gold für {hp.name}: es fehlen {fmt_int(hp.price - coins)}."
         self.state["coins"] = coins - hp.price
+        self.count_purchase(hp.price)
         owned.append(key)
         self.save_state()
         return True, f"{hp.name} gekauft und aktiv."
@@ -568,6 +622,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
             for bucket in (self.state["daily"], self.state["weekly"]):
                 bucket["focus"] = bucket.get("focus", 0) + 1
             self.state["daily"]["focus_min"] = self.state["daily"].get("focus_min", 0) + minutes
+            stats = self.state["stats"]
+            stats["focus"] = stats.get("focus", 0) + 1
+            stats["focus_max"] = max(stats.get("focus_max", 0), minutes)
             self.state["coins"] = self.state.get("coins", 0) + reward
             self.focus_msg = (f"geschafft! +{reward} Gold", True, time.monotonic() + 120)
             self.popup(f"+{reward} Fokus geschafft")
@@ -731,6 +788,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if coins < fz.price:
             return False, f"Zu wenig Gold für {fz.name}: es fehlen {fmt_int(fz.price - coins)}."
         self.state["coins"] = coins - fz.price
+        self.count_purchase(fz.price)
         self.ps["last_fert"] = key
         cur, left = self.fert()
         if cur and cur.key == key:
@@ -867,6 +925,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             return
         s["clicks_total"] += 1
         self.ensure_periods()
+        self.state["stats"]["clicks"] = self.state["stats"].get("clicks", 0) + 1
         self.state["daily"]["clicks"] += 1
         self.add_growth(k.growth_per_click * self.growth_mult())
         if s["water"] >= WATER_MAX - 0.01:
