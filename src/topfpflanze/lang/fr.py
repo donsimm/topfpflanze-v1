@@ -184,8 +184,8 @@ STRINGS = {
         "Aide toutes les 30 secondes : donne de la croissance comme un clic de souris.",
     "Pflanzenlampe":
         "Lampe horticole",
-    "Dauerhaft +10 % Wachstum für alle Pflanzen.":
-        "+10 % de croissance permanent pour toutes les plantes.",
+    "Dauerhaft +10 % Wachstum für diese Pflanze.":
+        "+10 % de croissance permanent pour cette plante.",
     "Düngerautomat":
         "Distributeur d'engrais",
     "Kauft den zuletzt verwendeten Dünger automatisch nach, sobald er ausläuft.":
@@ -372,8 +372,8 @@ STRINGS = {
         "50 achats dans la boutique",
     "Vollausstattung":
         "Équipement complet",
-    "Alle 5 Helfer besitzen":
-        "Posséder les 5 aides",
+    "Alle 5 Helfer bei einer Pflanze besitzen":
+        "Posséder les 5 aides sur une plante",
     "Grosseinkauf":
         "Gros acheteur",
     "500 Käufe im Shop":
@@ -646,8 +646,8 @@ STRINGS = {
         "Engrais (agit sur la plante choisie)",
     "Zeit läuft nur, solange die Pflanze gewählt ist und das Spiel läuft. Nochmal kaufen verlängert.":
         "Le temps ne court que lorsque la plante est choisie et que le jeu tourne. Racheter prolonge.",
-    "Helfer (einmal kaufen, einzeln schaltbar)":
-        "Aides (à acheter une fois, activables séparément)",
+    "Helfer (pro Pflanze einmal kaufen, einzeln schaltbar)":
+        "Aides (à acheter une fois par plante, activables séparément)",
     "System: {system} {release}":
         "Système : {system} {release}",
     "Tastaturzählung: {src}":
@@ -976,16 +976,14 @@ STRINGS = {
         "Fermer",
     "für: {v}":
         "pour : {v}",
-    "für alle Pflanzen":
-        "pour toutes les plantes",
     "Helfer":
         "Aides",
     "Klick schaltet ein oder aus.":
         "Un clic active ou désactive.",
     "Klick kauft den Helfer.":
         "Un clic achète l'aide.",
-    "Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen.":
-        "Les aides travaillent automatiquement pour chaque plante choisie. À acheter une fois, pour toujours.",
+    "Helfer gelten nur für die ausgewählte Pflanze. Pro Pflanze einmal kaufen, dauerhaft nutzen.":
+        "Les aides ne valent que pour la plante choisie. À acheter une fois par plante, pour toujours.",
     "aktiv":
         "actif",
     "ausgeschaltet":
@@ -1034,6 +1032,8 @@ STRINGS = {
         "trop humide",
     "knapp":
         "juste",
+    "Helfer gelten je Pflanze (wie der Dünger): pro Pflanze kaufen und ein-/ausschalten; beim Neuaussäen bleiben sie bei der Pflanze. Bereits gekaufte Helfer gelten weiterhin für alle Pflanzen.":
+        "Les aides valent désormais par plante (comme l'engrais) : à acheter et activer par plante ; elles restent avec la plante lors du resemis. Les aides déjà achetées continuent de valoir pour toutes les plantes.",
     "Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":
         "Multilingue : allemand, anglais, français et italien (clic droit → Réglages → Langue, redémarre le jeu ; par défaut la langue du système). D'autres langues ne demandent qu'un fichier de plus dans lang/.",
     "{d} T {h} h":

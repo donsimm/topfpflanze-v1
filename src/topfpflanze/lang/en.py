@@ -68,6 +68,8 @@ STRINGS = {
         "– (clicks only)",
     "Unveröffentlicht":
         "Unreleased",
+    "Helfer gelten je Pflanze (wie der Dünger): pro Pflanze kaufen und ein-/ausschalten; beim Neuaussäen bleiben sie bei der Pflanze. Bereits gekaufte Helfer gelten weiterhin für alle Pflanzen.":
+        "Helpers now apply per plant (like fertilizer): buy and switch them per plant; they stay with the plant when resowing. Helpers you already bought keep working for all plants.",
     "Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":
         "Multilingual: German, English, French and Italian (right click → Settings → Language, restarts the game; the default is the system language). More languages are just one extra file in lang/.",
     "Viel mehr Erfolge (über 80 statt 12): einmalige Erfolge sind in Reihen mit Stufen zusammengefasst, im Fenster erscheint je Reihe die nächste Stufe. Neu: Tasten bis 1 Million, Shop-Aktivität, Anzahl Besuche, Klicks, Fokus-Sitzungen, Gartenhaus, Prestige, Farbvarianten, Gartenbewohner und Tage in Folge gespielt.":
@@ -188,8 +190,8 @@ STRINGS = {
         "Helps every 30 seconds: gives growth like a mouse click.",
     "Pflanzenlampe":
         "Grow Lamp",
-    "Dauerhaft +10 % Wachstum für alle Pflanzen.":
-        "Permanent +10 % growth for all plants.",
+    "Dauerhaft +10 % Wachstum für diese Pflanze.":
+        "Permanent +10 % growth for this plant.",
     "Düngerautomat":
         "Fertilizer Dispenser",
     "Kauft den zuletzt verwendeten Dünger automatisch nach, sobald er ausläuft.":
@@ -376,8 +378,8 @@ STRINGS = {
         "50 purchases in the shop",
     "Vollausstattung":
         "Fully Equipped",
-    "Alle 5 Helfer besitzen":
-        "Own all 5 helpers",
+    "Alle 5 Helfer bei einer Pflanze besitzen":
+        "Own all 5 helpers on one plant",
     "Grosseinkauf":
         "Big Spender",
     "500 Käufe im Shop":
@@ -650,8 +652,8 @@ STRINGS = {
         "Fertilizer (affects the selected plant)",
     "Zeit läuft nur, solange die Pflanze gewählt ist und das Spiel läuft. Nochmal kaufen verlängert.":
         "Time only runs while the plant is selected and the game is running. Buying again extends it.",
-    "Helfer (einmal kaufen, einzeln schaltbar)":
-        "Helpers (buy once, switch individually)",
+    "Helfer (pro Pflanze einmal kaufen, einzeln schaltbar)":
+        "Helpers (buy once per plant, switch individually)",
     "System: {system} {release}":
         "System: {system} {release}",
     "Tastaturzählung: {src}":
@@ -980,16 +982,14 @@ STRINGS = {
         "Close",
     "für: {v}":
         "for: {v}",
-    "für alle Pflanzen":
-        "for all plants",
     "Helfer":
         "Helpers",
     "Klick schaltet ein oder aus.":
         "Click to switch on or off.",
     "Klick kauft den Helfer.":
         "Click to buy the helper.",
-    "Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen.":
-        "Helpers work automatically for every selected plant. Buy once, use forever.",
+    "Helfer gelten nur für die ausgewählte Pflanze. Pro Pflanze einmal kaufen, dauerhaft nutzen.":
+        "Helpers only apply to the selected plant. Buy once per plant, use forever.",
     "aktiv":
         "active",
     "ausgeschaltet":

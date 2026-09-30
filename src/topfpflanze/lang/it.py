@@ -184,8 +184,8 @@ STRINGS = {
         "Aiuta ogni 30 secondi: dà crescita come un clic del mouse.",
     "Pflanzenlampe":
         "Lampada per piante",
-    "Dauerhaft +10 % Wachstum für alle Pflanzen.":
-        "+10 % di crescita permanente per tutte le piante.",
+    "Dauerhaft +10 % Wachstum für diese Pflanze.":
+        "+10 % di crescita permanente per questa pianta.",
     "Düngerautomat":
         "Distributore di concime",
     "Kauft den zuletzt verwendeten Dünger automatisch nach, sobald er ausläuft.":
@@ -372,8 +372,8 @@ STRINGS = {
         "50 acquisti nel negozio",
     "Vollausstattung":
         "Attrezzatura completa",
-    "Alle 5 Helfer besitzen":
-        "Possedere tutti e 5 gli aiutanti",
+    "Alle 5 Helfer bei einer Pflanze besitzen":
+        "Possedere tutti e 5 gli aiutanti su una pianta",
     "Grosseinkauf":
         "Grande acquirente",
     "500 Käufe im Shop":
@@ -646,8 +646,8 @@ STRINGS = {
         "Concime (agisce sulla pianta scelta)",
     "Zeit läuft nur, solange die Pflanze gewählt ist und das Spiel läuft. Nochmal kaufen verlängert.":
         "Il tempo scorre solo finché la pianta è scelta e il gioco è in esecuzione. Riacquistare lo prolunga.",
-    "Helfer (einmal kaufen, einzeln schaltbar)":
-        "Aiutanti (da acquistare una volta, attivabili singolarmente)",
+    "Helfer (pro Pflanze einmal kaufen, einzeln schaltbar)":
+        "Aiutanti (da acquistare una volta per pianta, attivabili singolarmente)",
     "System: {system} {release}":
         "Sistema: {system} {release}",
     "Tastaturzählung: {src}":
@@ -976,16 +976,14 @@ STRINGS = {
         "Chiudi",
     "für: {v}":
         "per: {v}",
-    "für alle Pflanzen":
-        "per tutte le piante",
     "Helfer":
         "Aiutanti",
     "Klick schaltet ein oder aus.":
         "Un clic attiva o disattiva.",
     "Klick kauft den Helfer.":
         "Un clic acquista l'aiutante.",
-    "Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen.":
-        "Gli aiutanti lavorano automaticamente per ogni pianta scelta. Si acquistano una volta, per sempre.",
+    "Helfer gelten nur für die ausgewählte Pflanze. Pro Pflanze einmal kaufen, dauerhaft nutzen.":
+        "Gli aiutanti valgono solo per la pianta scelta. Si acquistano una volta per pianta, per sempre.",
     "aktiv":
         "attivo",
     "ausgeschaltet":
@@ -1034,6 +1032,8 @@ STRINGS = {
         "troppo bagnato",
     "knapp":
         "scarso",
+    "Helfer gelten je Pflanze (wie der Dünger): pro Pflanze kaufen und ein-/ausschalten; beim Neuaussäen bleiben sie bei der Pflanze. Bereits gekaufte Helfer gelten weiterhin für alle Pflanzen.":
+        "Gli aiutanti ora valgono per pianta (come il concime): da acquistare e attivare per pianta; restano con la pianta quando si risemina. Gli aiutanti già acquistati continuano a valere per tutte le piante.",
     "Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":
         "Multilingue: tedesco, inglese, francese e italiano (clic destro → Impostazioni → Lingua, riavvia il gioco; di default la lingua del sistema). Altre lingue richiedono solo un file in più in lang/.",
     "{d} T {h} h":

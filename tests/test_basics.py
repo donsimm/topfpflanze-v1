@@ -92,8 +92,8 @@ def test_debug_visitor_and_helpers(plant):
 
 
 def test_helper_art_renders_all_plants(plant):
-    plant.state["helpers"] = list(data.HELPER_ORDER)
-    plant.state["helpers_off"] = []
+    plant.ps["helpers"] = list(data.HELPER_ORDER)
+    plant.ps["helpers_off"] = []
     plant.ps["fert"] = {"key": "blaukorn", "left": 3600}
     for key in data.PLANT_ORDER:
         plant.select_plant(key)
@@ -1353,3 +1353,44 @@ def test_saved_language_and_choose_language(plant, tmp_path, monkeypatch):
     started.clear()
     plant.choose_language("de")           # gleiche Sprache wie die laufende: nur speichern, kein Neustart
     assert plant.state["language"] == "de" and not started
+
+
+def test_helpers_are_per_plant_like_fertilizer(plant):
+    plant.state["coins"] = 10000
+    plant.select_plant("wiesenblume")
+    ok, _ = plant.helper_action("tropf")
+    assert ok and plant.helper_on("tropf") and plant.state["coins"] == 9750
+    assert plant.helper_action("tropf")[0] and not plant.helper_on("tropf")      # zweiter Klick: ausschalten
+    plant.helper_action("tropf")
+    plant.select_plant("kaktus")
+    assert not plant.helper_on("tropf")                                          # gilt nur für die Wiesenblume
+    plant.helper_action("lampe")
+    assert plant.helper_on("lampe") and plant.ps["helpers"] == ["lampe"]
+    plant.select_plant("wiesenblume")
+    assert plant.helper_on("tropf") and not plant.helper_on("lampe")
+    assert plant.ach_value("g_helpers") == 1
+    plant.ps["helpers"] = list(data.HELPER_ORDER)
+    assert plant.ach_value("g_helpers") == 5
+    assert not plant.shop.grab().isNull()
+
+
+def test_helpers_stay_with_the_plant_when_resowing(plant):
+    plant.ps["helpers"], plant.ps["helpers_off"] = ["zwerg", "tropf"], ["tropf"]
+    plant.state["coins"] = 1000
+    plant.confirm_sow("orig")
+    assert plant.ps["helpers"] == ["zwerg", "tropf"] and plant.ps["helpers_off"] == ["tropf"]
+    assert plant.helper_on("zwerg") and not plant.helper_on("tropf")
+
+
+def test_old_global_helpers_migrate_to_every_plant(plant, tmp_path, monkeypatch):
+    import json
+    state = plant.state
+    state.pop("helpers_legacy", None)
+    legacy = {"version": 2, "current": "wiesenblume", "helpers": ["hummel", "lampe"], "helpers_off": ["lampe"],
+              "plants": {"wiesenblume": {"growth": 5.0}}}
+    config.STATE_FILE.write_text(json.dumps(legacy), encoding="utf-8")
+    plant.state = plant.load_state()
+    assert "helpers" not in plant.state and plant.state["plants"]["wiesenblume"]["helpers"] == ["hummel", "lampe"]
+    assert plant.state["plants"]["wiesenblume"]["helpers_off"] == ["lampe"]
+    plant.activate("kaktus")                     # später erstellte Pflanze erhält die früheren Käufe ebenfalls
+    assert plant.ps["helpers"] == ["hummel", "lampe"] and plant.helper_on("hummel") and not plant.helper_on("lampe")

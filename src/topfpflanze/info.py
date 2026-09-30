@@ -106,7 +106,7 @@ def blocks(tab, plant=None):
                           fmt_left(f.minutes * 60)], (92, 38, 76, 60, 50), False))
     out.append(("s",))
     out.append(("p", tr("Zeit läuft nur, solange die Pflanze gewählt ist und das Spiel läuft. Nochmal kaufen verlängert.")))
-    out.append(("h", tr("Helfer (einmal kaufen, einzeln schaltbar)")))
+    out.append(("h", tr("Helfer (pro Pflanze einmal kaufen, einzeln schaltbar)")))
     for key in HELPER_ORDER:
         h = HELPERS[key]
         out += [("b", h.name, tr("{price} Gold", price=fmt_int(h.price))), ("p", h.desc)]

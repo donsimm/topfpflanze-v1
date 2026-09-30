@@ -120,7 +120,7 @@ HELPERS = {
     "zwerg": Helper("zwerg", tr("Gartenzwerg"), 400,
                     tr("Hilft alle 30 Sekunden mit: bringt Wachstum wie ein Mausklick.")),
     "lampe": Helper("lampe", tr("Pflanzenlampe"), 600,
-                    tr("Dauerhaft +10 % Wachstum für alle Pflanzen.")),
+                    tr("Dauerhaft +10 % Wachstum für diese Pflanze.")),
     "automat": Helper("automat", tr("Düngerautomat"), 500,
                       tr("Kauft den zuletzt verwendeten Dünger automatisch nach, sobald er ausläuft.")),
 }
@@ -254,7 +254,7 @@ ACHIEVEMENTS = [
     Achievement("g_clicks1m", "general", tr("Sintflut"), tr("1'000'000-mal klicken insgesamt"), 1000000, 1000, "klicks"),
     Achievement("g_shop1", "general", tr("Erster Einkauf"), tr("1 Kauf im Shop"), 1, 25, "shop"),
     Achievement("g_shop50", "general", tr("Stammkunde"), tr("50 Käufe im Shop"), 50, 75, "shop"),
-    Achievement("g_helpers", "general", tr("Vollausstattung"), tr("Alle 5 Helfer besitzen"), 5, 150, "shop"),
+    Achievement("g_helpers", "general", tr("Vollausstattung"), tr("Alle 5 Helfer bei einer Pflanze besitzen"), 5, 150, "shop"),
     Achievement("g_shop500", "general", tr("Grosseinkauf"), tr("500 Käufe im Shop"), 500, 300, "shop"),
     Achievement("g_spent", "general", tr("Grosszügig"), tr("100'000 Gold im Shop ausgeben"), 100000, 600, "shop"),
     Achievement("g_vis50", "general", tr("Erste Gäste"), tr("50 Besuche im Garten"), 50, 30, "besuche"),

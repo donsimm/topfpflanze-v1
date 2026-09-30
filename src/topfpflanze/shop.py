@@ -148,7 +148,7 @@ class Shop(ScaledWidget):
         p.setFont(font)
         p.setPen(T("text2"))
         p.drawText(QRectF(12, 28, 170, 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                   tr("für: {v}", v=plant.kind.name) if self.tab == "duenger" else tr("für alle Pflanzen"))
+                   tr("für: {v}", v=plant.kind.name))
         draw_coin(p, QPointF(SHOP_W - 18, 37), 6)
         p.setPen(T("coin"))
         p.drawText(QRectF(SHOP_W - 140, 28, 112, 18),
@@ -181,11 +181,11 @@ class Shop(ScaledWidget):
             text, color = self.message, T("ok") if self.message_ok else T("bad")
         elif self.hover and self.tab == "helfer":
             hp = HELPERS[self.hover]
-            have = self.hover in plant.state.get("helpers", [])
+            have = self.hover in plant.ps.get("helpers", [])
             text = f"{hp.name}: {hp.desc} " + (tr("Klick schaltet ein oder aus.") if have else tr("Klick kauft den Helfer."))
             color = T("text3")
         elif self.tab == "helfer":
-            text, color = tr("Helfer arbeiten automatisch für jede ausgewählte Pflanze. Einmal kaufen, dauerhaft nutzen."), T("muted")
+            text, color = tr("Helfer gelten nur für die ausgewählte Pflanze. Pro Pflanze einmal kaufen, dauerhaft nutzen."), T("muted")
         elif self.hover:
             text, color = fert_description(FERTILIZERS[self.hover]), T("text3")
         elif active_fz:
@@ -232,7 +232,7 @@ class Shop(ScaledWidget):
 
 
     def paint_helpers(self, p, small, coins):
-        owned = self.plant.state.get("helpers", [])
+        owned = self.plant.ps.get("helpers", [])
         for key, r in self.cell_rects():
             hp = HELPERS[key]
             have = key in owned

@@ -93,8 +93,9 @@ def _next_period(plant):
 
 
 def _unlock_helpers(plant):
-    plant.state["helpers"] = list(HELPER_ORDER)
-    plant.state["helpers_off"] = []
+    for pl in (*plant.state["plants"].values(), plant.ps):   # Helfer gelten je Pflanze
+        pl["helpers"] = list(HELPER_ORDER)
+        pl["helpers_off"] = []
     _refresh(plant)
 
 

@@ -97,6 +97,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         state = {"growth": 0.0, "water": 50.0, "clicks_total": 0, "keys_total": 0,
                  "seed": random.randrange(1 << 30), "created": now, "last_update": now,
                  "stage_rewarded": 0, "milestone_rewarded": 0, "fert": None, "bloomed_at": None,
+                 "helpers": [], "helpers_off": [],  # Helfer gelten je Pflanze (wie der Dünger)
                  "pot_skin": None}  # None = Originaltopf, sonst die Kennung eines Designs aus pots.py
         if key:  # neue Pflanze: zufällige Farbe aus der erweiterten Auswahl
             state["color"] = random.choice(PLANT_TYPES[key].palette)
@@ -108,7 +109,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "pos": None, "bubble": True, "bubble_pos": None, "shop_pos": None,
                 "coins": 0, "passive_acc": 0.0, "keyboard_enabled": True, "on_top": True,
                 "garden": [], "garden_pos": None, "dark": False,
-                "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
+                "helpers_legacy": None, "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_DEFAULT, "pot_offer": {},
                 "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto"}
@@ -129,6 +130,13 @@ class Plant(PlantDrawMixin, ScaledWidget):
             data["plants"] = {"wiesenblume": {**self.new_plant_state(), **plant}}
             data["current"] = "wiesenblume"
         state.update(data)
+        # Früher galten Helfer für alle Pflanzen: bestehende Käufe gelten weiter für jede Pflanze
+        owned, off = state.pop("helpers", None), state.pop("helpers_off", [])
+        if owned:
+            state["helpers_legacy"] = {"owned": list(owned), "off": list(off)}
+            for pl in state["plants"].values():
+                pl.setdefault("helpers", list(owned))
+                pl.setdefault("helpers_off", list(off))
         if state["current"] not in PLANT_TYPES:
             state["current"] = "wiesenblume"
         # Erweiterungen für bestehende Spielstände
@@ -184,6 +192,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
         plants = self.state["plants"]
         if key not in plants:
             plants[key] = self.new_plant_state(key)
+            legacy = self.state.get("helpers_legacy")
+            if legacy:
+                plants[key]["helpers"], plants[key]["helpers_off"] = list(legacy["owned"]), list(legacy["off"])
         self.ps = plants[key]
         for k, v in self.new_plant_state().items():  # ohne 'color': bestehende Farbe bleibt
             self.ps.setdefault(k, v)
@@ -401,7 +412,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             "g_garden15": len(st["garden"]), "g_garden50": len(st["garden"]), "g_prestige5": prestige, "g_prestige15": prestige, "g_prestige50": prestige, "g_prestige150": prestige,
             "g_clicks100": clicks, "g_clicks1k": clicks, "g_clicks10k": clicks, "g_clicks100k": clicks,
             "g_clicks1m": clicks,
-            "g_shop1": buys, "g_shop50": buys, "g_shop500": buys, "g_helpers": len(st["helpers"]),
+            "g_shop1": buys, "g_shop50": buys, "g_shop500": buys, "g_helpers": max((len(pl.get("helpers", [])) for pl in st["plants"].values()), default=0),
             "g_spent": stats.get("spent", 0),
             "g_vis50": visits, "g_vis250": visits, "g_vis1k": visits, "g_vis5k": visits, "g_vis25k": visits,
             **{f"g_disc{i}": len(st["book"]) for i in range(1, 9)},
@@ -510,7 +521,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
     # ---------- Helfer ----------
 
     def helper_on(self, key):
-        return key in self.state.get("helpers", []) and key not in self.state.get("helpers_off", [])
+        return key in self.ps.get("helpers", []) and key not in self.ps.get("helpers_off", [])
 
     def count_purchase(self, price):
         stats = self.state["stats"]
@@ -519,7 +530,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def helper_action(self, key):
         hp = HELPERS[key]
-        owned, off = self.state.setdefault("helpers", []), self.state.setdefault("helpers_off", [])
+        owned, off = self.ps.setdefault("helpers", []), self.ps.setdefault("helpers_off", [])
         if key in owned:
             if key in off:
                 off.remove(key)
@@ -1229,6 +1240,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if bloomed:
             self.state.setdefault("prestige", {})[key] = lvl + 1
         new_state = self.new_plant_state(key)
+        new_state["helpers"], new_state["helpers_off"] = list(self.ps.get("helpers", [])), list(self.ps.get("helpers_off", []))
         new_state["pot_skin"] = choice["skin"]
         self.state["plants"][key] = new_state
         offers = self.state.get("pot_offer")
