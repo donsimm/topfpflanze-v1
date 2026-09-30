@@ -1258,6 +1258,6 @@ def test_every_achievement_series_has_at_least_five_ascending_tiers(plant):
             series.setdefault(a.series, []).append(a)
     for name, tiers in series.items():
         assert len(tiers) >= 5, name
-        targets = [t.target for t in tiers if t.key != "g_zen"]
+        targets = [t.target for t in tiers if t.key not in ("g_zen", "g_helpers")]   # andere Messgrösse
         assert targets == sorted(set(targets)), name
     assert len([a for a in series["blueten"]]) == 5 and len(series["farben"]) == 8
