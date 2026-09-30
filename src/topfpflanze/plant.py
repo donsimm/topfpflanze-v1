@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMenu, QMessageB
 from PyQt6.QtCore import QPointF, QTimer, Qt
 from PyQt6.QtGui import QActionGroup, QColor
 
-from . import config, debug, scaling
+from . import config, debug, pots, scaling
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
@@ -22,6 +22,7 @@ from .panels import AchievementsWin, BookWin, FocusWin
 from .plant_draw import PlantDrawMixin
 from .scaling import ScaledWidget
 from .shop import Shop
+from .sow import SowWin
 from .theme import _THEME
 from .util import fmt_int, fmt_left, round_half_up, stage_index, stage_name
 
@@ -75,8 +76,10 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.focus_win = FocusWin(self)
         self.book_win = BookWin(self)
         self.info_win = InfoWin(self)
+        self.sow_win = SowWin(self)
         self.windows = {"shop": self.shop, "garden": self.garden, "ach": self.ach_win,
-                        "focus": self.focus_win, "book": self.book_win, "info": self.info_win}
+                        "focus": self.focus_win, "book": self.book_win, "info": self.info_win,
+                        "sow": self.sow_win}
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick)
@@ -90,7 +93,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         now = time.time()
         state = {"growth": 0.0, "water": 50.0, "clicks_total": 0, "keys_total": 0,
                  "seed": random.randrange(1 << 30), "created": now, "last_update": now,
-                 "stage_rewarded": 0, "milestone_rewarded": 0, "fert": None, "bloomed_at": None}
+                 "stage_rewarded": 0, "milestone_rewarded": 0, "fert": None, "bloomed_at": None,
+                 "pot_skin": None}  # None = Originaltopf, sonst ein Skin aus pots.py
         if key:  # neue Pflanze: zufällige Farbe aus der erweiterten Auswahl
             state["color"] = random.choice(PLANT_TYPES[key].palette)
         return state
@@ -103,7 +107,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "garden": [], "garden_pos": None, "dark": False,
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
-                "book": {}, "focus_minutes": FOCUS_PRESETS[0]}
+                "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": None}
 
     def load_state(self):
         state = self.default_state()
@@ -779,6 +783,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.check_achievements()
             if self.ach_win.isVisible():
                 self.ach_win.refresh()
+            if self.sow_win.isVisible():
+                self.sow_win.refresh()
         if now - self.last_save > 60:
             self.save_state()
             self.last_save = now
@@ -1005,35 +1011,54 @@ class Plant(PlantDrawMixin, ScaledWidget):
             f"Speicherort: {config.STATE_FILE}")
 
     def reset_plant(self):
-        name = self.kind.name
+        """Öffnet den Dialog «Einlagern & neu aussäen» (Topfwahl und Bestätigung)."""
+        self.sow_win.open_dialog()
+
+    def pot_offer(self):
+        """Angebot an Töpfen für die nächste Neuaussaat: bleibt bis zur Aussaat gleich, danach neu gewürfelt."""
+        offer = self.state.get("pot_offer")
+        if not offer:
+            offer = self.state["pot_offer"] = pots.new_offer()
+        return offer
+
+    def sow_choices(self):
+        """Wählbare Töpfe: Originaltopf (gratis), ein günstiger und ein teurer Zufallstopf."""
+        offer = self.pot_offer()
+        return [{"id": "orig", "name": "Originaltopf", "price": 0, "skin": None, "tier": "orig"},
+                {"id": "cheap", "name": offer["cheap"]["name"], "price": offer["cheap"]["price"],
+                 "skin": offer["cheap"], "tier": "cheap"},
+                {"id": "premium", "name": offer["premium"]["name"], "price": offer["premium"]["price"],
+                 "skin": offer["premium"], "tier": "premium"}]
+
+    def confirm_sow(self, choice_id="orig"):
+        """Lagert die Pflanze ins Gartenhaus ein und sät neu aus, im gewählten Topf. Gibt False zurück,
+        wenn das Gold nicht reicht."""
+        choice = next((c for c in self.sow_choices() if c["id"] == choice_id), None)
+        if choice is None or self.state.get("coins", 0) < choice["price"]:
+            return False
         key = self.state["current"]
-        stage = stage_name(self.kind, self.ps["growth"])
-        bloomed = self.ps["growth"] >= self.kind.bloom_at
+        bloomed = self.prestige_ready()
         lvl = self.prestige_level(key)
-        if bloomed:
-            text = (f"«{name}» ist voll ausgewachsen: Prestige-Stufe {lvl} → {lvl + 1}.\n"
-                    f"Dauerhaft +{(lvl + 1) * PRESTIGE_BONUS * 100:.0f} % Wachstum und Gold für alle "
-                    f"künftigen {name}-Pflanzen.\n\nDie Pflanze kommt ins Gartenhaus und wird neu ausgesät "
-                    f"(zufällige Farbe). Fortfahren?")
-        else:
-            text = (f"«{name}» ist noch nicht ausgewachsen (Stadium: {stage}).\n"
-                    f"Sie kommt nur ins Gartenhaus, ohne Prestige-Stufe.\n\nDanach wird neu ausgesät "
-                    f"(zufällige Farbe). Fortfahren?")
-        answer = QMessageBox.question(self, "Einlagern & neu aussäen", text)
-        if answer != QMessageBox.StandardButton.Yes:
-            return
+        self.state["coins"] = self.state.get("coins", 0) - choice["price"]
         entry = {k: self.ps.get(k) for k in ("seed", "color", "growth", "clicks_total", "keys_total",
-                                              "created", "bloomed_at")}
+                                              "created", "bloomed_at", "pot_skin")}
         entry["key"] = key
         entry["archived_at"] = time.time()
         entry["prestige"] = lvl + 1 if bloomed else None
         self.state.setdefault("garden", []).append(entry)
         if bloomed:
             self.state.setdefault("prestige", {})[key] = lvl + 1
-        self.state["plants"][key] = self.new_plant_state(key)
+        new_state = self.new_plant_state(key)
+        new_state["pot_skin"] = choice["skin"]
+        self.state["plants"][key] = new_state
+        self.state["pot_offer"] = None  # nächstes Mal gibt es neue Töpfe
         del self.ps
         self.activate(key)
+        if choice["skin"]:
+            self.popup(f"Neuer Topf: {choice['name']}", coin=False)
         self.save_state()
         self.update_tooltip()
         self.bubble.update()
         self.garden.update()
+        self.shop.update()
+        return True

@@ -6,7 +6,7 @@ from PyQt6.QtGui import (QBrush, QColor, QFont, QImage, QLinearGradient, QPainte
                          QRadialGradient)
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from . import debug, helper_art
+from . import debug, helper_art, pots
 from .config import PLANT_SCALE, PRESTIGE_AURA_ALPHA, PRESTIGE_AURA_PERIOD, VISITOR_SCALE, SCENE_DY, SCENE_H, SEED_FRAC, WATER_MAX, WIN_H, WIN_W
 from .data import PLANT_TYPES, POTS, VISITORS
 from .drawing import draw_coin, draw_visitor, round_pen
@@ -55,7 +55,7 @@ class PlantDrawMixin:
         p.translate(0, SCENE_DY)
         if particles:
             self.draw_prestige_aura(p)
-        getattr(self, "draw_pot_" + self.kind.pot)(p)
+        self.draw_pot(p)
         self.draw_soil(p)
         if particles:
             self.draw_helpers_ground(p)
@@ -259,6 +259,23 @@ class PlantDrawMixin:
             p.setOpacity(1.0)
 
     # ---------- Zeichnen: Töpfe ----------
+
+    SAUCER_WATER = {"terrakotta": (319, 52), "beton": (317.5, 46)}  # Lage des Wassers im Untertopf (y, Radius)
+
+    def draw_pot(self, p):
+        """Topf der Pflanze: Original oder gewählter Skin (umgefärbt, zwischengespeichert)."""
+        skin = self.ps.get("pot_skin")
+        if not skin:
+            getattr(self, "draw_pot_" + self.kind.pot)(p)
+            return
+        p.drawImage(0, 0, pots.pot_image(self, skin))
+        spec = self.SAUCER_WATER.get(self.kind.pot)
+        if spec:  # Wasser im Untertopf bleibt dynamisch: nur die Hälfte über dem vorderen Rand
+            y, rx = spec
+            p.save()
+            p.setClipRect(QRectF(0, 0, WIN_W, y + 0.5))
+            self.draw_saucer_water(p, WIN_W / 2, y, rx)
+            p.restore()
 
     def draw_saucer_water(self, p, cx, y, rx):
         """Stehendes Wasser im Untertopf bei hohem Wasserstand."""

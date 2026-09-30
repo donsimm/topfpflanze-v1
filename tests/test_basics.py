@@ -568,3 +568,170 @@ def test_bubble_seed_icon_only_when_ready_and_clickable(plant, monkeypatch):
                       Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
     b.mousePressEvent(ev2)
     assert called == [1]
+
+
+# ---------------------------------------------------------------- Töpfe und Neuaussaat
+
+def test_skins_are_random_priced_and_serializable():
+    import json
+    import random
+    from topfpflanze import pots
+    seen = set()
+    for i in range(60):
+        cheap, premium = pots.new_skin("cheap", random.Random(i)), pots.new_skin("premium", random.Random(i))
+        lo, hi, step = pots.CHEAP_PRICE
+        assert lo <= cheap["price"] <= hi and cheap["price"] % step == 0 and cheap["tier"] == "cheap"
+        lo, hi, step = pots.PREMIUM_PRICE
+        assert lo <= premium["price"] <= hi and premium["price"] % step == 0 and premium["tier"] == "premium"
+        assert premium["sparkle"] and not cheap["sparkle"]
+        assert cheap["price"] < premium["price"]
+        json.dumps([cheap, premium])
+        seen.add(cheap["name"])
+    assert len(seen) > 15  # viel Abwechslung
+    a, b = pots.new_offer(), pots.new_offer()
+    assert a["cheap"]["id"] != b["cheap"]["id"]
+
+
+def test_skinned_pot_differs_from_original_for_every_pot_shape(plant):
+    from topfpflanze import pots
+    for key in data.PLANT_ORDER:
+        plant.select_plant(key)
+        skin = pots.new_skin("premium")
+        orig = pots.pot_image(plant, None)
+        img = pots.pot_image(plant, skin)
+        assert img is pots.pot_image(plant, skin)          # zwischengespeichert
+        assert img.size() == orig.size() and img != orig
+        box = pots.pot_box(plant, skin)
+        assert box.width() > 40 and box.height() > 10
+        plant.ps["pot_skin"] = skin
+        assert not plant.grab().isNull()
+
+
+def test_offer_stays_until_sowing_and_is_rerolled_after(plant):
+    plant.ps["growth"] = plant.kind.bloom_at
+    first = plant.pot_offer()
+    assert plant.pot_offer() is first
+    ids = [c["id"] for c in plant.sow_choices()]
+    assert ids == ["orig", "cheap", "premium"] and plant.sow_choices()[0]["price"] == 0
+    assert plant.confirm_sow("orig")
+    assert plant.pot_offer()["cheap"]["id"] != first["cheap"]["id"]
+
+
+def test_sow_free_original_archives_and_gives_prestige(plant):
+    key = plant.state["current"]
+    plant.ps["growth"] = plant.kind.bloom_at
+    plant.ps["pot_skin"] = None
+    n = len(plant.state["garden"])
+    coins = plant.state["coins"] = 50
+    assert plant.confirm_sow("orig")
+    assert len(plant.state["garden"]) == n + 1 and plant.state["garden"][-1]["key"] == key
+    assert plant.state["prestige"][key] == 1
+    assert plant.state["coins"] == coins
+    assert plant.ps["growth"] == 0 and plant.ps["pot_skin"] is None
+
+
+def test_sow_paid_pot_costs_gold_and_is_kept_and_archived(plant):
+    plant.ps["growth"] = plant.kind.bloom_at
+    choice = plant.sow_choices()[1]
+    plant.state["coins"] = choice["price"] + 7
+    assert plant.confirm_sow("cheap")
+    assert plant.state["coins"] == 7
+    assert plant.ps["pot_skin"]["id"] == choice["skin"]["id"]
+    # nächste Aussaat: alter Topf wandert mit ins Gartenhaus
+    plant.ps["growth"] = plant.kind.bloom_at * 0.3
+    assert plant.confirm_sow("orig")
+    archived = plant.state["garden"][-1]
+    assert archived["pot_skin"]["id"] == choice["skin"]["id"] and archived["prestige"] is None
+    assert plant.ps["pot_skin"] is None
+    # nicht ausgewachsen: kein Prestige
+    assert plant.state.get("prestige", {}).get(plant.state["current"], 0) == 1
+
+
+def test_sow_refused_without_enough_gold(plant):
+    plant.ps["growth"] = plant.kind.bloom_at
+    price = plant.sow_choices()[2]["price"]
+    plant.state["coins"] = price - 1
+    n = len(plant.state["garden"])
+    assert plant.confirm_sow("premium") is False
+    assert len(plant.state["garden"]) == n and plant.state["coins"] == price - 1
+    assert plant.ps["growth"] >= plant.kind.bloom_at
+
+
+def test_reset_plant_opens_custom_dialog_instead_of_system_box(plant, monkeypatch):
+    from PyQt6.QtWidgets import QMessageBox
+    called = []
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: called.append(1))
+    plant.reset_plant()
+    assert plant.sow_win.isVisible() and not called
+    assert plant.sow_win.choice == "orig"
+    plant.sow_win.hide()
+
+
+def test_sow_dialog_flow(plant):
+    win = plant.sow_win
+    plant.ps["growth"] = plant.kind.bloom_at
+    plant.state["coins"] = 100
+    plant.reset_plant()
+    lay = win.layout()
+    assert win.height() == lay["height"] and len(lay["cards"]) == 3
+    assert not win.grab().isNull()
+    # zu teuer: Klick auf den edlen Topf ändert nichts (Panel ruft on_click nur für anklickbare Elemente)
+    items = {k: c for k, _r, c in win.items()}
+    assert items[("pot", "orig")] and not items[("pot", "premium")]
+    assert items["ok"]
+    win.on_click(("pot", "cheap"))
+    assert win.choice == "cheap"
+    cheap_price = win.selected()["price"]
+    plant.state["coins"] = cheap_price
+    win.on_click("ok")
+    assert not win.isVisible() and plant.state["coins"] == 0 and plant.ps["pot_skin"] is not None
+    # Abbrechen ändert nichts
+    plant.ps["growth"] = plant.kind.bloom_at
+    n = len(plant.state["garden"])
+    plant.reset_plant()
+    win.on_click("cancel")
+    assert not win.isVisible() and len(plant.state["garden"]) == n
+
+
+def test_sow_dialog_unaffordable_ok_is_blocked(plant):
+    win = plant.sow_win
+    plant.ps["growth"] = plant.kind.bloom_at
+    plant.state["coins"] = 0
+    plant.reset_plant()
+    win.choice = "premium"
+    assert not dict((k, c) for k, _r, c in win.items())["ok"]
+    n = len(plant.state["garden"])
+    win.on_click("ok")
+    assert len(plant.state["garden"]) == n
+    assert win.isVisible()
+    win.hide()
+
+
+def test_sow_dialog_keys_and_not_ready_text(plant):
+    from PyQt6.QtGui import QKeyEvent
+    win = plant.sow_win
+    plant.ps["growth"] = plant.kind.bloom_at * 0.2
+    plant.reset_plant()
+    title, text, ready = win.info_blocks()
+    assert not ready and "ohne Prestige" in text
+    n = len(plant.state["garden"])
+    win.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Return, Qt.KeyboardModifier.NoModifier))
+    assert len(plant.state["garden"]) == n + 1 and not win.isVisible()
+    plant.reset_plant()
+    win.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape, Qt.KeyboardModifier.NoModifier))
+    assert not win.isVisible()
+
+
+def test_garden_snapshot_shows_archived_pot(plant):
+    from topfpflanze import pots
+    entry = {"key": "wiesenblume", "growth": 400, "seed": 3, "color": None, "created": 0, "pot_skin": None}
+    plain = plant.snapshot(entry, scale=1)
+    entry["pot_skin"] = pots.new_skin("premium")
+    skinned = plant.snapshot(entry, scale=1)
+    assert plain != skinned
+
+
+def test_old_plant_states_get_default_pot_skin(plant):
+    del plant.ps["pot_skin"]
+    plant.activate(plant.state["current"])
+    assert plant.ps["pot_skin"] is None

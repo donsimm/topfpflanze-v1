@@ -8,6 +8,7 @@ from .data import (FERTILIZERS, FERT_ORDER, FOCUS_MULT, FOCUS_PRESETS, HELPER_OR
                    PLANT_ORDER, PLANT_TYPES, PRESTIGE_BONUS, STAGE_FRACTIONS, VISITOR_ORDER, VISITORS,
                    VISIT_GREET_COINS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, RARITY_MULT,
                    SHINY_CHANCE, SHINY_GREET_COINS)
+from . import pots
 from .panels import Panel
 from .theme import T
 from .util import fmt_int, fmt_left
@@ -75,6 +76,10 @@ def blocks(tab, plant=None):
             ("p", f"Blühende Pflanze einlagern: Stufe der Art +1 (dauerhaft +{pct(PRESTIGE_BONUS)} Wachstum und "
                   "Gold). Nicht ausgewachsene kommen nur ins Gartenhaus. Bereit ist die Pflanze, sobald sie "
                   "blüht: eine sanfte goldene Aura leuchtet dann hinter ihr."),
+            ("p", "Beim Einlagern wählst du den Topf der neuen Pflanze: der Originaltopf ist gratis, dazu gibt es "
+                  f"einen günstigen ({pots.CHEAP_PRICE[0]}–{pots.CHEAP_PRICE[1]} Gold) und einen edlen "
+                  f"({pots.PREMIUM_PRICE[0]}–{pots.PREMIUM_PRICE[1]} Gold) Zufallstopf. Das Angebot wechselt nach "
+                  "jeder Aussaat; der Topf ist nur Zierde und bleibt bei der Pflanze."),
             ("h", "Fokus-Timer"),
             ("p", f"{' / '.join(str(m) for m in FOCUS_PRESETS)} min mit ×{G(FOCUS_MULT)} Wachstum. "
                   "Belohnung: Minuten ÷ 5 Gold. Abbruch kostet nur den Bonus."),

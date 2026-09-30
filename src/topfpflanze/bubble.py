@@ -141,7 +141,7 @@ class Bubble(ScaledWidget):
             pl = self.plant
             lvl = pl.prestige_level()
             return (f"{pl.kind.name} einlagern & neu aussäen\n"
-                    f"Prestige-Stufe {lvl} → {lvl + 1} (nach Rückfrage)")
+                    f"Prestige-Stufe {lvl} → {lvl + 1}, Topf wählen und bestätigen")
         return self.tooltip_text(self.icon_at(pos))
 
     def paintEvent(self, _e):

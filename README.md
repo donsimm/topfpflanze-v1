@@ -74,6 +74,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 | `bubble.py`, `shop.py`, `garden.py`, `panels.py`, `info.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch, Info-Fenster (Werte aus `data.py`, Release Notes aus `changelog.py`) |
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
+| `sow.py`, `pots.py` | Dialog «Einlagern & neu aussäen», zufällige Topf-Varianten (Skins) |
 | `scaling.py` | Skalierung der Oberfläche (Basisklasse `ScaledWidget`) |
 | `helper_art.py` | Grafiken der Helfer (Anzeigen, Zwerg, Lampe) |
 | `debug.py` | Debug-Modus |
