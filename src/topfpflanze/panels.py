@@ -242,7 +242,21 @@ class AchievementsWin(Panel):
             return f"Wöchentlich, KW {int(pid.split('W')[1])}"
         return ""
 
-    def draw_claim_row(self, p, row, name, sub, reward, hover, base):
+    @staticmethod
+    def draw_tier_dots(p, row, name_w, tier, tiers, done):
+        """Punkte hinter dem Namen für die Stufen einer Reihe: erreichte gefüllt, aktuelle mit Ring, offene leer."""
+        if tiers < 2:
+            return
+        x = row.left() + 26 + name_w + 9
+        y = row.top() + 8.5
+        for i in range(tiers):
+            c = QPointF(x + i * 7.4, y)
+            reached = i < tier - 1 or (done and i == tier - 1)
+            p.setBrush(QColor("#2E9E44") if reached else Qt.BrushStyle.NoBrush)
+            p.setPen(QPen(QColor("#2E9E44") if reached or i == tier - 1 else T("muted"), 1.3 if i == tier - 1 else 1.0))
+            p.drawEllipse(c, 2.7, 2.7)
+
+    def draw_claim_row(self, p, row, name, sub, reward, hover, base, tier=1, tiers=1):
         """Goldene, anklickbare Zeile mit Geschenk-Symbol, Name, Belohnung und «Abholen»."""
         p.setPen(QPen(QColor("#D4A017"), 2.0 if hover else 1.6))
         p.setBrush(T("gold_bg"))
@@ -252,6 +266,8 @@ class AchievementsWin(Panel):
         p.setPen(T("text"))
         p.drawText(QRectF(row.left() + 26, row.top() + 1, 175, 15),
                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, name)
+        self.draw_tier_dots(p, row, p.fontMetrics().horizontalAdvance(name), tier, tiers, False)
+        p.setFont(self.font_px(base, 11, True))
         text = f"+{reward}"
         tw = p.fontMetrics().horizontalAdvance(text)
         draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)
@@ -286,12 +302,11 @@ class AchievementsWin(Panel):
             p.setPen(T("muted"))
             p.drawText(QRectF(W - 162, hy, 150, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, right)
         for a, row, tier, tiers in lay["rows"]:
-            title = f"{a.name} · {tier}/{tiers}" if tiers > 1 else a.name
             done = plant.ach_is_done(a)
             claimable = plant.ach_pending_entry(a.key) is not None
             val = min(plant.ach_value(a.key), a.target)
             if claimable:
-                self.draw_claim_row(p, row, title, a.desc, a.reward, self.hover == ("row", a.key), base)
+                self.draw_claim_row(p, row, a.name, a.desc, a.reward, self.hover == ("row", a.key), base, tier, tiers)
                 continue
             p.setPen(QPen(QColor("#2E9E44"), 1.2) if done else QPen(T("cell_border"), 1))
             p.setBrush(T("active_bg") if done else T("cell"))
@@ -309,7 +324,8 @@ class AchievementsWin(Panel):
             p.setFont(self.font_px(base, 11, True))
             p.setPen(T("text"))
             p.drawText(QRectF(row.left() + 26, row.top() + 1, 175, 15),
-                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, title)
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.name)
+            self.draw_tier_dots(p, row, p.fontMetrics().horizontalAdvance(a.name), tier, tiers, done)
             reward = f"+{a.reward}"
             tw = p.fontMetrics().horizontalAdvance(reward)
             draw_coin(p, QPointF(row.right() - 10, row.top() + 8.5), 4.5)
