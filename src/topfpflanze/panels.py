@@ -17,6 +17,14 @@ from .scaling import ScaledWidget
 TIER_COLORS = (QColor("#8CC084"), QColor("#4FA35A"), QColor("#2E7D46"))  # Besucher, Stammgast, Gartenbewohner (Grüntöne)
 
 
+def tier_pill(tier, name):
+    """Textteil für info_row als Plakette in der Stufenfarbe (tier 0 = keine Stufe, grau)."""
+    if tier:
+        fg = QColor("#16351A") if tier == 1 else QColor("#FFFFFF")  # helles Grün braucht dunkle Schrift
+        return (name, fg, True, TIER_COLORS[tier - 1])
+    return (name, QColor("#FFFFFF"), True, QColor("#9A958A"))
+
+
 class Panel(ScaledWidget):
     """Gemeinsame Grundlage für Erfolge, Fokus-Timer und Sammelbuch (Stil der Sprechblase)."""
 
@@ -540,9 +548,9 @@ class BookWin(Panel):
 
         def width(size):
             w = 0.0
-            for text, _c, bold in parts:
-                p.setFont(self.font_px(base, size, bold))
-                w += p.fontMetrics().horizontalAdvance(text)
+            for part in parts:
+                p.setFont(self.font_px(base, size, part[2]))
+                w += p.fontMetrics().horizontalAdvance(part[0]) + (10 if len(part) > 3 else 0)
             if right:
                 p.setFont(self.font_px(base, size))
                 w += p.fontMetrics().horizontalAdvance(right[0]) + 8
@@ -553,10 +561,20 @@ class BookWin(Panel):
         if icon:
             icon(QPointF(info.left() + 7, y + self.ROW / 2))
         x = x0
-        for text, color, bold in parts:
+        for part in parts:
+            text, color, bold = part[:3]
             p.setFont(self.font_px(base, px, bold))
-            p.setPen(color)
             w = p.fontMetrics().horizontalAdvance(text)
+            if len(part) > 3:  # Plakette: farbiger Hintergrund (part[3]) hinter dem Text
+                pill = QRectF(x, y + 1.5, w + 10, self.ROW - 3)
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(part[3])
+                p.drawRoundedRect(pill, pill.height() / 2, pill.height() / 2)
+                p.setPen(color)
+                p.drawText(pill, Qt.AlignmentFlag.AlignCenter, text)
+                x += w + 10
+                continue
+            p.setPen(color)
             p.drawText(QRectF(x, y, w + 2, self.ROW), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
             x += w
         if right:
@@ -568,7 +586,7 @@ class BookWin(Panel):
     def draw_info(self, p, info, base, book, rarity_col):
         """Infobereich: Legende, solange nichts markiert ist, sonst Angaben zum Besucher in drei Zeilen."""
         plant = self.plant
-        ok, gold, muted, text = T("ok"), T("coin"), T("muted"), T("text")
+        gold, muted, text = T("coin"), T("muted"), T("text")
 
         def seedling(leaves, color):
             return lambda c: draw_seedling(p, c + QPointF(0, 5.2), 14, leaves, color)
@@ -579,9 +597,11 @@ class BookWin(Panel):
 
         if not self.hover:  # Legende
             steps = " / ".join(str(s) for s in MASTERY_STEPS)
-            self.info_row(p, info, 0, [(f"Ein Klick auf einen Besucher bringt {VISIT_GREET_COINS} Gold.", muted, False)], base)
-            self.info_row(p, info, 1, [("Setzling", ok, True), (f"  Stufe nach {steps} Besuchen", muted, False)], base,
-                          icon=seedling(3, TIER_COLORS[2]))
+            self.info_row(p, info, 0, [(f"Stufen nach {steps} Besuchen · Klick: +{VISIT_GREET_COINS} Gold", muted, False)], base)
+            legend = []
+            for t, name in enumerate(MASTERY_NAMES, start=1):
+                legend += [tier_pill(t, name), (" ", muted, False)]
+            self.info_row(p, info, 1, legend, base, icon=seedling(3, TIER_COLORS[2]))
             self.info_row(p, info, 2, [("Stern", gold, True), ("  schillernde Variante gesehen", muted, False)], base,
                           icon=star(True))
             return
@@ -601,10 +621,7 @@ class BookWin(Panel):
         nxt = next((s for s in MASTERY_STEPS if count < s), None)
         self.info_row(p, info, 0, [(v.name, text, True), (f"  {v.rarity}", rarity_col[v.rarity], False)], base,
                       right=(f"{count}× · seit {fmt_date(e.get('first'))}", muted))
-        if tier:
-            stufe = [(MASTERY_NAMES[tier - 1], ok, True)]
-        else:
-            stufe = [("Noch keine Stufe", muted, True)]
+        stufe = [tier_pill(tier, MASTERY_NAMES[tier - 1] if tier else "Keine Stufe")]
         if nxt:
             stufe.append((f"  noch {nxt - count} bis {MASTERY_NAMES[tier]}", muted, False))
         else:
