@@ -13,7 +13,7 @@ Texte der Spieldaten einmalig beim Import übersetzt werden. Ein Sprachwechsel b
 import json
 
 DEFAULT = "de"
-LANGUAGES = {"de": "Deutsch", "en": "English"}     # Code → Name in der eigenen Sprache
+LANGUAGES = {"de": "Deutsch", "en": "English", "fr": "Français", "it": "Italiano"}     # Code → Name in der eigenen Sprache
 
 _lang = DEFAULT
 _catalog = {}
@@ -24,6 +24,12 @@ def _load(code):
     if code == "en":
         from .lang import en
         return en.STRINGS
+    if code == "fr":
+        from .lang import fr
+        return fr.STRINGS
+    if code == "it":
+        from .lang import it
+        return it.STRINGS
     raise ValueError(code)
 
 

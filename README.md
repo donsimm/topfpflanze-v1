@@ -64,7 +64,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 
 ## Sprachen
 
-Deutsch (Standard) und Englisch. Umschalten: Rechtsklick → Einstellungen → Sprache / Language (das Spiel startet dabei neu).
+Deutsch (Standard), Englisch, Französisch und Italienisch. Umschalten: Rechtsklick → Einstellungen → Sprache / Language (das Spiel startet dabei neu).
 Ohne Auswahl gilt die Systemsprache, sonst Deutsch.
 
 Der deutsche Text ist der Schlüssel: im Code steht `tr("Dünger")`, mit Werten `tr("noch {n} bis {name}", n=3, name=x)`
@@ -72,7 +72,7 @@ Der deutsche Text ist der Schlüssel: im Code steht `tr("Dünger")`, mit Werten 
 Eintrag, erscheint der deutsche Text.
 
 Neue Sprache: `lang/en.py` nach `lang/<code>.py` kopieren, die Werte übersetzen (Platzhalter `{…}` unverändert lassen),
-den Code in `i18n.LANGUAGES` und in `i18n._load` eintragen. Ein Test (`test_english_catalog_is_complete_and_consistent`)
+den Code in `i18n.LANGUAGES` und in `i18n._load` eintragen und in `tests/test_basics.py` bei den Sprach-Tests ergänzen. Ein Test (`test_language_catalog_is_complete_and_consistent`)
 prüft, dass kein Text fehlt und die Platzhalter stimmen. Neuer Text im Code: immer mit `tr(…)` schreiben und den
 englischen Eintrag ergänzen, sonst schlägt der Test fehl.
 

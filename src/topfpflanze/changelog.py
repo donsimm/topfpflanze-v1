@@ -11,7 +11,7 @@ from .i18n import tr
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
     (tr("Unveröffentlicht"), None, [
-        tr("Mehrsprachig: Deutsch und Englisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/."),
+        tr("Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/."),
         tr("Viel mehr Erfolge (über 80 statt 12): einmalige Erfolge sind in Reihen mit Stufen zusammengefasst, im Fenster erscheint je Reihe die nächste Stufe. Neu: Tasten bis 1 Million, Shop-Aktivität, Anzahl Besuche, Klicks, Fokus-Sitzungen, Gartenhaus, Prestige, Farbvarianten, Gartenbewohner und Tage in Folge gespielt."),
         tr("Fokus-Timer mit zusätzlicher 10-Minuten-Sitzung; im Fokusmodus feinere Umrandung von Zeit und Ring und ein kleines X unter der Zeit zum Abbrechen."),
         tr("Neu entdeckte Besucher und Farbvarianten werden mit einem roten Punkt am Sammelbuch-Symbol und auf der Karte markiert; Überfahren der Karte gilt als gesehen."),

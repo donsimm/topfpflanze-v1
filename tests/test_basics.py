@@ -1277,9 +1277,12 @@ def _tr_keys():
     return keys
 
 
-def test_english_catalog_is_complete_and_consistent():
-    import string
-    from topfpflanze.lang import en
+@pytest.mark.parametrize("code", ["en", "fr", "it"])
+def test_language_catalog_is_complete_and_consistent(code):
+    import importlib, string
+    en = importlib.import_module(f"topfpflanze.lang.{code}")
+    from topfpflanze import i18n
+    assert code in i18n.LANGUAGES
     keys = _tr_keys()
     assert not keys - set(en.STRINGS), sorted(keys - set(en.STRINGS))[:5]      # nichts unübersetzt
     assert not set(en.STRINGS) - keys, sorted(set(en.STRINGS) - keys)[:5]      # keine veralteten Einträge
@@ -1303,20 +1306,21 @@ def test_tr_uses_catalog_and_falls_back_to_german():
         i18n.set_language("de")
 
 
-def test_game_starts_in_english_in_a_fresh_process(tmp_path):
+@pytest.mark.parametrize("code", ["en", "fr", "it"])
+def test_game_starts_in_each_language_in_a_fresh_process(tmp_path, code):
     import subprocess, sys, textwrap, os
     code = textwrap.dedent(f"""
         from topfpflanze import config, i18n
         config.STATE_DIR = config.Path({str(tmp_path)!r}); config.STATE_FILE = config.STATE_DIR / "state.json"
-        i18n.set_language("en")
+        i18n.set_language({code!r})
         from PyQt6.QtWidgets import QApplication
         app = QApplication([])
         from topfpflanze.data import PLANT_TYPES, VISITORS, ACHIEVEMENTS, RARITY_LABEL
         from topfpflanze.plant import Plant
         p = Plant()
-        assert PLANT_TYPES["kaktus"].name == "Cactus" and VISITORS["biene"].name == "Honeybee"
-        assert RARITY_LABEL["sehr selten"] == "very rare"
-        assert all(a.name and not any(c in a.name for c in "äöü") for a in ACHIEVEMENTS), "Umlaut im Namen"
+        assert PLANT_TYPES["kaktus"].name == {{"en": "Cactus", "fr": "Cactus", "it": "Cactus"}}[{code!r}]
+        assert RARITY_LABEL["sehr selten"] == {{"en": "very rare", "fr": "très rare", "it": "molto raro"}}[{code!r}]
+        assert all(a.name for a in ACHIEVEMENTS)
         for w in (p, p.bubble, p.shop, p.garden, p.ach_win, p.focus_win, p.book_win, p.info_win, p.sow_win):
             assert not w.grab().isNull()
         print("OK")

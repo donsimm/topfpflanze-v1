@@ -7,7 +7,7 @@ from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .i18n import tr
 from .data import RARITY_LABEL, MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_DEFAULT, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
-from .drawing import draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
+from .drawing import fit_font, draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_date, fmt_int, fmt_left
 from .scaling import ScaledWidget
@@ -275,7 +275,7 @@ class AchievementsWin(Panel):
         p.setPen(T("coin"))
         p.drawText(QRectF(row.right() - 18 - tw, row.top() + 1, tw + 2, 15),
                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, text)
-        p.setFont(self.font_px(base, 10))
+        fit_font(p, self.font_px(base, 10), sub, row.width() - 26 - 76, min_px=8)
         p.setPen(T("text2"))
         p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 76, 13),
                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, sub)
@@ -333,7 +333,7 @@ class AchievementsWin(Panel):
             p.setPen(T("coin"))
             p.drawText(QRectF(row.right() - 18 - tw, row.top() + 1, tw + 2, 15),
                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, reward)
-            p.setFont(self.font_px(base, 10))
+            fit_font(p, self.font_px(base, 10), a.desc, row.width() - 26 - 92, min_px=8)
             p.setPen(T("text2"))
             p.drawText(QRectF(row.left() + 26, row.top() + 15, row.width() - 26 - 92, 13),
                        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, a.desc)

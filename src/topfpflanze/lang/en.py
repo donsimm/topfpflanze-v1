@@ -1,6 +1,8 @@
-"""English translations. Key: German source text; value: English text with the same {placeholders}.
+"""English translations.
 
-To add a language: copy this file to `<code>.py`, translate the values and register the code in `i18n.LANGUAGES`.
+To add a language: copy this file to `<code>.py`, translate the values and register the code in `i18n.LANGUAGES` and `i18n._load`.
+
+Key: German source text; value: translation with the same {placeholders}.
 """
 
 STRINGS = {
@@ -66,8 +68,8 @@ STRINGS = {
         "– (clicks only)",
     "Unveröffentlicht":
         "Unreleased",
-    "Mehrsprachig: Deutsch und Englisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":
-        "Multilingual: German and English (right click → Settings → Language, restarts the game; the default is the system language). More languages are just one extra file in lang/.",
+    "Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":
+        "Multilingual: German, English, French and Italian (right click → Settings → Language, restarts the game; the default is the system language). More languages are just one extra file in lang/.",
     "Viel mehr Erfolge (über 80 statt 12): einmalige Erfolge sind in Reihen mit Stufen zusammengefasst, im Fenster erscheint je Reihe die nächste Stufe. Neu: Tasten bis 1 Million, Shop-Aktivität, Anzahl Besuche, Klicks, Fokus-Sitzungen, Gartenhaus, Prestige, Farbvarianten, Gartenbewohner und Tage in Folge gespielt.":
         "Many more achievements (over 80 instead of 12): one-time achievements are grouped into series with tiers, and the window shows the next tier of each series. New: keys up to 1 million, shop activity, number of visits, clicks, focus sessions, Garden Shed, prestige, colour variants, garden residents and days played in a row.",
     "Fokus-Timer mit zusätzlicher 10-Minuten-Sitzung; im Fokusmodus feinere Umrandung von Zeit und Ring und ein kleines X unter der Zeit zum Abbrechen.":
@@ -680,8 +682,8 @@ STRINGS = {
         "Bottom: Shop, Garden Shed, Achievements, Focus Timer, Visitor Book, Info.",
     "Einstellungen":
         "Settings",
-    "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
-        "Right click → Settings: count keys, language (Deutsch / English, restarts the game), dark mode, always on top, plant and menu size, volume (0–100 %, default 0 = muted). Sounds: watering when you water and a gong at the end of the focus timer.",
+    "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
+        "Right click → Settings: count keys, language (Deutsch / English / Français / Italiano, restarts the game), dark mode, always on top, plant and menu size, volume (0–100 %, default 0 = muted). Sounds: watering when you water and a gong at the end of the focus timer.",
     "Basiswerte bei gutem Wasserstand, ohne Boni.":
         "Base values at a good water level, without bonuses.",
     "Taste +{growth_per_key}":

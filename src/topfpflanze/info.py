@@ -38,7 +38,7 @@ def blocks(tab, plant=None):
             ("p", tr("Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).")),
             ("p", tr("Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info.")),
             ("h", tr("Einstellungen")),
-            ("p", tr("Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.")),
+            ("p", tr("Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.")),
         ]
     if tab == "pfl":
         out = [("p", tr("Basiswerte bei gutem Wasserstand, ohne Boni."))]
