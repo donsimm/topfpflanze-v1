@@ -251,16 +251,23 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.update_tooltip()
         self.save_state()
 
-    def clamp_windows_to_screen(self):
-        screen = QApplication.primaryScreen()
+    def clamp_to_screen(self, w):
+        """Schiebt ein einzelnes Fenster auf den Bildschirm zurück, auf dem es liegt (bei mehreren Monitoren
+        nicht auf den Hauptbildschirm). Liegt es auf keinem Bildschirm, gilt der Bildschirm der Pflanze."""
+        screen = (QApplication.screenAt(w.geometry().center()) or QApplication.screenAt(self.geometry().center())
+                  or QApplication.primaryScreen())
         if not screen:
             return
         g = screen.availableGeometry()
+        x = max(g.left(), min(w.x(), g.right() - w.real_width() + 1))
+        y = max(g.top(), min(w.y(), g.bottom() - w.real_height() + 1))
+        if (x, y) != (w.x(), w.y()):
+            w.move(x, y)
+
+    def clamp_windows_to_screen(self):
+        """Nach einer Grössenänderung: Pflanze, Sprechblase und alle Fenster im sichtbaren Bereich halten."""
         for w in [self, self.bubble, *self.windows.values()]:
-            x = max(g.left(), min(w.x(), g.right() - w.real_width() + 1))
-            y = max(g.top(), min(w.y(), g.bottom() - w.real_height() + 1))
-            if (x, y) != (w.x(), w.y()):
-                w.move(x, y)
+            self.clamp_to_screen(w)
 
     def set_dark(self, on):
         self.state["dark"] = on

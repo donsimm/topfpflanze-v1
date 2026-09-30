@@ -735,3 +735,28 @@ def test_old_plant_states_get_default_pot_skin(plant):
     del plant.ps["pot_skin"]
     plant.activate(plant.state["current"])
     assert plant.ps["pot_skin"] is None
+
+
+def test_opening_and_confirming_sow_dialog_moves_no_other_window(plant):
+    wins = [plant, plant.bubble, plant.shop, plant.garden, plant.ach_win, plant.focus_win, plant.book_win,
+            plant.info_win]
+    spots = [(5, 5), (3000, 2000), (-400, 300), (2500, -100), (700, 590), (100, 4000), (-50, -50), (1900, 1200)]
+    for w, (x, y) in zip(wins, spots):   # bewusst auch ausserhalb des (Test-)Bildschirms
+        w.move(x, y)
+    before = [(w.x(), w.y()) for w in wins]
+    plant.ps["growth"] = plant.kind.bloom_at
+    plant.reset_plant()
+    assert [(w.x(), w.y()) for w in wins] == before
+    plant.sow_win.on_click("ok")  # Originaltopf, gratis
+    assert not plant.sow_win.isVisible()
+    assert [(w.x(), w.y()) for w in wins] == before
+
+
+def test_clamp_to_screen_moves_only_the_given_window(plant):
+    plant.bubble.move(50, 50)
+    plant.shop.move(9000, 9000)
+    plant.clamp_to_screen(plant.bubble)
+    assert (plant.bubble.x(), plant.bubble.y()) == (50, 50)
+    assert (plant.shop.x(), plant.shop.y()) == (9000, 9000)
+    plant.clamp_to_screen(plant.shop)
+    assert plant.shop.x() < 9000 and plant.shop.y() < 9000

@@ -36,7 +36,7 @@ class SowWin(Panel):
         self.choice = "orig"
         self.refresh()
         self.place_window()
-        self.plant.clamp_windows_to_screen()
+        self.plant.clamp_to_screen(self)  # nur der Dialog selbst; alle anderen Fenster bleiben, wo sie sind
         self.show()
         self.raise_()
         self.activateWindow()
