@@ -1238,3 +1238,13 @@ def test_play_streak_counts_consecutive_days(plant):
     plant.state["stats"].update({"last_day": "2000-01-01"})
     plant.ensure_periods()
     assert plant.state["stats"]["streak"] == 1
+
+
+def test_visitor_achievement_series_one_per_visitor(plant):
+    from topfpflanze.data import ACHIEVEMENTS, VISITORS
+    n = len(VISITORS)
+    for series in ("entdecker", "stammgaeste", "meister"):
+        tiers = [a for a in ACHIEVEMENTS if a.series == series]
+        assert [a.target for a in tiers] == list(range(1, n + 1))
+    plant.state["book"] = {"biene": {"count": 60}, "marienkaefer": {"count": 250}, "libelle": {"count": 3}}
+    assert plant.ach_value("g_disc3") == 3 and plant.ach_value("g_reg2") == 2 and plant.ach_value("g_master1") == 1
