@@ -66,8 +66,6 @@ STRINGS = {
         "\n{pend} ready to collect",
     "– (nur Klicks)":
         "– (clicks only)",
-    "Unveröffentlicht":
-        "Unreleased",
     "Helfer gelten je Pflanze (wie der Dünger): pro Pflanze kaufen und ein-/ausschalten; beim Neuaussäen bleiben sie bei der Pflanze. Bereits gekaufte Helfer gelten weiterhin für alle Pflanzen.":
         "Helpers now apply per plant (like fertilizer): buy and switch them per plant; they stay with the plant when resowing. Helpers you already bought keep working for all plants.",
     "Mehrsprachig: Deutsch, Englisch, Französisch und Italienisch (Rechtsklick → Einstellungen → Sprache, startet das Spiel neu; Standard ist die Systemsprache). Weitere Sprachen sind eine zusätzliche Datei in lang/.":

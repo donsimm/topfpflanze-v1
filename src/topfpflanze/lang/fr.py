@@ -64,8 +64,6 @@ STRINGS = {
         "\n{pend} à récupérer",
     "– (nur Klicks)":
         "– (clics seulement)",
-    "Unveröffentlicht":
-        "Non publié",
     "Viel mehr Erfolge (über 80 statt 12): einmalige Erfolge sind in Reihen mit Stufen zusammengefasst, im Fenster erscheint je Reihe die nächste Stufe. Neu: Tasten bis 1 Million, Shop-Aktivität, Anzahl Besuche, Klicks, Fokus-Sitzungen, Gartenhaus, Prestige, Farbvarianten, Gartenbewohner und Tage in Folge gespielt.":
         "Bien plus de succès (plus de 80 au lieu de 12) : les succès uniques sont regroupés en séries de paliers, la fenêtre affiche le palier suivant de chaque série. Nouveau : touches jusqu'à 1 million, activité de la boutique, nombre de visites, clics, sessions de concentration, cabane du jardin, prestige, variantes de couleur, résidents du jardin et jours joués d'affilée.",
     "Fokus-Timer mit zusätzlicher 10-Minuten-Sitzung; im Fokusmodus feinere Umrandung von Zeit und Ring und ein kleines X unter der Zeit zum Abbrechen.":

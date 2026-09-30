@@ -64,8 +64,6 @@ STRINGS = {
         "\n{pend} da ritirare",
     "– (nur Klicks)":
         "– (solo clic)",
-    "Unveröffentlicht":
-        "Non pubblicato",
     "Viel mehr Erfolge (über 80 statt 12): einmalige Erfolge sind in Reihen mit Stufen zusammengefasst, im Fenster erscheint je Reihe die nächste Stufe. Neu: Tasten bis 1 Million, Shop-Aktivität, Anzahl Besuche, Klicks, Fokus-Sitzungen, Gartenhaus, Prestige, Farbvarianten, Gartenbewohner und Tage in Folge gespielt.":
         "Molti più obiettivi (oltre 80 invece di 12): gli obiettivi unici sono raggruppati in serie a livelli, la finestra mostra il livello successivo di ogni serie. Novità: tasti fino a 1 milione, attività nel negozio, numero di visite, clic, sessioni di concentrazione, casetta del giardino, prestigio, varianti di colore, abitanti del giardino e giorni giocati di fila.",
     "Fokus-Timer mit zusätzlicher 10-Minuten-Sitzung; im Fokusmodus feinere Umrandung von Zeit und Ring und ein kleines X unter der Zeit zum Abbrechen.":
