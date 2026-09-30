@@ -5,7 +5,6 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .config import BOOK_VISITOR_SCALE
 from .data import ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
 from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
@@ -476,7 +475,7 @@ class BookWin(Panel):
             p.setPen(QPen(QColor("#D4A017"), 1.6) if key == self.hover else QPen(T("cell_border"), 1))
             p.setBrush(T("cell"))
             p.drawRoundedRect(r, 7, 7)
-            draw_visitor(p, key, QPointF(r.center().x(), r.top() + 34), BOOK_VISITOR_SCALE, plant.t + hash(key) % 7,
+            draw_visitor(p, key, QPointF(r.center().x(), r.top() + 34), 2.3, plant.t + hash(key) % 7,
                          silhouette=not found)
             p.setFont(self.font_px(base, 10, True))
             p.setPen(T("text") if found else T("muted"))

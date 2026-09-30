@@ -42,8 +42,7 @@ TOOL, TOOL_GAP = 24, 6       # Werkzeugsymbole (zweite Reihe)
 TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "info"]
 TOOL_NAMES = {"shop": "Shop", "garden": "Gartenhaus", "ach": "Erfolge", "focus": "Fokus-Timer",
               "book": "Besucher-Sammelbuch", "info": "Info"}
-VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze (+30 %)
-BOOK_VISITOR_SCALE = 2.3 * 1.3  # ... und im Sammelbuch
+VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze (+30 %); das Sammelbuch bleibt unverändert
 SHOP_W, SHOP_H = 270, 304
 GARDEN_W, GARDEN_H = 300, 444
 
