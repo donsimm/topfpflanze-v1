@@ -14,7 +14,7 @@ from PyQt6.QtGui import QActionGroup, QColor
 from . import config, debug, scaling
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
-from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_GOLD_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
+from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -302,7 +302,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         fz, _ = self.fert()
         m = 1.0 + fz.boost if fz else 1.0
         m *= 1.0 + PRESTIGE_BONUS * self.prestige_level()
-        m *= 1.0 + MASTERY_GOLD_BONUS * self.gold_count()
+        m *= 1.0 + MASTERY_TOP_BONUS * self.top_count()
         if self.helper_on("lampe"):
             m *= 1.0 + LAMP_BOOST
         if self.focus:
@@ -588,11 +588,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
     # ---------- Meisterschaft ----------
 
     def mastery_tier(self, key):
-        """Erreichte Stufe (0 = keine, 1 Bronze, 2 Silber, 3 Gold) nach Anzahl Besuche."""
+        """Erreichte Stufe (0 = keine, 1 Besucher, 2 Stammgast, 3 Gartenbewohner) nach Anzahl Besuche."""
         count = self.state.get("book", {}).get(key, {}).get("count", 0)
         return sum(1 for s in MASTERY_STEPS if count >= s)
 
-    def gold_count(self):
+    def top_count(self):
         return sum(1 for k in VISITOR_ORDER if self.mastery_tier(k) >= len(MASTERY_STEPS))
 
     def check_mastery(self):
@@ -607,9 +607,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 given[key] = lvl + 1
                 v = VISITORS[key]
                 reward = round_half_up(MASTERY_COINS[lvl] * RARITY_MULT[v.rarity])
-                pending.append({"key": f"m:{key}:{lvl + 1}", "name": f"{v.name} {MASTERY_NAMES[lvl]}",
+                pending.append({"key": f"m:{key}:{lvl + 1}", "name": f"{v.name}: {MASTERY_NAMES[lvl]}",
                                 "reward": reward, "period": "mastery", "pid": ""})
-                self.popup(f"Meister: {v.name} {MASTERY_NAMES[lvl]}", coin=False)
+                self.popup(f"{v.name}: {MASTERY_NAMES[lvl]}", coin=False)
                 added = True
         if added:
             self.ach_win.refresh()

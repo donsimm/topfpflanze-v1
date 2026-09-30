@@ -171,12 +171,13 @@ VISITOR_ORDER = ["marienkaefer", "kohlweissling", "biene", "zitronenfalter",
 VISIT_DURATION = 30.0
 VISIT_GREET_COINS = 3
 
-# Meisterschaft: Stufen je Besucher nach Anzahl Besuche (Varianten zählen mit)
+# Meisterschaft (Biodiversität): Stufen je Besucher nach Anzahl Besuche (Varianten zählen mit);
+# im Sammelbuch als Setzling mit 1, 2 oder 3 Blättern
 MASTERY_STEPS = (10, 50, 200)
-MASTERY_NAMES = ("Bronze", "Silber", "Gold")
+MASTERY_NAMES = ("Besucher", "Stammgast", "Gartenbewohner")
 MASTERY_COINS = (20, 60, 150)                          # Belohnung je Stufe, mal Seltenheitsfaktor
 RARITY_MULT = {"häufig": 1.0, "selten": 1.5, "sehr selten": 2.0}
-MASTERY_GOLD_BONUS = 0.01                              # je Besucher auf Gold: +1 % Wachstum (dauerhaft)
+MASTERY_TOP_BONUS = 0.01                              # je Gartenbewohner: +1 % Wachstum (dauerhaft)
 
 # Farbvarianten («Schillernde»): Chance je Besuch nach Seltenheit, Belohnung beim Begrüssen
 SHINY_CHANCE = {"häufig": 0.05, "selten": 0.08, "sehr selten": 0.12}

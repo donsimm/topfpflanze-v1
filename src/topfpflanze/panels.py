@@ -6,7 +6,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .data import MASTERY_NAMES, MASTERY_STEPS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
-from .drawing import draw_coin, draw_gift, draw_star, draw_visitor, round_pen
+from .drawing import draw_coin, draw_gift, draw_seedling, draw_star, draw_visitor, round_pen
 from .theme import T, _THEME
 from .util import fmt_age, fmt_datetime, fmt_int, fmt_left
 from .scaling import ScaledWidget
@@ -14,7 +14,7 @@ from .scaling import ScaledWidget
 
 # ---------------------------------------------------------------- Weitere Fenster
 
-TIER_COLORS = (QColor("#B87333"), QColor("#9AA4AE"), QColor("#E0A800"))  # Bronze, Silber, Gold
+TIER_COLORS = (QColor("#8CC084"), QColor("#4FA35A"), QColor("#2E7D46"))  # Besucher, Stammgast, Gartenbewohner (Grüntöne)
 
 
 class Panel(ScaledWidget):
@@ -514,6 +514,9 @@ class BookWin(Panel):
                 p.drawRoundedRect(bar, 1.2, 1.2)
                 p.setBrush(TIER_COLORS[min(tier, 2)] if nxt is None else TIER_COLORS[tier])
                 p.drawRoundedRect(QRectF(bar.left(), bar.top(), bar.width() * frac, 2.5), 1.2, 1.2)
+                # Setzling oben links: Keimspitze (noch keine Stufe) oder 1–3 Blätter
+                draw_seedling(p, QPointF(r.left() + 12, r.top() + 23), 18, tier,
+                              TIER_COLORS[tier - 1] if tier else QColor("#8CC084"))
                 has_var = book[key].get("shiny", 0) > 0
                 draw_star(p, QPointF(r.right() - 9, r.top() + 9), 5.5,
                           "#F2C230" if has_var else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
@@ -529,7 +532,7 @@ class BookWin(Panel):
                 tier = plant.mastery_tier(self.hover)
                 nxt = next((s for s in MASTERY_STEPS if e["count"] < s), None)
                 stufe = MASTERY_NAMES[tier - 1] if tier else "keine"
-                weiter = f", nächste bei {nxt}" if nxt else " (Stufe Gold: +1 % Wachstum)"
+                weiter = f", nächste bei {nxt}" if nxt else " (Gartenbewohner: +1 % Wachstum)"
                 n_var = e.get("shiny", 0)
                 var = (f"{VARIANTS[self.hover].name} {n_var}× gesehen" if n_var
                        else f"{VARIANTS[self.hover].name} noch nicht gesehen")

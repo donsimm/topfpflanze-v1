@@ -450,7 +450,7 @@ def test_mastery_tiers_rewards_and_bonus(plant):
     plant.state["book"]["marienkaefer"]["count"] = 200  # überspringt Stufen: alle fehlenden werden vorgemerkt
     plant.check_mastery()
     assert [x["reward"] for x in plant.state["ach_pending"]] == list(data.MASTERY_COINS)
-    assert plant.gold_count() == 1
+    assert plant.top_count() == 1
     assert plant.mastery_tier("marienkaefer") == 3
     # Rotkehlchen (sehr selten) zahlt mehr
     plant.state["book"]["rotkehlchen"] = {"count": 10, "first": 0}
@@ -459,7 +459,7 @@ def test_mastery_tiers_rewards_and_bonus(plant):
     # Gold-Bonus wirkt auf das Wachstum
     base = plant.growth_mult()
     plant.state["book"]["kohlweissling"] = {"count": 200, "first": 0}
-    assert abs(plant.growth_mult() / base - (1 + data.MASTERY_GOLD_BONUS * 2) / (1 + data.MASTERY_GOLD_BONUS)) < 1e-9
+    assert abs(plant.growth_mult() / base - (1 + data.MASTERY_TOP_BONUS * 2) / (1 + data.MASTERY_TOP_BONUS)) < 1e-9
 
 
 def test_mastery_rewards_are_claimable_in_list(plant):

@@ -450,3 +450,28 @@ def draw_gift(p, c, r):
     ribbon.cubicTo(QPointF(6.5, -11), QPointF(6.5, -5.5), QPointF(0, -5.5))
     p.drawPath(ribbon)
     p.restore()
+
+
+def draw_seedling(p, base, size, leaves, color):
+    """Setzling mit 0–3 Blättern; base = Fusspunkt, size = Höhe in Pixeln (ca.)."""
+    p.save()
+    p.translate(base)
+    k = size / 13.0
+    p.scale(k, k)
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(QColor("#6B4A2E"))
+    p.drawEllipse(QPointF(0, 0.3), 4.6, 1.8)  # Erdhäufchen
+    p.setPen(round_pen(QColor("#4C8F45"), 1.3))
+    p.drawLine(QPointF(0, 0), QPointF(0, -8.5))
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(color)
+    if leaves == 0:  # nur die Keimspitze
+        p.drawEllipse(QPointF(0, -9.2), 1.4, 1.7)
+    # Blätter der Reihe nach: rechts, links, Spitze (Höhe am Stängel, Winkel)
+    for y, angle in ((-3.6, -32), (-5.6, -148), (-8.4, -90))[:leaves]:
+        p.save()
+        p.translate(0, y)
+        p.rotate(angle)
+        p.drawEllipse(QRectF(0, -1.5, 5.4, 3.0))
+        p.restore()
+    p.restore()

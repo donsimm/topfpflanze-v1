@@ -10,7 +10,7 @@ CHANGELOG = [
     ("Unveröffentlicht", None, [
         "Besucher auf der Pflanze sind 30 % grösser.",
         "Die Währung heisst jetzt Gold (statt Coins), das Symbol bleibt.",
-        "Meisterschaft: Stufen Bronze, Silber und Gold je Besucher, Belohnung in Gold; Stufe Gold gibt +1 % Wachstum.",
+        "Besucher-Stufen Besucher, Stammgast und Gartenbewohner (Setzling mit 1–3 Blättern im Sammelbuch), Belohnung in Gold; jeder Gartenbewohner gibt +1 % Wachstum.",
         "Schillernde Farbvarianten der Besucher, mit Stern im Sammelbuch.",
         "Info-Fenster mit Reiter «Version» und Release Notes.",
     ]),
