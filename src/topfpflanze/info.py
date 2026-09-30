@@ -36,7 +36,7 @@ def blocks(tab, plant=None):
             ("p", "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren)."),
             ("p", "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info."),
             ("h", "Einstellungen"),
-            ("p", "Rechtsklick → Einstellungen: Tastatur zählen, Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse."),
+            ("p", "Rechtsklick → Einstellungen: Tastatur zählen, Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers."),
         ]
     if tab == "pfl":
         out = [("p", "Basiswerte bei gutem Wasserstand, ohne Boni.")]

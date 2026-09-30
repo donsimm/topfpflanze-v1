@@ -66,6 +66,7 @@ nicht welche Tasten gedrückt wurden.
 
 
 import argparse
+import os
 import signal
 import sys
 from PyQt6.QtCore import QTimer
@@ -86,6 +87,8 @@ def parse_args(argv=None):
 
 
 def main(argv=None):
+    # Qt Multimedia meldet beim Start viele harmlose Suchmeldungen (z. B. fehlende optionale Bibliotheken)
+    os.environ.setdefault("QT_LOGGING_RULES", "qt.multimedia.symbolsresolver=false;qt.multimedia.ffmpeg=false")
     args, qt_args = parse_args(sys.argv[1:] if argv is None else argv)
     if args.debug:
         debug.enable(args.speed)

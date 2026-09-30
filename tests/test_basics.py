@@ -952,3 +952,169 @@ def test_focus_tooltip_and_right_click_menu_entry(plant):
     plant.abort_focus()
     assert "Fokusmodus" in plant.focus_win.tooltip_at(plant.focus_win.mode_rect().center())
     tooltip.hide_tip()
+
+
+# ---------------------------------------------------------------- Ton
+
+class _FakeEffect:
+    def __init__(self):
+        self.plays, self.volume = 0, None
+
+    def play(self):
+        self.plays += 1
+
+    def setVolume(self, v):
+        self.volume = v
+
+
+@pytest.fixture
+def fake_sound(plant):
+    plant.sound.effects = {"giessen": _FakeEffect(), "gong": _FakeEffect()}
+    plant.sound.available = True
+    plant.sound.last.clear()
+    plant.sound.set_volume(60)
+    return plant.sound
+
+
+def test_synthesized_sounds_are_sane():
+    import math
+    import struct
+    from topfpflanze import sound
+    for name, (lo, hi) in (("giessen", (0.4, 0.8)), ("gong", (3.0, 4.2))):
+        raw = sound.pcm(name)
+        n = len(raw) // 2
+        samples = struct.unpack(f"<{n}h", raw)
+        assert lo < n / sound.RATE < hi
+        peak = max(abs(s) for s in samples) / 32767
+        assert 0.6 < peak <= 0.95, "nicht zu leise, nicht übersteuert"
+        assert abs(sum(samples) / n) / 32767 < 0.02, "kein Gleichspannungsanteil"
+        assert abs(samples[-1]) < 300, "endet sanft (kein Knacken)"
+        assert all(math.isfinite(s) for s in samples)
+    g = struct.unpack(f"<{len(sound.pcm('gong')) // 2}h", sound.pcm("gong"))
+    sec = sound.RATE
+
+    def rms(a):
+        return math.sqrt(sum(x * x for x in a) / len(a))
+    assert rms(g[sec:2 * sec]) > rms(g[3 * sec:]) * 2, "Gong klingt aus"
+
+
+def test_sound_files_are_valid_wav(tmp_path, monkeypatch):
+    import wave
+    from topfpflanze import sound
+    monkeypatch.setattr(config, "STATE_DIR", tmp_path)
+    paths = sound.ensure_files()
+    assert set(paths) == {"giessen", "gong"}
+    for path in paths.values():
+        with wave.open(str(path)) as w:
+            assert (w.getnchannels(), w.getsampwidth(), w.getframerate()) == (1, 2, sound.RATE)
+            assert w.getnframes() > 1000
+    assert sound.ensure_files() == paths  # zweiter Aufruf erzeugt nichts neu
+
+
+def test_volume_mapping():
+    from topfpflanze import sound
+    assert sound.effective_volume(0, "gong") == 0
+    assert sound.effective_volume(100, "gong") == sound.GAINS["gong"]
+    vals = [sound.effective_volume(v, "giessen") for v in range(0, 101, 10)]
+    assert vals == sorted(vals) and vals[-1] <= 1.0
+    assert sound.effective_volume(150, "gong") == sound.GAINS["gong"]    # begrenzt
+    assert sound.effective_volume(-5, "gong") == 0
+
+
+def test_default_volume_is_saved_and_restored(plant, tmp_path, monkeypatch):
+    from topfpflanze import sound
+    assert plant.state["volume"] == sound.DEFAULT_VOLUME == plant.sound.volume
+    plant.set_volume(35)
+    assert plant.state["volume"] == 35 and plant.sound.volume == 35
+    import json
+    assert json.load(open(config.STATE_FILE, encoding="utf-8"))["volume"] == 35
+    plant.set_volume(250)
+    assert plant.state["volume"] == 100
+    plant.set_volume(-3)
+    assert plant.state["volume"] == 0
+
+
+def test_volume_applies_to_every_effect(fake_sound):
+    from topfpflanze import sound
+    fake_sound.set_volume(100)
+    assert fake_sound.effects["gong"].volume == sound.GAINS["gong"]
+    fake_sound.set_volume(0)
+    assert all(e.volume == 0 for e in fake_sound.effects.values())
+
+
+def test_watering_click_plays_pour_sound_only_when_watering(plant, fake_sound):
+    plant.select_plant("wiesenblume")
+    plant.ps["water"] = 40
+    plant.water_click(QPointF(100, 150))
+    assert fake_sound.effects["giessen"].plays == 1
+    fake_sound.last.clear()
+    plant.ps["water"] = 100                       # voll: nur Wachstum, kein Giessen, kein Ton
+    plant.water_click(QPointF(100, 150))
+    assert fake_sound.effects["giessen"].plays == 1
+    fake_sound.last.clear()
+    plant.ps["water"] = 30
+    plant.set_volume(0)                           # stumm
+    plant.water_click(QPointF(100, 150))
+    assert fake_sound.effects["giessen"].plays == 1
+
+
+def test_fast_clicking_is_rate_limited(fake_sound):
+    assert fake_sound.play("giessen") is True
+    assert fake_sound.play("giessen") is False     # sofort danach: kein Rattern
+    assert fake_sound.effects["giessen"].plays == 1
+    fake_sound.last["giessen"] -= 1.0
+    assert fake_sound.play("giessen") is True
+
+
+def test_gong_at_end_of_focus_but_not_on_abort(plant, fake_sound):
+    plant.start_focus(25)
+    plant.abort_focus()
+    assert fake_sound.effects["gong"].plays == 0
+    plant.start_focus(25)
+    plant.focus["end"] = 0.0
+    plant.run_focus()
+    assert fake_sound.effects["gong"].plays == 1
+    # auch ohne Fokusmodus
+    plant.state["focus_mode"] = False
+    fake_sound.last.clear()
+    plant.start_focus(25)
+    plant.focus["end"] = 0.0
+    plant.run_focus()
+    assert fake_sound.effects["gong"].plays == 2
+
+
+def test_volume_slider_in_settings_menu(plant, fake_sound):
+    from PyQt6.QtWidgets import QLabel, QMenu, QPushButton, QSlider
+    menu = QMenu()  # Referenz halten, sonst wird der Regler mit freigegeben
+    box = plant.volume_slider_action(menu).defaultWidget()
+    slider = box.findChild(QSlider)
+    label = box.findChild(QLabel)
+    assert (slider.minimum(), slider.maximum(), slider.value()) == (0, 100, 60)
+    assert label.text() == "Lautstärke: 60 %"
+    slider.setValue(20)
+    assert plant.state["volume"] == 20 and plant.sound.volume == 20 and label.text() == "Lautstärke: 20 %"
+    slider.sliderReleased.emit()                   # Probeton beim Loslassen
+    assert fake_sound.effects["giessen"].plays == 1
+    box.findChild(QPushButton).click()
+    assert plant.state["volume"] == 60
+    slider.setValue(0)
+    assert plant.state["volume"] == 0 and label.text() == "Lautstärke: 0 %"
+
+
+def test_size_sliders_still_work_after_refactoring(plant, scale_reset):
+    from PyQt6.QtWidgets import QMenu, QSlider
+    menu = QMenu()
+    box = plant.scale_slider_action(menu, "menu", "Menügrösse").defaultWidget()
+    slider = box.findChild(QSlider)
+    assert (slider.minimum(), slider.maximum(), slider.value()) == (50, 200, 100)
+    slider.setValue(150)
+    assert scale_reset.get_scale("menu") == 1.5
+
+
+def test_without_audio_the_game_stays_silent_and_works(tmp_path, monkeypatch):
+    from topfpflanze import sound
+    monkeypatch.setattr(sound, "ensure_files", lambda: (_ for _ in ()).throw(OSError("kein Audio")))
+    player = sound.SoundPlayer(60)
+    assert not player.available and "OSError" in player.error
+    assert player.play("giessen") is False and player.play("gong") is False
+    player.set_volume(10)            # darf nichts auslösen

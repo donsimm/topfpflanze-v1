@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMenu, QMessageB
 from PyQt6.QtCore import QPointF, QTimer, Qt
 from PyQt6.QtGui import QActionGroup, QColor
 
-from . import config, debug, pots, scaling, tooltip
+from . import config, debug, pots, scaling, sound, tooltip
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
@@ -35,6 +35,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.state = self.load_state()
         scaling.set_scale(self.state.get("ui_scale", 1.0), "plant")
         scaling.set_scale(self.state.get("menu_scale", 1.0), "menu")
+        self.sound = sound.SoundPlayer(self.state.get("volume", sound.DEFAULT_VOLUME))
         _THEME["dark"] = self.state.get("dark", False)
 
         self.t = 0.0
@@ -108,7 +109,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": {},
-                "focus_mode": True}
+                "focus_mode": True, "volume": sound.DEFAULT_VOLUME}
 
     def load_state(self):
         state = self.default_state()
@@ -571,6 +572,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.focus_msg = (f"geschafft! +{reward} Gold", True, time.monotonic() + 120)
             self.popup(f"+{reward} Fokus geschafft")
             self.exit_focus_mode()
+            self.sound.play("gong")
             self.save_state()
 
     # ---------- Besucher ----------
@@ -860,6 +862,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                                           tp.y() + random.uniform(-8, 24), 1.0])
         else:
             s["water"] = min(WATER_MAX, s["water"] + k.water_per_click)
+            self.sound.play("giessen")
             y0 = min(pos.y(), self.pot["soil_y"] - 30)
             for _ in range(3):
                 self.drops.append([pos.x() + random.uniform(-8, 8),
@@ -912,40 +915,62 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     # ---------- Menü ----------
 
-    def scale_slider_action(self, parent, kind="plant", title="Pflanzengrösse"):
-        """Regler (50 bis 200 %) für das Einstellungsmenü; kind: «plant» oder «menu»."""
+    @staticmethod
+    def slider_action(parent, title, vmin, vmax, value, on_change, reset_value, reset_label, snap=1,
+                      on_release=None):
+        """Regler mit Beschriftung «Titel: Wert %» und Zurücksetzen-Knopf für das Einstellungsmenü."""
         box = QWidget()
         lay = QHBoxLayout(box)
         lay.setContentsMargins(12, 4, 12, 4)
         label = QLabel()
         label.setMinimumWidth(132)
         slider = QSlider(Qt.Orientation.Horizontal)
-        slider.setRange(int(scaling.SCALE_MIN * 100), int(scaling.SCALE_MAX * 100))
-        slider.setSingleStep(5)
-        slider.setPageStep(10)
+        slider.setRange(vmin, vmax)
+        slider.setSingleStep(snap)
+        slider.setPageStep(max(snap, 10))
         slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         slider.setTickInterval(25)
         slider.setMinimumWidth(150)
-        reset = QPushButton("100 %")
+        reset = QPushButton(reset_label)
         reset.setFlat(True)
 
         def show(v):
             label.setText(f"{title}: {v} %")
 
         def change(v):
-            v = int(round(v / 5.0)) * 5
+            v = int(round(v / float(snap))) * snap
             show(v)
-            self.set_ui_scale(v / 100.0, kind)
+            on_change(v)
 
-        slider.setValue(int(round(scaling.get_scale(kind) * 100)))
+        slider.setValue(value)
         show(slider.value())
         slider.valueChanged.connect(change)
-        reset.clicked.connect(lambda: slider.setValue(100))
+        if on_release:
+            slider.sliderReleased.connect(on_release)
+        reset.clicked.connect(lambda: slider.setValue(reset_value))
         for wdg in (label, slider, reset):
             lay.addWidget(wdg)
         act = QWidgetAction(parent)
         act.setDefaultWidget(box)
         return act
+
+    def scale_slider_action(self, parent, kind="plant", title="Pflanzengrösse"):
+        """Regler (50 bis 200 %) für das Einstellungsmenü; kind: «plant» oder «menu»."""
+        return self.slider_action(parent, title, int(scaling.SCALE_MIN * 100), int(scaling.SCALE_MAX * 100),
+                                  int(round(scaling.get_scale(kind) * 100)),
+                                  lambda v: self.set_ui_scale(v / 100.0, kind), 100, "100 %", snap=5)
+
+    def set_volume(self, value):
+        """Gesamtlautstärke aller Töne (0–100) setzen und speichern."""
+        self.state["volume"] = max(0, min(100, int(value)))
+        self.sound.set_volume(self.state["volume"])
+        self.save_state()
+
+    def volume_slider_action(self, parent):
+        """Regler «Lautstärke» (0–100 %); beim Loslassen ertönt zur Probe der Giesssound."""
+        return self.slider_action(parent, "Lautstärke", 0, 100, self.state.get("volume", sound.DEFAULT_VOLUME),
+                                  self.set_volume, sound.DEFAULT_VOLUME, f"{sound.DEFAULT_VOLUME} %", snap=1,
+                                  on_release=lambda: self.sound.play("giessen"))
 
     def show_menu(self, global_pos):
         m = QMenu(self)
@@ -985,6 +1010,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             a_kb.setEnabled(False)
         set_menu.addAction(self.scale_slider_action(set_menu, "plant", "Pflanzengrösse"))
         set_menu.addAction(self.scale_slider_action(set_menu, "menu", "Menügrösse"))
+        set_menu.addAction(self.volume_slider_action(set_menu))
         a_dark = set_menu.addAction("Dunkelmodus")
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))

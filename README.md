@@ -11,7 +11,7 @@ pip install ".[linux-keys]"   # Linux: zusätzlich evdev (Wayland)
 topfpflanze              # oder: python -m topfpflanze
 ```
 
-Debian/Ubuntu: vorher `sudo apt install python3-venv python3-pip libxcb-cursor0`, dann in einer virtuellen Umgebung installieren (`python3 -m venv .venv && source .venv/bin/activate`). Ohne `libxcb-cursor0` startet Qt (ab 6.5) nicht.
+Debian/Ubuntu: vorher `sudo apt install python3-venv python3-pip libxcb-cursor0 libpulse0` (`libpulse0` für den Ton; ohne Audio bleibt das Spiel stumm), dann in einer virtuellen Umgebung installieren (`python3 -m venv .venv && source .venv/bin/activate`). Ohne `libxcb-cursor0` startet Qt (ab 6.5) nicht.
 
 Linux, ohne offenes Terminal (Programmmenü-Eintrag, optional Autostart beim Anmelden):
 
@@ -74,6 +74,7 @@ Beide Einstellungen werden gespeichert. Über 100 % wird ein Fenster nie grösse
 | `bubble.py`, `shop.py`, `garden.py`, `panels.py`, `info.py` | Sprechblase, Shop, Gartenhaus, Erfolge/Fokus/Sammelbuch, Info-Fenster (Werte aus `data.py`, Release Notes aus `changelog.py`) |
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
+| `sound.py` | Ton: Giesssound und Gong (selbst erzeugt), Lautstärke |
 | `sow.py`, `pots.py` | Dialog «Einlagern & neu aussäen», zufällige Topf-Varianten (Skins) |
 | `scaling.py` | Skalierung der Oberfläche (Basisklasse `ScaledWidget`) |
 | `helper_art.py` | Grafiken der Helfer (Anzeigen, Zwerg, Lampe) |
