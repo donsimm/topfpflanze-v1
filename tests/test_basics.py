@@ -1151,7 +1151,8 @@ def test_without_audio_the_game_stays_silent_and_works(tmp_path, monkeypatch):
     from topfpflanze import sound
     monkeypatch.setattr(sound, "ensure_files", lambda: (_ for _ in ()).throw(OSError("kein Audio")))
     player = sound.SoundPlayer(60)
-    assert not player.available and "OSError" in player.error
+    # Ohne Audio stumm: je nach System scheitert schon der Import (fehlende Bibliothek) oder das Schreiben der Dateien
+    assert not player.available and player.error
     assert player.play("giessen") is False and player.play("gong") is False
     player.set_volume(10)            # darf nichts auslösen
 
