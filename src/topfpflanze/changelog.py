@@ -15,6 +15,7 @@ CHANGELOG = [
         "Info-Fenster mit Reiter «Version» und Release Notes.",
         "Goldene Aura hinter der Pflanze, sobald sie für das Prestige bereit ist (blüht).",
         "Eigener Dialog «Einlagern & neu aussäen» statt Systemfenster: Topf wählen (Originaltopf gratis, ein günstiges und ein edles Design aus dem Sortiment der Pflanze) und bestätigen. 32 Topf-Designs, Bonsai mit weisser Keramik und Gold.",
+        "Fokusmodus (Schalter im Fokus-Timer): Beim Start verschwinden alle Menüfenster, nur Pflanze und die Zeit mit rundem Fortschrittsring bleiben sichtbar; danach kommen die Fenster zurück.",
         "Sprechblase: Stadium in Gold mit Aussaat-Symbol, sobald die Pflanze für das Prestige bereit ist; ein Klick lagert sie ein und sät neu aus.",
     ]),
     ("0.1.0", "29.09.2026", [

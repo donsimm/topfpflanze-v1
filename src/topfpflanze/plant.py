@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMenu, QMessageB
 from PyQt6.QtCore import QPointF, QTimer, Qt
 from PyQt6.QtGui import QActionGroup, QColor
 
-from . import config, debug, pots, scaling
+from . import config, debug, pots, scaling, tooltip
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_NAMES, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_MULT, FOCUS_PRESETS, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
@@ -107,7 +107,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "garden": [], "garden_pos": None, "dark": False,
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
-                "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": {}}
+                "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": {},
+                "focus_mode": True}
 
     def load_state(self):
         state = self.default_state()
@@ -153,7 +154,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.state["garden_pos"] = [self.garden.x(), self.garden.y()]
         if hasattr(self, "windows"):
             for win in (self.ach_win, self.focus_win, self.book_win, self.info_win):
-                self.state[win.pos_key] = [win.x(), win.y()]
+                self.state[win.pos_key] = list(win.saved_pos())
         try:
             config.STATE_DIR.mkdir(parents=True, exist_ok=True)
             tmp = config.STATE_FILE.with_suffix(".tmp")
@@ -500,15 +501,47 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     # ---------- Fokus-Timer ----------
 
+    focus_mode_active = False
+    _focus_restore = ()
+
     def start_focus(self, minutes):
         now = time.monotonic()
         self.focus = {"minutes": minutes, "start": now, "end": now + minutes * 60}
         self.focus_msg = ("", True, 0.0)
         self.popup(f"Fokus: {minutes} min", coin=False)
+        self.enter_focus_mode()
 
     def abort_focus(self):
         self.focus = None
         self.focus_msg = ("abgebrochen, kein Bonus", False, time.monotonic() + 30)
+        self.exit_focus_mode()
+
+    def enter_focus_mode(self):
+        """Fokusmodus (Einstellung im Fokus-Fenster): alle Menüfenster schliessen, nur Pflanze und die Zeit bleiben.
+        Gemerkt wird, welche Fenster offen waren, damit sie danach zurückkommen."""
+        if self.focus_mode_active or not self.state.get("focus_mode", True):
+            return
+        others = [w for w in (self.bubble, *self.windows.values()) if w is not self.focus_win]
+        self._focus_restore = [w for w in others if w.isVisible()]
+        self._focus_win_was_visible = self.focus_win.isVisible()
+        for w in self._focus_restore:
+            w.hide()
+        tooltip.hide_tip()
+        self.focus_mode_active = True
+        self.focus_win.set_compact(True)
+
+    def exit_focus_mode(self):
+        """Fokusmodus beenden: die Fenster, die vorher sichtbar waren, erscheinen wieder an ihrem Platz."""
+        if not self.focus_mode_active:
+            return
+        self.focus_mode_active = False
+        self.focus_win.set_compact(False)
+        if not self._focus_win_was_visible:
+            self.focus_win.hide()
+        for w in self._focus_restore:
+            w.show()
+        self._focus_restore = ()
+        self.bubble.update()
 
     def focus_remaining(self):
         rem = max(0.0, self.focus["end"] - time.monotonic())
@@ -537,6 +570,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.state["coins"] = self.state.get("coins", 0) + reward
             self.focus_msg = (f"geschafft! +{reward} Gold", True, time.monotonic() + 120)
             self.popup(f"+{reward} Fokus geschafft")
+            self.exit_focus_mode()
             self.save_state()
 
     # ---------- Besucher ----------
@@ -959,6 +993,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         a_top.setChecked(self.state.get("on_top", True))
         m.addSeparator()
         debug.build_menu(self, m)
+        a_focus = m.addAction("Fokus abbrechen") if self.focus else None
         a_status = m.addAction("Status anzeigen")
         a_reset = m.addAction(f"«{self.kind.name}» einlagern & neu aussäen …")
         m.addSeparator()
@@ -971,6 +1006,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.select_plant(chosen.data())
         elif chosen in win_actions:
             self.toggle_window(win_actions[chosen])
+        elif a_focus is not None and chosen is a_focus:
+            self.abort_focus()
         elif chosen is a_status:
             self.show_status()
         elif chosen is a_bubble:
@@ -984,7 +1021,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.apply_flags()
             self.show()
             self.bubble.apply_flags()
-            self.bubble.setVisible(self.state.get("bubble", True))
+            self.bubble.setVisible(self.state.get("bubble", True) and not self.focus_mode_active)
             for win in self.windows.values():
                 visible = win.isVisible()
                 win.apply_flags()

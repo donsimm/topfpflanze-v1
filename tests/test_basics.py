@@ -830,3 +830,125 @@ def test_garden_snapshot_shows_archived_pot(plant):
     plain = plant.snapshot(entry, scale=1)
     entry["pot_skin"] = "terrakotta/kintsugi-schwarz"
     assert plain != plant.snapshot(entry, scale=1)
+
+
+# ---------------------------------------------------------------- Fokusmodus
+
+def _open_all_menu_windows(plant):
+    plant.bubble.show()
+    wins = [plant.shop, plant.garden, plant.ach_win, plant.book_win, plant.info_win, plant.focus_win]
+    for w in wins:
+        w.show()
+    return [plant.bubble, *wins]
+
+
+def test_focus_mode_default_on_and_persisted(plant):
+    assert plant.state["focus_mode"] is True
+    plant.focus_win.on_click("mode")
+    assert plant.state["focus_mode"] is False
+    plant.save_state()
+    import json
+    assert json.load(open(config.STATE_FILE, encoding="utf-8"))["focus_mode"] is False
+
+
+def test_focus_start_hides_menus_and_shrinks_timer_then_restores_them(plant):
+    shown = _open_all_menu_windows(plant)
+    plant.shop.hide()                      # war vorher zu: darf danach nicht erscheinen
+    plant.garden.hide()
+    before = {id(w): (w.x(), w.y()) for w in shown}
+    plant.start_focus(25)
+    assert plant.focus_mode_active
+    for w in (plant.bubble, plant.ach_win, plant.book_win, plant.info_win):
+        assert not w.isVisible()
+    assert plant.isVisible()                              # die Pflanze bleibt
+    assert plant.focus_win.isVisible() and plant.focus_win.compact
+    assert plant.focus_win.real_width() == plant.focus_win.COMPACT
+    # Ende: die vorher sichtbaren Fenster kommen zurück, die vorher geschlossenen bleiben zu
+    plant.focus["end"] = 0.0
+    plant.run_focus()
+    assert not plant.focus_mode_active and plant.focus is None
+    for w in (plant.bubble, plant.ach_win, plant.book_win, plant.info_win, plant.focus_win):
+        assert w.isVisible()
+    assert not plant.shop.isVisible() and not plant.garden.isVisible()
+    assert not plant.focus_win.compact and plant.focus_win.real_width() == plant.focus_win.W
+    for w in (plant.bubble, plant.ach_win, plant.book_win, plant.info_win, plant.focus_win):
+        assert (w.x(), w.y()) == before[id(w)]  # nichts hat sich verschoben
+
+
+def test_focus_abort_restores_windows_too(plant):
+    plant.bubble.show()
+    plant.info_win.show()
+    plant.focus_win.show()
+    plant.start_focus(25)
+    assert not plant.bubble.isVisible() and not plant.info_win.isVisible()
+    plant.abort_focus()
+    assert plant.bubble.isVisible() and plant.info_win.isVisible() and plant.focus_win.isVisible()
+    assert not plant.focus_win.compact and plant.focus is None
+
+
+def test_focus_started_without_open_timer_window_hides_it_again_afterwards(plant):
+    plant.bubble.show()
+    plant.focus_win.hide()
+    plant.start_focus(25)
+    assert plant.focus_win.isVisible() and plant.focus_win.compact   # die Zeit muss sichtbar sein
+    plant.abort_focus()
+    assert not plant.focus_win.isVisible() and plant.bubble.isVisible()
+
+
+def test_focus_mode_off_leaves_windows_alone(plant):
+    plant.state["focus_mode"] = False
+    shown = _open_all_menu_windows(plant)
+    plant.start_focus(25)
+    assert not plant.focus_mode_active
+    assert all(w.isVisible() for w in shown) and not plant.focus_win.compact
+    plant.abort_focus()
+    assert all(w.isVisible() for w in shown)
+
+
+def test_focus_mode_switch_is_locked_while_running(plant):
+    plant.focus_win.show()
+    items = {k: c for k, _r, c in plant.focus_win.items()}
+    assert items["mode"] and items["start"]
+    plant.start_focus(25)
+    assert plant.focus_win.items() == []             # kompakt: nichts anklickbar
+    plant.abort_focus()
+    plant.state["focus_mode"] = False
+    plant.start_focus(25)                            # ohne Fokusmodus läuft das normale Fenster weiter
+    items = {k: c for k, _r, c in plant.focus_win.items()}
+    assert not items["mode"] and not items["p25"]
+    plant.abort_focus()
+
+
+def test_compact_timer_window_is_transparent_with_ring_and_time(plant):
+    plant.focus_win.show()
+    plant.start_focus(25)
+    win = plant.focus_win
+    img = win.grab().toImage()
+    assert img.pixelColor(2, 2).alpha() == 0          # Ecken durchsichtig: kein Fensterhintergrund
+    assert img.pixelColor(img.width() - 3, img.height() - 3).alpha() == 0
+    cx = img.width() // 2
+    ring = [img.pixelColor(cx, y).alpha() for y in range(0, img.height() // 2)]
+    assert max(ring) > 100                            # oben am Ring ist etwas zu sehen
+    plant.abort_focus()
+
+
+def test_compact_window_saved_position_is_the_normal_windows(plant):
+    win = plant.focus_win
+    win.move(300, 200)
+    win.show()
+    normal = (win.x(), win.y())
+    plant.start_focus(25)
+    assert win.compact and win.saved_pos() == normal   # Mitte bleibt gleich: gleiche Top-left wie vorher
+    assert (win.x(), win.y()) != normal
+    plant.abort_focus()
+    assert (win.x(), win.y()) == normal
+
+
+def test_focus_tooltip_and_right_click_menu_entry(plant):
+    from topfpflanze import tooltip
+    plant.focus_win.show()
+    plant.start_focus(25)
+    assert "Fokus läuft" in plant.focus_win.tooltip_at(QPointF(50, 50))
+    plant.abort_focus()
+    assert "Fokusmodus" in plant.focus_win.tooltip_at(plant.focus_win.mode_rect().center())
+    tooltip.hide_tip()

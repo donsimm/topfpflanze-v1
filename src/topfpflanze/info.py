@@ -84,6 +84,9 @@ def blocks(tab, plant=None):
             ("h", "Fokus-Timer"),
             ("p", f"{' / '.join(str(m) for m in FOCUS_PRESETS)} min mit ×{G(FOCUS_MULT)} Wachstum. "
                   "Belohnung: Minuten ÷ 5 Gold. Abbruch kostet nur den Bonus."),
+            ("p", "Fokusmodus (Schalter im Fokus-Fenster, Standard an): Beim Start schliessen sich alle anderen "
+                  "Fenster, nur die Pflanze und die Zeit mit Ring bleiben. Nach Ablauf oder Abbruch (Rechtsklick → "
+                  "«Fokus abbrechen») kommen die vorher offenen Fenster zurück."),
             ("h", "Erfolge"),
             ("p", "3 täglich, 3 wöchentlich, 6 einmalig. Belohnung einzeln oder gesammelt abholen; "
                   "Nicht Abgeholtes bleibt in der Liste."),

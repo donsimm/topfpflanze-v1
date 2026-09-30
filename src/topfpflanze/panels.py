@@ -2,7 +2,7 @@
 
 import math
 import time
-from PyQt6.QtGui import QColor, QFont, QPainter, QPen
+from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .data import MASTERY_NAMES, MASTERY_STEPS, MASTERY_TOP_BONUS, VARIANTS, ACHIEVEMENTS, FOCUS_MULT, FOCUS_PRESETS, VISITORS, VISITOR_ORDER, VISIT_GREET_COINS
@@ -52,6 +52,10 @@ class Panel(ScaledWidget):
         else:
             b = self.plant.bubble
             self.move(max(0, b.x() - self.real_width() - 10), max(0, b.y()))
+
+    def saved_pos(self):
+        """Position, die im Spielstand gespeichert wird."""
+        return self.x(), self.y()
 
     def close_rect(self):
         return QRectF(self.width() - 28, 8, 18, 18)
@@ -371,8 +375,101 @@ class AchievementsWin(Panel):
 
 
 class FocusWin(Panel):
+    W, H = 240, 290
+    COMPACT = 150   # Kantenlänge im Fokusmodus: nur Zeit und Ring, durchsichtig
+
     def __init__(self, plant):
-        super().__init__(plant, 240, 262, "focus_pos")
+        super().__init__(plant, self.W, self.H, "focus_pos")
+        self.compact = False
+
+    # ---------- Fokusmodus: kleines, durchsichtiges Fenster ----------
+
+    def _center(self):
+        return self.x() + self.real_width() / 2, self.y() + self.real_height() / 2
+
+    def set_compact(self, on):
+        """Wechselt zwischen normalem Fenster und Fokusmodus-Ansicht; das Fenster bleibt um seine Mitte."""
+        if on == self.compact:
+            return
+        cx, cy = self._center()
+        self.compact = on
+        if on:
+            self.setFixedSize(self.COMPACT, self.COMPACT)
+        else:
+            self.setFixedSize(self.W, self.H)
+        self.move(int(round(cx - self.real_width() / 2)), int(round(cy - self.real_height() / 2)))
+        if on:
+            self.show()
+            self.raise_()
+        self.update()
+
+    def saved_pos(self):
+        """Im Fokusmodus die Position, die das normale Fenster hätte (Mitte bleibt gleich)."""
+        if not self.compact:
+            return super().saved_pos()
+        cx, cy = self._center()
+        return int(round(cx - self.W * self._k / 2)), int(round(cy - self.H * self._k / 2))
+
+    def mousePressEvent(self, e):
+        if not self.compact:
+            return super().mousePressEvent(e)
+        if e.button() == Qt.MouseButton.LeftButton:
+            handle = self.windowHandle()
+            if handle:
+                handle.startSystemMove()
+        elif e.button() == Qt.MouseButton.RightButton:
+            self.plant.show_menu(e.globalPosition().toPoint())
+
+    def tooltip_at(self, pos):
+        if self.compact:
+            rem, _ = self.plant.focus_remaining()
+            m, sec = divmod(int(math.ceil(rem)), 60)
+            return f"Fokus läuft: noch {m:02d}:{sec:02d}\nRechtsklick: Menü, Fokus abbrechen"
+        if self.mode_rect().contains(pos):
+            return ("Fokusmodus\nBeim Start werden alle anderen Fenster ausgeblendet, nur Pflanze und Zeit bleiben. "
+                    "Nach dem Ablauf kommen sie zurück.")
+        return super().tooltip_at(pos)
+
+    def paint_compact(self):
+        """Nur Zeit und runder Fortschrittsring, ohne Fensterhintergrund (auf jedem Desktop lesbar)."""
+        plant = self.plant
+        p = self.new_painter()
+        c = QPointF(self.width() / 2, self.height() / 2)
+        R = 52
+        running = plant.focus is not None
+        rem, total = plant.focus_remaining() if running else (0.0, 1.0)
+        frac = 1 - rem / total
+        halo = T("panel")
+        halo.setAlpha(175)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(halo, 12))
+        p.drawEllipse(c, R, R)
+        track = T("text2")
+        track.setAlpha(110)
+        p.setPen(QPen(track, 7))
+        p.drawEllipse(c, R, R)
+        if frac > 0:
+            pen = QPen(QColor("#2E9E44"), 7)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen)
+            p.drawArc(QRectF(c.x() - R, c.y() - R, 2 * R, 2 * R), 90 * 16, -int(360 * 16 * frac))
+        m, sec = divmod(int(math.ceil(rem)), 60)
+        font = self.font_px(self.font(), 28, True)
+        text = f"{m:02d}:{sec:02d}"
+        fm = QFontMetricsF(font)
+        path = QPainterPath()
+        path.addText(c.x() - fm.horizontalAdvance(text) / 2, c.y() + fm.ascent() / 2 - 2, font, text)
+        outline = T("panel")
+        outline.setAlpha(230)
+        p.setPen(QPen(outline, 4.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawPath(path)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(T("text"))
+        p.drawPath(path)
+        p.end()
+
+    # ---------- Normales Fenster ----------
 
     def preset_rects(self):
         w = (self.width() - 24 - 12) / 3
@@ -381,9 +478,15 @@ class FocusWin(Panel):
     def button_rect(self):
         return QRectF(40, 206, self.width() - 80, 30)
 
+    def mode_rect(self):
+        return QRectF(12, 244, self.width() - 24, 22)
+
     def items(self):
+        if self.compact:
+            return []
         running = self.plant.focus is not None
-        return [(k, r, not running) for k, r in self.preset_rects()] + [("start", self.button_rect(), True)]
+        return ([(k, r, not running) for k, r in self.preset_rects()] + [("start", self.button_rect(), True),
+                                                                          ("mode", self.mode_rect(), not running)])
 
     def on_click(self, key):
         if key == "start":
@@ -391,10 +494,16 @@ class FocusWin(Panel):
                 self.plant.abort_focus()
             else:
                 self.plant.start_focus(self.plant.state.get("focus_minutes", FOCUS_PRESETS[0]))
+        elif key == "mode":
+            self.plant.state["focus_mode"] = not self.plant.state.get("focus_mode", True)
+            self.plant.save_state()
         elif key.startswith("p") and not self.plant.focus:
             self.plant.state["focus_minutes"] = int(key[1:])
 
     def paintEvent(self, _e):
+        if self.compact:
+            self.paint_compact()
+            return
         plant = self.plant
         p = self.begin("Fokus-Timer", f"Wachstum ×{FOCUS_MULT:g} während der Sitzung")
         base = self.font()
@@ -450,6 +559,26 @@ class FocusWin(Panel):
         p.setFont(self.font_px(base, 12, True))
         p.setPen(T("bad") if running else T("button_text"))
         p.drawText(br, Qt.AlignmentFlag.AlignCenter, "Abbrechen" if running else "Fokus starten")
+
+        # Schalter «Fokusmodus»
+        mr = self.mode_rect()
+        on = plant.state.get("focus_mode", True)
+        p.setOpacity(1.0 if not running else 0.5)
+        p.setFont(self.font_px(base, 11, True))
+        p.setPen(T("text"))
+        p.drawText(QRectF(mr.left(), mr.top(), 120, mr.height()), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   "Fokusmodus")
+        sw = QRectF(mr.right() - 38, mr.center().y() - 9, 38, 18)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor("#2E9E44") if on else T("cell_border"))
+        p.drawRoundedRect(sw, 9, 9)
+        p.setBrush(QColor("#FFFFFF"))
+        p.drawEllipse(QPointF(sw.right() - 9 if on else sw.left() + 9, sw.center().y()), 7, 7)
+        p.setFont(self.font_px(base, 10, True))
+        p.setPen(T("ok") if on else T("muted"))
+        p.drawText(QRectF(sw.left() - 34, mr.top(), 30, mr.height()), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                   "an" if on else "aus")
+        p.setOpacity(1.0)
 
         d = plant.state.get("daily", {})
         p.setFont(self.font_px(base, 10))
