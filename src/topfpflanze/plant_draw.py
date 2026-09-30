@@ -265,7 +265,7 @@ class PlantDrawMixin:
     def draw_pot(self, p):
         """Topf der Pflanze: Original oder gewählter Skin (umgefärbt, zwischengespeichert)."""
         skin = self.ps.get("pot_skin")
-        if not skin:
+        if not pots.design(skin):
             getattr(self, "draw_pot_" + self.kind.pot)(p)
             return
         p.drawImage(0, 0, pots.pot_image(self, skin))

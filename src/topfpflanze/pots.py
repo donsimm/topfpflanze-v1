@@ -1,92 +1,338 @@
-"""Topf-Varianten («Skins») für neu ausgesäte Pflanzen: zufällig erzeugt, rein optisch.
+"""Topf-Designs für neu ausgesäte Pflanzen: fester Katalog, rein optisch.
 
-Ein Skin färbt den vorhandenen Topf der Pflanze um (die Schattierung bleibt erhalten) und legt optional ein
-Muster und Glanzpunkte darüber. So funktionieren alle fünf Topfformen, und jedes Angebot sieht anders aus.
+Ein Design färbt den vorhandenen Topf der Pflanze um (die Schattierung bleibt erhalten) und legt Muster darüber.
+Jede Pflanze hat ihre eigenen Designs; bei jeder Aussaat wird ein günstiges und ein edles Design angeboten.
+Bei Töpfen mit Untersetzer bleibt der Untersetzer ohne Muster.
 """
 
-import colorsys
 import math
 import random
 
 from PyQt6.QtCore import QPointF, QRectF, Qt
-from PyQt6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
+from PyQt6.QtGui import QBrush, QColor, QImage, QPainter, QPainterPath, QPen, QRadialGradient
 
 from .config import SCENE_H, WIN_W
 
-CHEAP_PRICE = (20, 50, 5)        # Gold: von, bis, Schrittweite
-PREMIUM_PRICE = (150, 300, 10)
+GOLD = "#D9B24A"
+CREAM = "#F6EFDD"
 
-PATTERN_NAMES = {"none": "", "stripes": "gestreift", "dots": "getupft", "zigzag": "Zickzack",
-                 "diag": "schräg gestreift", "rim": "mit Randband"}
-CHEAP_PATTERNS = ("none", "stripes", "dots", "zigzag", "diag", "rim")
-PREMIUM_PATTERNS = ("none", "stripes", "dots", "zigzag", "diag", "rim", "none")
+# Farbverläufe: (dunkel, mittel, hell); die Helligkeit des Original-Topfs bestimmt die Farbe
+RAMPS = {
+    "sand": ("#8C7A5E", "#D8C7A3", "#F1E6CF"), "salbei": ("#5E6F5A", "#A7B8A0", "#DCE6D5"),
+    "lehm": ("#8A5A4E", "#D1A090", "#F1D8CC"), "anthrazit": ("#14161A", "#383C42", "#6A7078"),
+    "elfenbein": ("#BDB6A4", "#ECE6D6", "#FFFDF5"), "stein": ("#6B6E70", "#B9BCBD", "#EDEEEE"),
+    "kalk": ("#B9B6AE", "#EDEAE3", "#FFFFFF"), "senf": ("#8A6A1E", "#D4AA45", "#F3DC9A"),
+    "nachtblau": ("#0F1A33", "#2E4470", "#7C93C4"), "blush": ("#9A6A70", "#E3B6B6", "#FBE6E3"),
+    "kupfer": ("#5A2A14", "#C8703F", "#FFD2B0"), "messing": ("#6E5A1E", "#C9A94A", "#F5E5A8"),
+    "gold": ("#6E4B0B", "#E6B422", "#FFF1B0"), "weiss": ("#B9BDC2", "#ECEEEF", "#FFFFFF"),
+    "waldgruen": ("#16301F", "#2F5A3A", "#7EAA88"), "terra": ("#9A5A3C", "#D89A73", "#F3CBB0"),
+    "creme": ("#B8A98C", "#E9DFC8", "#FAF5E8"), "schwarz": ("#050607", "#1D1F22", "#4A4E54"),
+}
 
-# Farbnamen nach Farbton (0..1)
-HUE_NAMES = ((0.00, "Rot"), (0.06, "Orange"), (0.13, "Sonnengelb"), (0.22, "Lindgrün"), (0.33, "Grün"),
-             (0.46, "Türkis"), (0.54, "Himmelblau"), (0.62, "Blau"), (0.72, "Violett"), (0.83, "Beere"),
-             (0.92, "Rosa"), (1.00, "Rot"))
+# Untersetzer beginnt bei dieser Höhe (Szenenkoordinaten): darunter wird nichts dekoriert
+DECOR_BOTTOM = {"terrakotta": 318.5, "beton": 318.5}
 
-# Edle Materialien: (Name, dunkel, mittel, hell)
-MATERIALS = (
-    ("Gold", "#6E4B0B", "#E6B422", "#FFF1B0"),
-    ("Silber", "#4A545E", "#BAC4CC", "#FFFFFF"),
-    ("Kupfer", "#5A2A14", "#C8703F", "#FFD2B0"),
-    ("Jade", "#0F4A3A", "#3DAE8A", "#C9FFE9"),
-    ("Amethyst", "#3A1A5C", "#8E5BD0", "#E8D4FF"),
-    ("Rosé", "#6B2E44", "#E38AA6", "#FFE3EC"),
-    ("Mitternacht", "#0A1030", "#2B4A9E", "#9CC4FF"),
-)
+TIER_CHEAP, TIER_PREMIUM = "cheap", "premium"
+
+
+# ---------------------------------------------------------------- Dekor-Bausteine (Koordinaten relativ zum Topf)
+
+def _c(hex_, alpha=255):
+    c = QColor(hex_)
+    c.setAlpha(alpha)
+    return c
+
+
+def _band(p, b, f0, f1, col):
+    p.fillRect(QRectF(b.left(), b.top() + b.height() * f0, b.width(), b.height() * (f1 - f0)), _c(col))
+
+
+def _lines(p, b, fs, w, col):
+    for f in fs:
+        p.fillRect(QRectF(b.left(), b.top() + b.height() * f, b.width(), w), _c(col))
+
+
+def _dip(p, b, f, col, wave=3.0):
+    y = b.top() + b.height() * f
+    path = QPainterPath(QPointF(b.left(), y))
+    x, up = b.left(), True
+    while x < b.right() + 8:
+        x += 10
+        path.lineTo(QPointF(x, y + (wave if up else -wave)))
+        up = not up
+    path.lineTo(QPointF(b.right() + 10, b.bottom() + 4))
+    path.lineTo(QPointF(b.left(), b.bottom() + 4))
+    path.closeSubpath()
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(_c(col))
+    p.drawPath(path)
+
+
+def _dots(p, b, r, dx, dy, f0, f1, col):
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(_c(col))
+    y, row = b.top() + b.height() * f0, 0
+    while y < b.top() + b.height() * f1:
+        x = b.left() + dx / 2 + (dx / 2 if row % 2 else 0)
+        while x < b.right():
+            p.drawEllipse(QPointF(x, y), r, r)
+            x += dx
+        y += dy
+        row += 1
+
+
+def _chevron(p, b, amp, step, f, w, col):
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    pen = QPen(_c(col), w)
+    pen.setJoinStyle(Qt.PenJoinStyle.MiterJoin)
+    p.setPen(pen)
+    y = b.top() + b.height() * f
+    path = QPainterPath(QPointF(b.left(), y))
+    x, up = b.left(), True
+    while x < b.right() + step:
+        x += step
+        path.lineTo(QPointF(x, y + (-amp if up else amp)))
+        up = not up
+    p.drawPath(path)
+
+
+def _diamonds(p, b, s, f0, f1, col, w=2.0):
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    p.setPen(QPen(_c(col), w))
+    y, row = b.top() + b.height() * f0, 0
+    while y < b.top() + b.height() * f1:
+        x = b.left() + (s if row % 2 else 0)
+        while x < b.right() + s:
+            path = QPainterPath(QPointF(x, y - s / 2))
+            path.lineTo(x + s / 2, y)
+            path.lineTo(x, y + s / 2)
+            path.lineTo(x - s / 2, y)
+            path.closeSubpath()
+            p.drawPath(path)
+            x += 2 * s
+        y += s / 2
+        row += 1
+
+
+def _speckle(p, b, n, cols, rmin, rmax, seed=1):
+    rng = random.Random(seed)
+    p.setPen(Qt.PenStyle.NoPen)
+    for _ in range(n):
+        p.setBrush(_c(rng.choice(cols)))
+        r = rng.uniform(rmin, rmax)
+        p.drawEllipse(QPointF(b.left() + rng.random() * b.width(), b.top() + rng.random() * b.height()), r, r)
+
+
+def _terrazzo(p, b, n, cols, seed=2):
+    rng = random.Random(seed)
+    p.setPen(Qt.PenStyle.NoPen)
+    for _ in range(n):
+        p.setBrush(_c(rng.choice(cols)))
+        cx = b.left() + rng.random() * b.width()
+        cy = b.top() + b.height() * (0.2 + rng.random() * 0.75)
+        s = rng.uniform(3, 7)
+        path, a0 = QPainterPath(), rng.uniform(0, 6.28)
+        for k in range(rng.choice((3, 4, 5))):
+            a = a0 + k * 6.28 / 3.6 + rng.uniform(-0.4, 0.4)
+            q = QPointF(cx + math.cos(a) * s * rng.uniform(0.6, 1.1), cy + math.sin(a) * s * rng.uniform(0.6, 1.1))
+            path.moveTo(q) if k == 0 else path.lineTo(q)
+        path.closeSubpath()
+        p.drawPath(path)
+
+
+def _kintsugi(p, b, col, seed=3, w=1.8):
+    rng = random.Random(seed)
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    pen = QPen(_c(col), w)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    p.setPen(pen)
+    x, y = b.left() + b.width() * rng.uniform(0.3, 0.6), b.top() + b.height() * 0.12
+    path, pts = QPainterPath(QPointF(x, y)), [(x, y)]
+    while y < b.bottom() - 4:
+        x += rng.uniform(-9, 9)
+        y += rng.uniform(7, 13)
+        path.lineTo(QPointF(x, y))
+        pts.append((x, y))
+    p.drawPath(path)
+    for i in (2, 4):
+        if i < len(pts):
+            bx, by = pts[i]
+            br, d = QPainterPath(QPointF(bx, by)), rng.choice((-1, 1))
+            for _ in range(3):
+                bx += d * rng.uniform(5, 10)
+                by += rng.uniform(2, 8)
+                br.lineTo(QPointF(bx, by))
+            p.setPen(QPen(_c(col), w * 0.75, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+            p.drawPath(br)
+
+
+def _hammer(p, b, n, seed, light, dark):
+    rng = random.Random(seed)
+    p.setPen(Qt.PenStyle.NoPen)
+    for _ in range(n):
+        cx = b.left() + rng.random() * b.width()
+        cy = b.top() + b.height() * (0.12 + rng.random() * 0.85)
+        r = rng.uniform(4, 7)
+        g = QRadialGradient(QPointF(cx - r * 0.3, cy - r * 0.3), r * 1.3)
+        g.setColorAt(0, _c(light, 120))
+        g.setColorAt(0.6, _c(light, 20))
+        g.setColorAt(1, _c(dark, 60))
+        p.setBrush(QBrush(g))
+        p.drawEllipse(QPointF(cx, cy), r, r)
+
+
+def _brush(p, b, col, n=26, seed=5):
+    rng = random.Random(seed)
+    for _ in range(n):
+        y = b.top() + rng.random() * b.height()
+        p.fillRect(QRectF(b.left(), y, b.width(), rng.choice((0.8, 1.2))), _c(col, rng.choice((40, 70))))
+
+
+def _leaves(p, b, size, f0, f1, col, dx=None):
+    dx = dx or size * 2.4
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(_c(col))
+    row, y = 0, b.top() + b.height() * f0
+    while y < b.top() + b.height() * f1:
+        x = b.left() + dx / 2 + (dx / 2 if row % 2 else 0)
+        while x < b.right() + dx / 2:
+            for sgn in (-1, 1):
+                p.save()
+                p.translate(x, y)
+                p.rotate(sgn * 38 - 90)
+                p.drawEllipse(QRectF(0, -size * 0.34, size, size * 0.68))
+                p.restore()
+            p.setPen(QPen(_c(col), 1.3))
+            p.drawLine(QPointF(x, y + size * 0.25), QPointF(x, y - size * 0.75))
+            p.setPen(Qt.PenStyle.NoPen)
+            x += dx
+        y += size * 1.35
+        row += 1
+
+
+def _marble(p, b, col, seed=6):
+    rng = random.Random(seed)
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    for _ in range(4):
+        pen = QPen(_c(col, rng.choice((60, 90, 130))), rng.choice((1.0, 1.6, 2.4)))
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        p.setPen(pen)
+        x, y = b.left() + rng.random() * b.width(), b.top() + b.height() * 0.1
+        path = QPainterPath(QPointF(x, y))
+        while y < b.bottom():
+            nx, ny = x + rng.uniform(-14, 14), y + rng.uniform(10, 22)
+            path.quadTo(QPointF((x + nx) / 2 + rng.uniform(-8, 8), (y + ny) / 2), QPointF(nx, ny))
+            x, y = nx, ny
+        p.drawPath(path)
+
+
+OPS = {"band": _band, "lines": _lines, "dip": _dip, "dots": _dots, "chevron": _chevron, "diamonds": _diamonds,
+       "speckle": _speckle, "terrazzo": _terrazzo, "kintsugi": _kintsugi, "hammer": _hammer, "brush": _brush,
+       "leaves": _leaves, "marble": _marble}
+
+
+# ---------------------------------------------------------------- Katalog
+
+DESIGNS = {}   # id -> Design
+BY_POT = {}    # Topfform -> [ids]
+
+
+def _d(pot, id_, name, tier, price, ramp, *ops):
+    full = f"{pot}/{id_}"
+    DESIGNS[full] = {"id": full, "pot": pot, "name": name, "tier": tier, "price": price,
+                     "ramp": RAMPS[ramp], "ops": list(ops)}
+    BY_POT.setdefault(pot, []).append(full)
+
+
+# --- Wiesenblume (Terrakottatopf)
+_d("terrakotta", "sand-band", "Sand, breites Band", TIER_CHEAP, 30, "sand", ("band", .50, .66, CREAM))
+_d("terrakotta", "salbei-punkte", "Salbei, grosse Punkte", TIER_CHEAP, 30, "salbei",
+   ("dots", 5.5, 26, 22, .34, .88, CREAM))
+_d("terrakotta", "glasur-salbei", "Tauchglasur Salbei", TIER_CHEAP, 40, "creme", ("dip", .52, "#8FA58A", 3))
+_d("terrakotta", "gesprenkelt-creme", "Gesprenkelt Creme", TIER_CHEAP, 40, "creme",
+   ("speckle", 90, ("#8A6E4E", "#B59B76", "#6A523A"), .7, 1.6, 3))
+_d("terrakotta", "salbei-rauten", "Salbei, grosse Rauten", TIER_CHEAP, 45, "salbei",
+   ("diamonds", 12, .30, .95, CREAM, 2.2))
+_d("terrakotta", "anthrazit-goldlinien", "Anthrazit, Goldlinien", TIER_PREMIUM, 180, "anthrazit",
+   ("lines", (.46, .56, .66), 1.6, GOLD))
+_d("terrakotta", "elfenbein-goldrand", "Elfenbein, Goldrand", TIER_PREMIUM, 180, "elfenbein",
+   ("band", .0, .13, GOLD), ("lines", (.19,), 1.4, GOLD))
+_d("terrakotta", "kintsugi-schwarz", "Kintsugi Schwarz", TIER_PREMIUM, 260, "schwarz", ("kintsugi", GOLD))
+_d("terrakotta", "kintsugi-weiss", "Kintsugi Weiss", TIER_PREMIUM, 260, "elfenbein", ("kintsugi", "#C9A23A"))
+# --- Kaktus (Betontopf)
+_d("beton", "lehm-streifen", "Lehm, breite Streifen", TIER_CHEAP, 30, "lehm",
+   ("band", .42, .55, "#B77E6E"), ("band", .64, .77, "#B77E6E"))
+_d("beton", "sprenkel-sand", "Sprenkel Sand", TIER_CHEAP, 40, "sand",
+   ("speckle", 80, ("#5E4E36", "#8C7A5E", "#F1E6CF"), .7, 1.5, 4))
+_d("beton", "terrazzo-hell", "Terrazzo hell", TIER_CHEAP, 45, "kalk",
+   ("terrazzo", 40, ("#B9A98C", "#8FA58A", "#C7B7AE", "#6A6E74"), 2))
+_d("beton", "schwarz-kupferband", "Schwarz, Kupferband", TIER_PREMIUM, 180, "schwarz", ("band", .48, .60, "#C8703F"))
+_d("beton", "schwarz-goldrand", "Schwarz, Goldrand", TIER_PREMIUM, 200, "schwarz", ("band", .0, .12, GOLD))
+_d("beton", "waldgruen-goldlinien", "Waldgrün, Goldlinien", TIER_PREMIUM, 200, "waldgruen",
+   ("lines", (.44, .52), 1.6, GOLD))
+_d("beton", "marmor-weiss", "Marmor weiss", TIER_PREMIUM, 240, "kalk", ("marble", "#6A6E74"))
+_d("beton", "kintsugi-stein", "Kintsugi Stein", TIER_PREMIUM, 260, "stein", ("kintsugi", GOLD, 7))
+# --- Tulpe (Keramiktopf)
+_d("keramik", "creme-salbeiband", "Creme, Salbeiband", TIER_CHEAP, 30, "creme", ("band", .35, .55, "#A7B8A0"))
+_d("keramik", "glasur-rose", "Tauchglasur Rosé", TIER_CHEAP, 40, "weiss", ("dip", .50, "#E2B8B6", 3))
+_d("keramik", "sprenkel-weiss", "Sprenkel Weiss", TIER_CHEAP, 40, "weiss",
+   ("speckle", 70, ("#3E4A63", "#7C8AA8", "#A7AEB8"), .7, 1.5, 5))
+_d("keramik", "terrazzo-rose", "Terrazzo Rosé", TIER_CHEAP, 45, "blush",
+   ("terrazzo", 36, ("#FFF2EE", "#B9857F", "#8A5A54", "#F2D7D0"), 3))
+_d("keramik", "weiss-goldring", "Weiss, Goldring", TIER_PREMIUM, 180, "weiss",
+   ("band", .0, .10, GOLD), ("lines", (.15,), 1.3, GOLD))
+_d("keramik", "nachtblau-goldlinien", "Nachtblau, Goldlinien", TIER_PREMIUM, 200, "nachtblau",
+   ("lines", (.34, .42, .50), 1.6, GOLD))
+_d("keramik", "weiss-gold-zickzack", "Weiss, Gold-Zickzack", TIER_PREMIUM, 220, "weiss",
+   ("chevron", 7, 18, .50, 2.4, GOLD), ("chevron", 7, 18, .66, 2.4, GOLD))
+_d("keramik", "kintsugi-nachtblau", "Kintsugi Nachtblau", TIER_PREMIUM, 260, "nachtblau", ("kintsugi", GOLD, 9))
+# --- Sonnenblume (Zinkeimer)
+_d("zink", "sprenkel-grau", "Sprenkel Grau", TIER_CHEAP, 40, "stein",
+   ("speckle", 100, ("#3E4145", "#F2F2EF", "#7A7E82"), .8, 1.8, 6))
+_d("zink", "messing-gebuerstet", "Messing gebürstet", TIER_PREMIUM, 200, "messing", ("brush", "#FFFFFF", 30))
+_d("zink", "kupfer-gehaemmert", "Kupfer gehämmert", TIER_PREMIUM, 220, "kupfer",
+   ("hammer", 34, 4, "#FFFFFF", "#3A1408"))
+_d("zink", "gold-getaucht", "Gold getaucht", TIER_PREMIUM, 240, "anthrazit", ("dip", .62, "#D6AD3E", 3))
+_d("zink", "gold-gehaemmert", "Gold gehämmert", TIER_PREMIUM, 300, "gold", ("hammer", 34, 8, "#FFFFFF", "#5A3C08"))
+# --- Bonsai (Schale): nur zwei Töpfe
+_d("schale", "weisse-keramik", "Weisse Keramik", TIER_CHEAP, 40, "weiss", ("lines", (.12,), 1.2, "#C9CDD2"))
+_d("schale", "gold", "Gold", TIER_PREMIUM, 250, "gold", ("lines", (.12,), 1.2, "#8A6512"))
+
+
+def design(ref):
+    """Design zu einer Kennung (auch zu einem alten Spielstand-Eintrag als Wörterbuch); None = Originaltopf."""
+    if isinstance(ref, dict):
+        ref = ref.get("id")
+    return DESIGNS.get(ref)
+
+
+def designs_for(pot, tier=None):
+    return [DESIGNS[i] for i in BY_POT.get(pot, []) if tier is None or DESIGNS[i]["tier"] == tier]
+
+
+def price_range(tier):
+    prices = [d["price"] for d in DESIGNS.values() if d["tier"] == tier]
+    return min(prices), max(prices)
+
+
+def new_offer(pot, exclude=None, rng=None):
+    """Angebot für eine Neuaussaat in dieser Topfform: ein günstiges und ein edles Design (Kennungen).
+    Der gerade benutzte Topf («exclude») wird nach Möglichkeit nicht nochmals angeboten."""
+    rng = rng or random
+    offer = {}
+    for tier, key in ((TIER_CHEAP, "cheap"), (TIER_PREMIUM, "premium")):
+        pool = designs_for(pot, tier)
+        better = [d for d in pool if d["id"] != exclude] or pool
+        offer[key] = rng.choice(better)["id"] if better else None
+    return offer
+
+
+# ---------------------------------------------------------------- Zeichnen
 
 _CACHE = {}
 _CACHE_MAX = 40
 
-
-def _hex(rgb):
-    return "#%02X%02X%02X" % tuple(int(round(max(0.0, min(1.0, c)) * 255)) for c in rgb)
-
-
-def _hsv(h, s, v):
-    return _hex(colorsys.hsv_to_rgb(h % 1.0, max(0.0, min(1.0, s)), max(0.0, min(1.0, v))))
-
-
-def hue_name(h):
-    return min(HUE_NAMES, key=lambda hn: abs(hn[0] - h))[1]
-
-
-def _price(rng, spec):
-    lo, hi, step = spec
-    return rng.randrange(lo, hi + 1, step)
-
-
-def new_skin(tier, rng=None):
-    """Erzeugt einen zufälligen Skin: tier «cheap» (günstig, einfarbig/gemustert) oder «premium» (edles Material)."""
-    rng = rng or random
-    sid = "%s-%08x" % (tier[0], rng.getrandbits(32))
-    if tier == "premium":
-        material, dark, mid, light = rng.choice(MATERIALS)
-        pattern = rng.choice(PREMIUM_PATTERNS)
-        name = f"Reines {material}" if pattern == "none" else f"{material} {PATTERN_NAMES[pattern]}"
-        h = colorsys.rgb_to_hsv(*(int(mid[i:i + 2], 16) / 255 for i in (1, 3, 5)))[0]
-        accent = _hsv(h + 0.5, 0.35, 1.0) if rng.random() < 0.5 else "#FFFFFF"
-        return {"id": sid, "tier": "premium", "name": name, "ramp": [dark, mid, light], "pattern": pattern,
-                "accent": accent, "sparkle": True, "price": _price(rng, PREMIUM_PRICE)}
-    h = rng.random()
-    s = rng.uniform(0.45, 0.85)
-    v = rng.uniform(0.68, 0.95)
-    pattern = rng.choice(CHEAP_PATTERNS)
-    name = hue_name(h) + (f" {PATTERN_NAMES[pattern]}" if pattern != "none" else "")
-    ramp = [_hsv(h, s + 0.1, v * 0.58), _hsv(h, s, v), _hsv(h, s * 0.45, min(1.0, v + 0.18))]
-    accent = "#FFF6E0" if rng.random() < 0.45 else _hsv(h + 0.5, 0.45, 0.97)
-    return {"id": sid, "tier": "cheap", "name": name, "ramp": ramp, "pattern": pattern, "accent": accent,
-            "sparkle": False, "price": _price(rng, CHEAP_PRICE)}
-
-
-def new_offer(rng=None):
-    """Angebot für eine Neuaussaat: ein günstiger und ein teurer Topf."""
-    return {"cheap": new_skin("cheap", rng), "premium": new_skin("premium", rng)}
-
-
-# ---------------------------------------------------------------- Zeichnen
 
 def _base_image(plant):
     """Der unveränderte Topf der Pflanze (ohne dynamische Teile wie das Wasser im Untertopf)."""
@@ -112,7 +358,7 @@ def _mix(a, b, t):
     return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
 
 
-def _recolor(base, skin):
+def _recolor(base, ramp):
     """Farbverlauf-Abbildung: die Helligkeit des Original-Topfs bestimmt die Farbe (dunkel → mittel → hell).
     Gibt (Bild, Umriss des Topfs) zurück."""
     img = base.convertToFormat(QImage.Format.Format_ARGB32)
@@ -127,21 +373,15 @@ def _recolor(base, skin):
             i = row + x * 4
             if buf[i + 3] > 8:
                 lums.append(0.114 * buf[i] + 0.587 * buf[i + 1] + 0.299 * buf[i + 2])
-                if x < box[0]:
-                    box[0] = x
-                if y < box[1]:
-                    box[1] = y
-                if x > box[2]:
-                    box[2] = x
-                if y > box[3]:
-                    box[3] = y
+                box[0], box[1] = min(box[0], x), min(box[1], y)
+                box[2], box[3] = max(box[2], x), max(box[3], y)
     if not lums:
         return base, QRectF(0, 0, w, h)
     lums_sorted = sorted(lums)
     lo = lums_sorted[int(len(lums_sorted) * 0.03)]
     hi = lums_sorted[min(len(lums_sorted) - 1, int(len(lums_sorted) * 0.97))]
     span = max(1.0, hi - lo)
-    dark, mid, light = (_rgb(c) for c in skin["ramp"])
+    dark, mid, light = (_rgb(c) for c in ramp)
     for y in range(h):
         row = y * stride
         for x in range(w):
@@ -156,70 +396,17 @@ def _recolor(base, skin):
     return out, QRectF(box[0], box[1], box[2] - box[0] + 1, box[3] - box[1] + 1)
 
 
-def _star(p, c, r):
-    path = QPainterPath(QPointF(c.x(), c.y() - r))
-    for k in range(1, 8):
-        ang = math.radians(-90 + k * 45)
-        rr = r if k % 2 == 0 else r * 0.3
-        path.lineTo(QPointF(c.x() + math.cos(ang) * rr, c.y() + math.sin(ang) * rr))
-    path.closeSubpath()
-    p.drawPath(path)
-
-
-def _decorate(img, box, skin):
-    """Muster und Glanzpunkte, nur auf den Topf (SourceAtop) gezeichnet."""
+def _decorate(img, box, d):
+    """Muster, nur auf den Topf (SourceAtop) und nicht auf den Untersetzer gezeichnet."""
     out = img.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
     p = QPainter(out)
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
     p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
-    accent = QColor(skin["accent"])
-    accent.setAlpha(225)
-    x0, y0, bw, bh = box.left(), box.top(), box.width(), box.height()
-    x1 = x0 + bw
-    pat = skin.get("pattern", "none")
-    pen = QPen(accent, 3.0)
-    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-    p.setPen(Qt.PenStyle.NoPen)
-    p.setBrush(accent)
-    if pat == "stripes":
-        for f, th in ((0.46, 4.0), (0.58, 2.2), (0.68, 4.0)):
-            p.drawRect(QRectF(x0, y0 + bh * f, bw, th))
-    elif pat == "rim":
-        p.drawRect(QRectF(x0, y0 + bh * 0.02, bw, bh * 0.14))
-    elif pat == "dots":
-        row = 0
-        yy = y0 + bh * 0.34
-        while yy < y0 + bh * 0.82:
-            xx = x0 + 9 + (7 if row % 2 else 0)
-            while xx < x1 - 6:
-                p.drawEllipse(QPointF(xx, yy), 2.3, 2.3)
-                xx += 14
-            yy += 12
-            row += 1
-    elif pat == "zigzag":
-        p.setPen(pen)
-        p.setBrush(Qt.BrushStyle.NoBrush)
-        for base in (0.52, 0.66):
-            path = QPainterPath(QPointF(x0, y0 + bh * base))
-            xx, up = x0, True
-            while xx < x1:
-                xx += 8
-                path.lineTo(QPointF(xx, y0 + bh * base + (-5 if up else 5)))
-                up = not up
-            p.drawPath(path)
-    elif pat == "diag":
-        p.setPen(QPen(accent, 3.2))
-        xx = x0 - bh
-        while xx < x1:
-            p.drawLine(QPointF(xx, y0 + bh * 0.24), QPointF(xx + bh * 0.8, y0 + bh))
-            xx += 13
-    if skin.get("sparkle"):
-        rng = random.Random(skin["id"])
-        p.setPen(Qt.PenStyle.NoPen)
-        for _ in range(6):
-            c = QPointF(x0 + rng.uniform(0.12, 0.88) * bw, y0 + rng.uniform(0.2, 0.9) * bh)
-            p.setBrush(QColor(255, 255, 255, 235))
-            _star(p, c, rng.uniform(2.6, 4.4))
+    limit = DECOR_BOTTOM.get(d["pot"])
+    if limit:
+        p.setClipRect(QRectF(0, 0, out.width(), limit))
+    for name, *args in d["ops"]:
+        OPS[name](p, box, *args)
     p.end()
     return out
 
@@ -232,21 +419,23 @@ def _remember(key, value):
 
 
 def pot_image(plant, skin=None):
-    """Bild des Topfs (Szenengrösse WIN_W × SCENE_H) mit Skin oder im Original; zwischengespeichert."""
-    key = (plant.kind.pot, skin["id"] if skin else None)
+    """Bild des Topfs (Szenengrösse WIN_W × SCENE_H) mit Design (Kennung) oder im Original; zwischengespeichert."""
+    d = design(skin)
+    key = (plant.kind.pot, d["id"] if d else None)
     if key in _CACHE:
         return _CACHE[key][0]
     base = _base_image(plant)
-    if not skin:
+    if not d:
         return _remember(key, (base, _bbox(base)))[0]
-    recolored, box = _recolor(base, skin)
-    return _remember(key, (_decorate(recolored, box, skin), box))[0]
+    recolored, box = _recolor(base, d["ramp"])
+    return _remember(key, (_decorate(recolored, box, d), box))[0]
 
 
 def pot_box(plant, skin=None):
     """Umriss des Topfs im Bild (für Vorschauen)."""
     pot_image(plant, skin)
-    return _CACHE[(plant.kind.pot, skin["id"] if skin else None)][1]
+    d = design(skin)
+    return _CACHE[(plant.kind.pot, d["id"] if d else None)][1]
 
 
 def _bbox(img):

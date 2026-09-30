@@ -94,7 +94,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         state = {"growth": 0.0, "water": 50.0, "clicks_total": 0, "keys_total": 0,
                  "seed": random.randrange(1 << 30), "created": now, "last_update": now,
                  "stage_rewarded": 0, "milestone_rewarded": 0, "fert": None, "bloomed_at": None,
-                 "pot_skin": None}  # None = Originaltopf, sonst ein Skin aus pots.py
+                 "pot_skin": None}  # None = Originaltopf, sonst die Kennung eines Designs aus pots.py
         if key:  # neue Pflanze: zufällige Farbe aus der erweiterten Auswahl
             state["color"] = random.choice(PLANT_TYPES[key].palette)
         return state
@@ -107,7 +107,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "garden": [], "garden_pos": None, "dark": False,
                 "helpers": [], "helpers_off": [], "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
-                "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": None}
+                "book": {}, "focus_minutes": FOCUS_PRESETS[0], "pot_offer": {}}
 
     def load_state(self):
         state = self.default_state()
@@ -1022,20 +1022,26 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.sow_win.open_dialog()
 
     def pot_offer(self):
-        """Angebot an Töpfen für die nächste Neuaussaat: bleibt bis zur Aussaat gleich, danach neu gewürfelt."""
-        offer = self.state.get("pot_offer")
-        if not offer:
-            offer = self.state["pot_offer"] = pots.new_offer()
+        """Angebot an Töpfen für die nächste Neuaussaat dieser Pflanze: ein günstiges und ein edles Design aus
+        dem Katalog (pots.py). Bleibt bis zur Aussaat gleich, danach wird neu ausgewählt."""
+        key = self.state["current"]
+        offers = self.state.get("pot_offer")
+        if not isinstance(offers, dict) or "cheap" in offers:  # leer oder alte Form
+            offers = self.state["pot_offer"] = {}
+        offer = offers.get(key)
+        if not (isinstance(offer, dict) and all(pots.design(offer.get(t)) for t in ("cheap", "premium"))):
+            current = pots.design(self.ps.get("pot_skin"))
+            offer = offers[key] = pots.new_offer(self.kind.pot, exclude=current["id"] if current else None)
         return offer
 
     def sow_choices(self):
-        """Wählbare Töpfe: Originaltopf (gratis), ein günstiger und ein teurer Zufallstopf."""
+        """Wählbare Töpfe: Originaltopf (gratis), ein günstiges und ein edles Design."""
         offer = self.pot_offer()
-        return [{"id": "orig", "name": "Originaltopf", "price": 0, "skin": None, "tier": "orig"},
-                {"id": "cheap", "name": offer["cheap"]["name"], "price": offer["cheap"]["price"],
-                 "skin": offer["cheap"], "tier": "cheap"},
-                {"id": "premium", "name": offer["premium"]["name"], "price": offer["premium"]["price"],
-                 "skin": offer["premium"], "tier": "premium"}]
+        out = [{"id": "orig", "name": "Originaltopf", "price": 0, "skin": None, "tier": "orig"}]
+        for tier in ("cheap", "premium"):
+            d = pots.design(offer[tier])
+            out.append({"id": tier, "name": d["name"], "price": d["price"], "skin": d["id"], "tier": tier})
+        return out
 
     def confirm_sow(self, choice_id="orig"):
         """Lagert die Pflanze ins Gartenhaus ein und sät neu aus, im gewählten Topf. Gibt False zurück,
@@ -1058,7 +1064,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
         new_state = self.new_plant_state(key)
         new_state["pot_skin"] = choice["skin"]
         self.state["plants"][key] = new_state
-        self.state["pot_offer"] = None  # nächstes Mal gibt es neue Töpfe
+        offers = self.state.get("pot_offer")
+        if isinstance(offers, dict):
+            offers.pop(key, None)  # nächstes Mal wird neu ausgewählt
         del self.ps
         self.activate(key)
         if choice["skin"]:

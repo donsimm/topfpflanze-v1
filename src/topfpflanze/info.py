@@ -77,9 +77,10 @@ def blocks(tab, plant=None):
                   "Gold). Nicht ausgewachsene kommen nur ins Gartenhaus. Bereit ist die Pflanze, sobald sie "
                   "blüht: eine sanfte goldene Aura leuchtet dann hinter ihr."),
             ("p", "Beim Einlagern wählst du den Topf der neuen Pflanze: der Originaltopf ist gratis, dazu gibt es "
-                  f"einen günstigen ({pots.CHEAP_PRICE[0]}–{pots.CHEAP_PRICE[1]} Gold) und einen edlen "
-                  f"({pots.PREMIUM_PRICE[0]}–{pots.PREMIUM_PRICE[1]} Gold) Zufallstopf. Das Angebot wechselt nach "
-                  "jeder Aussaat; der Topf ist nur Zierde und bleibt bei der Pflanze."),
+                  f"ein günstiges ({pots.price_range('cheap')[0]}–{pots.price_range('cheap')[1]} Gold) und ein edles "
+                  f"({pots.price_range('premium')[0]}–{pots.price_range('premium')[1]} Gold) Design aus dem "
+                  "Sortiment deiner Pflanze. Das Angebot wechselt nach jeder Aussaat; der Topf ist nur Zierde und "
+                  "bleibt bei der Pflanze."),
             ("h", "Fokus-Timer"),
             ("p", f"{' / '.join(str(m) for m in FOCUS_PRESETS)} min mit ×{G(FOCUS_MULT)} Wachstum. "
                   "Belohnung: Minuten ÷ 5 Gold. Abbruch kostet nur den Bonus."),

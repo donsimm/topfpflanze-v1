@@ -572,49 +572,10 @@ def test_bubble_seed_icon_only_when_ready_and_clickable(plant, monkeypatch):
 
 # ---------------------------------------------------------------- Töpfe und Neuaussaat
 
-def test_skins_are_random_priced_and_serializable():
-    import json
-    import random
-    from topfpflanze import pots
-    seen = set()
-    for i in range(60):
-        cheap, premium = pots.new_skin("cheap", random.Random(i)), pots.new_skin("premium", random.Random(i))
-        lo, hi, step = pots.CHEAP_PRICE
-        assert lo <= cheap["price"] <= hi and cheap["price"] % step == 0 and cheap["tier"] == "cheap"
-        lo, hi, step = pots.PREMIUM_PRICE
-        assert lo <= premium["price"] <= hi and premium["price"] % step == 0 and premium["tier"] == "premium"
-        assert premium["sparkle"] and not cheap["sparkle"]
-        assert cheap["price"] < premium["price"]
-        json.dumps([cheap, premium])
-        seen.add(cheap["name"])
-    assert len(seen) > 15  # viel Abwechslung
-    a, b = pots.new_offer(), pots.new_offer()
-    assert a["cheap"]["id"] != b["cheap"]["id"]
 
 
-def test_skinned_pot_differs_from_original_for_every_pot_shape(plant):
-    from topfpflanze import pots
-    for key in data.PLANT_ORDER:
-        plant.select_plant(key)
-        skin = pots.new_skin("premium")
-        orig = pots.pot_image(plant, None)
-        img = pots.pot_image(plant, skin)
-        assert img is pots.pot_image(plant, skin)          # zwischengespeichert
-        assert img.size() == orig.size() and img != orig
-        box = pots.pot_box(plant, skin)
-        assert box.width() > 40 and box.height() > 10
-        plant.ps["pot_skin"] = skin
-        assert not plant.grab().isNull()
 
 
-def test_offer_stays_until_sowing_and_is_rerolled_after(plant):
-    plant.ps["growth"] = plant.kind.bloom_at
-    first = plant.pot_offer()
-    assert plant.pot_offer() is first
-    ids = [c["id"] for c in plant.sow_choices()]
-    assert ids == ["orig", "cheap", "premium"] and plant.sow_choices()[0]["price"] == 0
-    assert plant.confirm_sow("orig")
-    assert plant.pot_offer()["cheap"]["id"] != first["cheap"]["id"]
 
 
 def test_sow_free_original_archives_and_gives_prestige(plant):
@@ -630,21 +591,6 @@ def test_sow_free_original_archives_and_gives_prestige(plant):
     assert plant.ps["growth"] == 0 and plant.ps["pot_skin"] is None
 
 
-def test_sow_paid_pot_costs_gold_and_is_kept_and_archived(plant):
-    plant.ps["growth"] = plant.kind.bloom_at
-    choice = plant.sow_choices()[1]
-    plant.state["coins"] = choice["price"] + 7
-    assert plant.confirm_sow("cheap")
-    assert plant.state["coins"] == 7
-    assert plant.ps["pot_skin"]["id"] == choice["skin"]["id"]
-    # nächste Aussaat: alter Topf wandert mit ins Gartenhaus
-    plant.ps["growth"] = plant.kind.bloom_at * 0.3
-    assert plant.confirm_sow("orig")
-    archived = plant.state["garden"][-1]
-    assert archived["pot_skin"]["id"] == choice["skin"]["id"] and archived["prestige"] is None
-    assert plant.ps["pot_skin"] is None
-    # nicht ausgewachsen: kein Prestige
-    assert plant.state.get("prestige", {}).get(plant.state["current"], 0) == 1
 
 
 def test_sow_refused_without_enough_gold(plant):
@@ -722,13 +668,6 @@ def test_sow_dialog_keys_and_not_ready_text(plant):
     assert not win.isVisible()
 
 
-def test_garden_snapshot_shows_archived_pot(plant):
-    from topfpflanze import pots
-    entry = {"key": "wiesenblume", "growth": 400, "seed": 3, "color": None, "created": 0, "pot_skin": None}
-    plain = plant.snapshot(entry, scale=1)
-    entry["pot_skin"] = pots.new_skin("premium")
-    skinned = plant.snapshot(entry, scale=1)
-    assert plain != skinned
 
 
 def test_old_plant_states_get_default_pot_skin(plant):
@@ -760,3 +699,134 @@ def test_clamp_to_screen_moves_only_the_given_window(plant):
     assert (plant.shop.x(), plant.shop.y()) == (9000, 9000)
     plant.clamp_to_screen(plant.shop)
     assert plant.shop.x() < 9000 and plant.shop.y() < 9000
+
+
+KEPT = {  # was du ausgesucht hast: Topfform -> Anzahl Designs (günstig, edel)
+    "terrakotta": (5, 4), "beton": (3, 5), "keramik": (4, 4), "zink": (1, 4), "schale": (1, 1),
+}
+
+
+def test_catalog_matches_the_chosen_pots():
+    import json
+    from topfpflanze import pots
+    assert sum(len(v) for v in pots.BY_POT.values()) == 32 == len(pots.DESIGNS)
+    for pot, (cheap, edel) in KEPT.items():
+        assert len(pots.designs_for(pot, "cheap")) == cheap, pot
+        assert len(pots.designs_for(pot, "premium")) == edel, pot
+    ids = list(pots.DESIGNS)
+    assert len(set(ids)) == len(ids)
+    for d in pots.DESIGNS.values():
+        assert d["name"] and d["pot"] in KEPT and d["id"].startswith(d["pot"] + "/")
+        json.dumps(d["id"])
+    lo_c, hi_c = pots.price_range("cheap")
+    lo_p, hi_p = pots.price_range("premium")
+    assert hi_c < lo_p and lo_c >= 20  # günstig bleibt immer unter edel
+    assert {d["name"] for d in pots.designs_for("schale")} == {"Weisse Keramik", "Gold"}
+
+
+def test_catalog_names_of_kept_designs():
+    from topfpflanze import pots
+    names = {pot: {d["name"] for d in pots.designs_for(pot)} for pot in pots.BY_POT}
+    assert {"Sand, breites Band", "Salbei, grosse Rauten", "Kintsugi Weiss", "Tauchglasur Salbei"} <= names["terrakotta"]
+    assert names["beton"] == {"Lehm, breite Streifen", "Schwarz, Kupferband", "Marmor weiss", "Sprenkel Sand",
+                              "Schwarz, Goldrand", "Kintsugi Stein", "Terrazzo hell", "Waldgrün, Goldlinien"}
+    assert names["keramik"] == {"Creme, Salbeiband", "Nachtblau, Goldlinien", "Tauchglasur Rosé", "Sprenkel Weiss",
+                                "Kintsugi Nachtblau", "Weiss, Goldring", "Terrazzo Rosé", "Weiss, Gold-Zickzack"}
+    assert names["zink"] == {"Kupfer gehämmert", "Messing gebürstet", "Sprenkel Grau", "Gold getaucht",
+                             "Gold gehämmert"}
+
+
+def test_every_design_renders_and_differs_from_original(plant):
+    from topfpflanze import pots
+    for key in data.PLANT_ORDER:
+        plant.select_plant(key)
+        orig = pots.pot_image(plant, None)
+        for d in pots.designs_for(plant.kind.pot):
+            img = pots.pot_image(plant, d["id"])
+            assert img is pots.pot_image(plant, d["id"])  # zwischengespeichert
+            assert img.size() == orig.size() and img != orig, d["id"]
+            plant.ps["pot_skin"] = d["id"]
+            assert not plant.grab().isNull()
+
+
+def test_saucer_stays_plain_on_terracotta_and_concrete(plant):
+    from PyQt6.QtGui import QImage
+    """Muster nur auf dem Topf: im Bereich des Untersetzers sehen alle Designs gleich aus wie das Einfarbige."""
+    from topfpflanze import pots
+    for key, pot_id in (("wiesenblume", "terrakotta/salbei-rauten"), ("wiesenblume", "terrakotta/salbei-punkte"),
+                        ("kaktus", "beton/terrazzo-hell")):
+        plant.select_plant(key)
+        d = pots.design(pot_id)
+        plain = pots._recolor(pots._base_image(plant), d["ramp"])[0].convertToFormat(
+            QImage.Format.Format_ARGB32_Premultiplied)
+        deco = pots.pot_image(plant, pot_id)
+        limit = int(pots.DECOR_BOTTOM[plant.kind.pot]) + 2  # eine Zeile Abstand zur geglätteten Schnittkante
+        diff = 0
+        for y in range(limit, plain.height()):  # Untersetzer
+            for x in range(0, plain.width(), 2):
+                a, b = plain.pixelColor(x, y), deco.pixelColor(x, y)
+                diff += abs(a.red() - b.red()) + abs(a.green() - b.green()) + abs(a.blue() - b.blue())
+        assert diff == 0, f"{pot_id}: Muster auf dem Untersetzer"
+
+
+def test_offer_is_per_plant_from_its_own_catalog_and_rerolled_after_sowing(plant):
+    from topfpflanze import pots
+    plant.select_plant("wiesenblume")
+    plant.ps["growth"] = plant.kind.bloom_at
+    first = plant.pot_offer()
+    assert plant.pot_offer() is first
+    assert pots.design(first["cheap"])["pot"] == "terrakotta" and pots.design(first["cheap"])["tier"] == "cheap"
+    assert pots.design(first["premium"])["tier"] == "premium"
+    ids = [c["id"] for c in plant.sow_choices()]
+    assert ids == ["orig", "cheap", "premium"] and plant.sow_choices()[0]["price"] == 0
+    plant.select_plant("bonsai")
+    offer = plant.pot_offer()
+    assert {offer["cheap"], offer["premium"]} == {"schale/weisse-keramik", "schale/gold"}
+    plant.select_plant("wiesenblume")
+    assert plant.pot_offer() is first  # Angebot der Wiesenblume bleibt erhalten
+    assert plant.confirm_sow("orig")
+    assert "wiesenblume" not in plant.state["pot_offer"] or plant.pot_offer() is not first
+
+
+def test_offer_avoids_the_pot_currently_in_use(plant):
+    from topfpflanze import pots
+    plant.select_plant("wiesenblume")
+    for _ in range(40):
+        current = pots.designs_for("terrakotta", "cheap")[0]["id"]
+        offer = pots.new_offer("terrakotta", exclude=current)
+        assert offer["cheap"] != current
+    # Sonnenblume hat nur ein günstiges Design: das wird trotzdem angeboten
+    assert pots.new_offer("zink", exclude="zink/sprenkel-grau")["cheap"] == "zink/sprenkel-grau"
+
+
+def test_old_random_pot_formats_are_ignored_gracefully(plant):
+    from topfpflanze import pots
+    plant.state["pot_offer"] = {"cheap": {"id": "c-old"}, "premium": {"id": "p-old"}}  # alte Form
+    offer = plant.pot_offer()
+    assert pots.design(offer["cheap"]) and pots.design(offer["premium"])
+    plant.ps["pot_skin"] = {"id": "c-deadbeef", "ramp": ["#000000"]}  # alter Zufallstopf: wird zum Original
+    assert pots.design(plant.ps["pot_skin"]) is None
+    assert not plant.grab().isNull()
+
+
+def test_sow_paid_pot_costs_gold_and_is_kept_and_archived(plant):
+    plant.ps["growth"] = plant.kind.bloom_at
+    choice = plant.sow_choices()[1]
+    plant.state["coins"] = choice["price"] + 7
+    assert plant.confirm_sow("cheap")
+    assert plant.state["coins"] == 7
+    assert plant.ps["pot_skin"] == choice["skin"]
+    # nächste Aussaat: der alte Topf wandert mit ins Gartenhaus
+    plant.ps["growth"] = plant.kind.bloom_at * 0.3
+    assert plant.confirm_sow("orig")
+    archived = plant.state["garden"][-1]
+    assert archived["pot_skin"] == choice["skin"] and archived["prestige"] is None
+    assert plant.ps["pot_skin"] is None
+    assert plant.state.get("prestige", {}).get(plant.state["current"], 0) == 1
+
+
+def test_garden_snapshot_shows_archived_pot(plant):
+    entry = {"key": "wiesenblume", "growth": 400, "seed": 3, "color": None, "created": 0, "pot_skin": None}
+    plain = plant.snapshot(entry, scale=1)
+    entry["pot_skin"] = "terrakotta/kintsugi-schwarz"
+    assert plain != plant.snapshot(entry, scale=1)
