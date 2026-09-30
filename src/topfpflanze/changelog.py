@@ -14,6 +14,7 @@ CHANGELOG = [
         "Seltene Farbvarianten der Besucher, mit Stern im Sammelbuch; der Name wird in Gold angezeigt, sobald gefunden.",
         "Info-Fenster mit Reiter «Version» und Release Notes.",
         "Goldene Aura hinter der Pflanze, sobald sie für das Prestige bereit ist (blüht).",
+        "Sprechblase: Stadium in Gold mit Aussaat-Symbol, sobald die Pflanze für das Prestige bereit ist; ein Klick lagert sie ein und sät neu aus.",
     ]),
     ("0.1.0", "29.09.2026", [
         "Fünf Pflanzen mit eigenen Töpfen und Spielständen; Wachstum durch Klicks und Tastendrücke.",

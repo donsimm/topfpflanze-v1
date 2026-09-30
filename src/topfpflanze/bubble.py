@@ -5,12 +5,17 @@ import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import QPointF, QRectF, Qt
 
-from .config import BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, TOOL, TOOL_GAP, TOOL_ORDER
+from .config import (BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_PER_HOUR, PRESTIGE_AURA_PERIOD,
+                     TOOL, TOOL_GAP, TOOL_ORDER)
 from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
-from .drawing import draw_coin, draw_star, fit_font, round_pen
+from .drawing import draw_coin, draw_seed_packet, draw_star, fit_font, round_pen
 from .theme import T
 from .util import fmt_age, fmt_int, stage_name, water_status
 from .scaling import ScaledWidget
+
+BUBBLE_ROW_COUNT = 10   # Zeilen der Statusliste
+STAGE_ROW = 1           # Zeile «Stadium»
+SEED_ICON = 14          # Grösse des Aussaat-Symbols (Kantenlänge des 20×20-Feldes): sichtbar so gross wie die Münze
 
 
 # ---------------------------------------------------------------- Sprechblase
@@ -56,6 +61,20 @@ class Bubble(ScaledWidget):
                 return key
         return None
 
+    def seed_rect(self):
+        """Klickfläche des Aussaat-Symbols hinter dem Stadium (nur wenn die Pflanze für das Prestige bereit ist)."""
+        if not self.plant.prestige_ready():
+            return None
+        rect = QRectF(1, 1, self.width() - 2, self.height() - 2)
+        inner = QRectF(rect.left() + 10, rect.top() + 6, rect.width() - 20, BUBBLE_ROWS_H)
+        line_h = inner.height() / BUBBLE_ROW_COUNT
+        row = QRectF(inner.left(), inner.top() + STAGE_ROW * line_h, inner.width(), line_h)
+        return QRectF(row.right() - 13, row.center().y() - 8, 16, 16)
+
+    def over_seed(self, pos):
+        r = self.seed_rect()
+        return r is not None and r.contains(pos)
+
     def place_window(self):
         pos = self.plant.state.get("bubble_pos")
         if pos:
@@ -66,6 +85,9 @@ class Bubble(ScaledWidget):
 
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:
+            if self.over_seed(e.position()):
+                self.plant.reset_plant()  # fragt vor dem Einlagern nach
+                return
             key = self.icon_at(e.position())
             if key in TOOL_ORDER:
                 self.plant.toggle_window(key)
@@ -82,7 +104,7 @@ class Bubble(ScaledWidget):
             self.plant.show_menu(e.globalPosition().toPoint())
 
     def mouseMoveEvent(self, e):
-        over = self.icon_at(e.position()) is not None
+        over = self.icon_at(e.position()) is not None or self.over_seed(e.position())
         self.setCursor(Qt.CursorShape.PointingHandCursor if over else Qt.CursorShape.ArrowCursor)
 
     def tooltip_text(self, key):
@@ -115,6 +137,11 @@ class Bubble(ScaledWidget):
         return ""
 
     def tooltip_at(self, pos):
+        if self.over_seed(pos):
+            pl = self.plant
+            lvl = pl.prestige_level()
+            return (f"{pl.kind.name} einlagern & neu aussäen\n"
+                    f"Prestige-Stufe {lvl} → {lvl + 1} (nach Rückfrage)")
         return self.tooltip_text(self.icon_at(pos))
 
     def paintEvent(self, _e):
@@ -155,10 +182,18 @@ class Bubble(ScaledWidget):
                 color = T("coin")
             elif label == "Gold":
                 color = T("coin")
+            ready = label == "Stadium" and self.plant.prestige_ready()
+            if ready:  # bereit fürs Prestige: Stadium in Gold, dahinter das Symbol für «einlagern & neu aussäen»
+                color = T("coin")
             p.setPen(color)
             vr = QRectF(r)
             if label == "Gold":
                 draw_coin(p, QPointF(r.right() - 5, r.center().y()), 5)
+                p.setPen(color)
+                vr.setRight(r.right() - 14)
+            elif ready:
+                breath = 0.5 - 0.5 * math.cos(2 * math.pi * self.plant.t / PRESTIGE_AURA_PERIOD)
+                draw_seed_packet(p, QPointF(r.right() - 5, r.center().y()), SEED_ICON, True, breath)
                 p.setPen(color)
                 vr.setRight(r.right() - 14)
             label_w = p.fontMetrics().horizontalAdvance(label) + 8

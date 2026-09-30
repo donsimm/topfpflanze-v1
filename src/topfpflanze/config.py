@@ -43,7 +43,7 @@ TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "info"]
 TOOL_NAMES = {"shop": "Shop", "garden": "Gartenhaus", "ach": "Erfolge", "focus": "Fokus-Timer",
               "book": "Besucher-Sammelbuch", "info": "Info"}
 VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze (+30 %); das Sammelbuch bleibt unverändert
-PRESTIGE_AURA_ALPHA = (16, 44)   # Goldene Aura bei Prestige-Bereitschaft: Deckkraft (0–255) im Mittelpunkt, dunkel/hell
+PRESTIGE_AURA_ALPHA = (30, 78)  # Goldene Aura bei Prestige-Bereitschaft: Deckkraft (0–255) im Mittelpunkt, dunkel/hell
 PRESTIGE_AURA_PERIOD = 3.0       # ... Dauer eines «Atemzugs» in Sekunden
 SHOP_W, SHOP_H = 270, 304
 GARDEN_W, GARDEN_H = 300, 444

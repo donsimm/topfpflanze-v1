@@ -541,3 +541,30 @@ def test_prestige_aura_not_in_garden_snapshot(plant):
     pix = plant.snapshot(entry, scale=1)
     img = pix.toImage() if hasattr(pix, "toImage") else pix
     assert img.pixelColor(int(60), 190).alpha() == 0
+
+
+def test_bubble_seed_icon_only_when_ready_and_clickable(plant, monkeypatch):
+    from PyQt6.QtCore import QEvent, QPointF, Qt
+    from PyQt6.QtGui import QMouseEvent
+    b = plant.bubble
+    b.show()
+    plant.select_plant("wiesenblume")
+    plant.ps["growth"] = plant.kind.bloom_at * 0.5
+    assert b.seed_rect() is None and not b.over_seed(QPointF(200, 30))
+    plant.ps["growth"] = plant.kind.bloom_at
+    r = b.seed_rect()
+    assert r is not None and b.over_seed(r.center())
+    called = []
+    monkeypatch.setattr(plant, "reset_plant", lambda: called.append(1))
+    ev = QMouseEvent(QEvent.Type.MouseButtonPress, r.center(), QPointF(b.mapToGlobal(r.center().toPoint())),
+                     Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    b.mousePressEvent(ev)
+    assert called == [1]
+    assert "einlagern & neu aussäen" in b.tooltip_at(r.center())
+    assert not b.grab().isNull()
+    # Klick daneben löst nichts aus
+    other = QPointF(20, 20)
+    ev2 = QMouseEvent(QEvent.Type.MouseButtonPress, other, QPointF(b.mapToGlobal(other.toPoint())),
+                      Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+    b.mousePressEvent(ev2)
+    assert called == [1]
