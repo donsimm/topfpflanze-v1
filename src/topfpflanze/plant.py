@@ -404,7 +404,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             "g_vis50": visits, "g_vis250": visits, "g_vis1k": visits, "g_vis5k": visits, "g_vis25k": visits,
             "g_visitors": len(st["book"]), "g_visitors8": len(st["book"]),
             "g_variant1": variants, "g_variant4": variants, "g_variant8": variants,
-            **{f"g_master{i}": self.top_count() for i in range(1, 9)},
+            **{f"g_master{i}": self.top_count() for i in range(1, 7)},
             "g_focus10": stats.get("focus", 0), "g_focus50": stats.get("focus", 0), "g_focus200": stats.get("focus", 0),
             "g_focus1k": stats.get("focus", 0),
             "g_zen": stats.get("focus_max", 0),
