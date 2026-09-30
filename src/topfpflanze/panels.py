@@ -604,9 +604,15 @@ class BookWin(Panel):
     def items(self):
         return [(k, r, False) for k, r in self.card_rects()]
 
+    def mouseMoveEvent(self, e):
+        super().mouseMoveEvent(e)
+        if self.hover and self.plant.clear_book_new(self.hover):   # Überfahren gilt als gesehen
+            self.plant.bubble.update()
+
     def paintEvent(self, _e):
         plant = self.plant
         book = plant.state.get("book", {})
+        fresh = plant.state.get("book_new", [])
         p = self.begin("Besucher-Sammelbuch", f"{len(book)} von {len(VISITORS)} entdeckt")
         base = self.font()
         rarity_col = {"häufig": T("muted"), "selten": QColor("#3B82C4"), "sehr selten": QColor("#9B59B6")}
@@ -657,6 +663,10 @@ class BookWin(Panel):
                 draw_star(p, QPointF(r.right() - 11, r.top() + 11), 5.5,
                           "#F2C230" if has_var else ("#4A4A44" if _THEME["dark"] else "#D8D3C4"),
                           "#B8860B" if has_var else "#9A958A")
+                if key in fresh:   # neu entdeckt: roter Punkt an der Kartenecke
+                    p.setPen(QPen(T("cell"), 1.2))
+                    p.setBrush(QColor("#D64541"))
+                    p.drawEllipse(QPointF(r.left() + 4, r.top() + 4), 4, 4)
 
         info = QRectF(12, self.height() - 60, self.width() - 24, 3 * self.ROW)
         p.setPen(QPen(T("sep"), 1))

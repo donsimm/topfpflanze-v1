@@ -489,6 +489,22 @@ def test_book_window_draws_tiers_and_star(plant):
         assert not win.grab().isNull()
 
 
+def test_new_visitor_marks_book_icon_until_seen(plant):
+    plant.state["book"] = {}
+    plant.state["book_new"] = []
+    plant.spawn_visitor("marienkaefer", shiny=False)
+    assert plant.state["book_new"] == ["marienkaefer"]
+    plant.spawn_visitor("marienkaefer", shiny=False)          # schon bekannt: keine zweite Markierung
+    assert plant.state["book_new"] == ["marienkaefer"]
+    plant.spawn_visitor("marienkaefer", shiny=True)           # neue Farbvariante: Eintrag bleibt einmalig
+    assert plant.state["book_new"] == ["marienkaefer"]
+    plant.spawn_visitor("biene", shiny=False)
+    assert plant.state["book_new"] == ["marienkaefer", "biene"]
+    assert not plant.bubble.grab().isNull() and not plant.book_win.grab().isNull()
+    assert plant.clear_book_new("biene") and not plant.clear_book_new("biene")
+    assert plant.state["book_new"] == ["marienkaefer"]
+
+
 def test_version_tab_and_changelog(plant):
     from topfpflanze import __version__, info
     from topfpflanze.changelog import CHANGELOG

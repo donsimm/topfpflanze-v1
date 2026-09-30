@@ -8,6 +8,7 @@ Bei einem Release: den Eintrag «Unveröffentlicht» in die neue Versionsnummer 
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
     ("Unveröffentlicht", None, [
+        "Neu entdeckte Besucher und Farbvarianten werden mit einem roten Punkt am Sammelbuch-Symbol und auf der Karte markiert; Überfahren der Karte gilt als gesehen.",
         "Besucher auf der Pflanze sind 30 % grösser.",
         "Die Währung heisst jetzt Gold (statt Coins), das Symbol bleibt.",
         "Besucher-Stufen Besucher, Stammgast und Gartenbewohner (Setzling mit 1–3 Blättern im Sammelbuch), Belohnung in Gold; jeder Gartenbewohner gibt +1 % Wachstum.",

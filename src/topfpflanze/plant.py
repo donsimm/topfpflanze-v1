@@ -628,13 +628,29 @@ class Plant(PlantDrawMixin, ScaledWidget):
             entry["shiny"] = entry.get("shiny", 0) + 1
             if entry["shiny"] == 1:
                 entry["shiny_first"] = time.time()
+                self.mark_book_new(v.key)
                 self.popup(f"Neu: {VARIANTS[v.key].name}!", coin=False)
             else:
                 self.popup(f"{VARIANTS[v.key].name}!", coin=False)
         elif entry["count"] == 1:
+            self.mark_book_new(v.key)
             self.popup(f"Neu: {v.name}!", coin=False)
         self.check_mastery()
         self.save_state()
+
+    def mark_book_new(self, key):
+        """Merkt einen neu entdeckten Besucher oder eine neue Farbvariante fürs Sammelbuch (Markierung im Menü)."""
+        new = self.state.setdefault("book_new", [])
+        if key not in new:
+            new.append(key)
+
+    def clear_book_new(self, key):
+        new = self.state.get("book_new", [])
+        if key in new:
+            new.remove(key)
+            self.save_state()
+            return True
+        return False
 
     # ---------- Meisterschaft ----------
 

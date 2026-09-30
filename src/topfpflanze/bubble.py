@@ -222,7 +222,8 @@ class Bubble(ScaledWidget):
                     p.setPen(pen)
                     p.setBrush(Qt.BrushStyle.NoBrush)
                     p.drawArc(r.adjusted(1, 1, -1, -1), 90 * 16, -int(360 * 16 * (1 - rem / total)))
-                if key == "ach" and self.plant.state.get("ach_pending"):
+                badge = {"ach": "ach_pending", "book": "book_new"}.get(key)
+                if badge and self.plant.state.get(badge):
                     c = QPointF(r.right() - 2, r.top() + 2)
                     p.setPen(Qt.PenStyle.NoPen)
                     p.setBrush(QColor("#D64541"))
@@ -233,7 +234,7 @@ class Bubble(ScaledWidget):
                     p.setFont(bf)
                     p.setPen(QColor("#FFFFFF"))
                     p.drawText(QRectF(c.x() - 6, c.y() - 6, 12, 12), Qt.AlignmentFlag.AlignCenter,
-                               str(min(9, len(self.plant.state["ach_pending"]))))
+                               str(min(9, len(self.plant.state[badge]))))
                     p.setFont(font)
                 continue
             active = key == current
