@@ -972,7 +972,7 @@ def fake_sound(plant):
     plant.sound.effects = {"giessen": _FakeEffect(), "gong": _FakeEffect()}
     plant.sound.available = True
     plant.sound.last.clear()
-    plant.sound.set_volume(60)
+    plant.set_volume(60)              # die Tests brauchen hörbaren Ton (Standard ist stumm)
     return plant.sound
 
 
@@ -1085,20 +1085,21 @@ def test_gong_at_end_of_focus_but_not_on_abort(plant, fake_sound):
 
 def test_volume_slider_in_settings_menu(plant, fake_sound):
     from PyQt6.QtWidgets import QLabel, QMenu, QPushButton, QSlider
+    from topfpflanze import sound
     menu = QMenu()  # Referenz halten, sonst wird der Regler mit freigegeben
     box = plant.volume_slider_action(menu).defaultWidget()
     slider = box.findChild(QSlider)
     label = box.findChild(QLabel)
-    assert (slider.minimum(), slider.maximum(), slider.value()) == (0, 100, 60)
+    assert (slider.minimum(), slider.maximum(), slider.value()) == (0, 100, 60)   # vom Fixture auf 60 gesetzt
     assert label.text() == "Lautstärke: 60 %"
     slider.setValue(20)
     assert plant.state["volume"] == 20 and plant.sound.volume == 20 and label.text() == "Lautstärke: 20 %"
     slider.sliderReleased.emit()                   # Probeton beim Loslassen
     assert fake_sound.effects["giessen"].plays == 1
-    box.findChild(QPushButton).click()
-    assert plant.state["volume"] == 60
-    slider.setValue(0)
-    assert plant.state["volume"] == 0 and label.text() == "Lautstärke: 0 %"
+    slider.setValue(75)
+    assert plant.state["volume"] == 75
+    box.findChild(QPushButton).click()                 # zurücksetzen = Standard = stumm
+    assert plant.state["volume"] == sound.DEFAULT_VOLUME == 0 and label.text() == "Lautstärke: 0 %"
 
 
 def test_size_sliders_still_work_after_refactoring(plant, scale_reset):
@@ -1118,3 +1119,36 @@ def test_without_audio_the_game_stays_silent_and_works(tmp_path, monkeypatch):
     assert not player.available and "OSError" in player.error
     assert player.play("giessen") is False and player.play("gong") is False
     player.set_volume(10)            # darf nichts auslösen
+
+
+def test_sound_is_muted_by_default_and_needs_the_slider(tmp_path, monkeypatch):
+    from PyQt6.QtWidgets import QApplication
+    from topfpflanze import sound
+    from topfpflanze.plant import Plant
+    monkeypatch.setattr(config, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(config, "STATE_FILE", tmp_path / "state.json")
+    app = QApplication.instance() or QApplication([])
+    p = Plant()
+    p.timer.stop()
+    assert sound.DEFAULT_VOLUME == 0 and p.state["volume"] == 0 and p.sound.volume == 0
+    fake = {"giessen": _FakeEffect(), "gong": _FakeEffect()}
+    p.sound.effects, p.sound.last = fake, {}
+    p.select_plant("wiesenblume")
+    p.ps["water"] = 40
+    p.water_click(QPointF(100, 150))
+    assert fake["giessen"].plays == 0                    # stumm: kein Ton
+    p.start_focus(25)
+    p.focus["end"] = 0.0
+    p.run_focus()
+    assert fake["gong"].plays == 0
+    p.set_volume(50)                                     # erst der Regler schaltet den Ton ein
+    p.sound.last.clear()
+    p.ps["water"] = 40
+    p.water_click(QPointF(100, 150))
+    assert fake["giessen"].plays == 1
+    assert app is not None
+    # ein gespeicherter Wert bleibt erhalten
+    p.save_state()
+    p2 = Plant()
+    p2.timer.stop()
+    assert p2.state["volume"] == 50 and p2.sound.volume == 50

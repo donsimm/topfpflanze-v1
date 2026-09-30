@@ -15,7 +15,7 @@ from . import config
 
 RATE = 22050
 VERSION = 1                      # erhöhen, wenn sich die Klänge ändern: die Dateien werden neu erzeugt
-DEFAULT_VOLUME = 60
+DEFAULT_VOLUME = 0              # Standard: stumm; der Regler in den Einstellungen schaltet den Ton ein
 GAINS = {"giessen": 0.55, "gong": 0.9}          # Grundlautstärke je Klang (vor dem Gesamtregler)
 MIN_INTERVAL = {"giessen": 0.16, "gong": 1.0}   # Sekunden: schnelles Klicken soll nicht rattern
 
