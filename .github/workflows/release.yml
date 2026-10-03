@@ -38,9 +38,22 @@ jobs:
         run: |
           cd dist
           if [ "${{ matrix.name }}" = windows ]; then 7z a ../Topfpflanze-windows.zip Topfpflanze
-          elif [ "${{ matrix.name }}" = macos-arm ]; then zip -r ../Topfpflanze-macos-apple-silicon.zip Topfpflanze.app
-          elif [ "${{ matrix.name }}" = macos-intel ]; then zip -r ../Topfpflanze-macos-intel.zip Topfpflanze.app
+          # macOS: ditto statt zip, damit die Symlinks im App-Paket erhalten bleiben (sonst startet die App nicht)
+          elif [ "${{ matrix.name }}" = macos-arm ]; then ditto -c -k --sequesterRsrc --keepParent Topfpflanze.app ../Topfpflanze-macos-apple-silicon.zip
+          elif [ "${{ matrix.name }}" = macos-intel ]; then ditto -c -k --sequesterRsrc --keepParent Topfpflanze.app ../Topfpflanze-macos-intel.zip
           else tar czf ../Topfpflanze-linux.tar.gz Topfpflanze; fi
+      - name: Rauchtest (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          # Das gepackte Programm entpacken und kurz starten (ohne Bildschirm): ein Absturz beim Start lässt den Bau scheitern
+          rm -rf /tmp/smoke && mkdir /tmp/smoke
+          ditto -x -k Topfpflanze-macos-*.zip /tmp/smoke
+          QT_QPA_PLATFORM=offscreen /tmp/smoke/Topfpflanze.app/Contents/MacOS/Topfpflanze --data-dir /tmp/smoke-data > /tmp/smoke.log 2>&1 &
+          pid=$!
+          sleep 12
+          if kill -0 $pid 2>/dev/null; then echo "Programm läuft"; kill $pid
+          else echo "Programm ist beim Start abgestürzt:"; cat /tmp/smoke.log; wait $pid || true; exit 1; fi
       - uses: actions/upload-artifact@v4
         with: {name: "${{ matrix.name }}", path: "Topfpflanze-*"}
   publish:
