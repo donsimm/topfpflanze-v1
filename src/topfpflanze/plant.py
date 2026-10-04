@@ -17,7 +17,8 @@ from . import config, debug, i18n, pots, scaling, sound, tooltip
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import TOOL_NAMES, ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_DEFAULT, FOCUS_MULT, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
-from .diary import DiaryCalWin, DiaryStore, DiaryTextWin
+from . import backup
+from .diary import MOODS, DiaryCalWin, DiaryStore, DiaryTextWin
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -84,9 +85,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.diary = DiaryStore()
         self.diary_win = DiaryCalWin(self)
         self.diary_text = DiaryTextWin(self)
+        self.confirm_win = backup.ConfirmWin(self)
         self.windows = {"shop": self.shop, "garden": self.garden, "ach": self.ach_win,
                         "focus": self.focus_win, "book": self.book_win, "diary": self.diary_win,
-                        "info": self.info_win, "sow": self.sow_win, "diary_text": self.diary_text}
+                        "info": self.info_win, "sow": self.sow_win, "diary_text": self.diary_text,
+                        "confirm": self.confirm_win}
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick)
@@ -164,6 +167,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         return state
 
     def save_state(self):
+        if getattr(self, "_no_save", False):    # während eines Imports darf nichts mehr überschrieben werden
+            return
         if hasattr(self, "diary_text"):
             self.diary_text.flush()
         now = time.time()
@@ -1096,12 +1101,77 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.save_state()
         if code == i18n.language():
             return
+        self.restart_now()
+
+    def restart_now(self):
+        """Beendet das Spiel und startet es neu (der Start erfolgt erst nach dem Speichern beim Beenden)."""
         from PyQt6.QtCore import QProcess
         program, args = self.restart_command()
         app = QApplication.instance()
-        # Der Start erfolgt erst nach dem Speichern beim Beenden (aboutToQuit), damit der Spielstand nicht kollidiert
         app.aboutToQuit.connect(lambda: QProcess.startDetached(program, args))
         app.quit()
+
+    # ---------- Spieldaten sichern und wiederherstellen ----------
+
+    @staticmethod
+    def backup_dir():
+        from PyQt6.QtCore import QStandardPaths
+        return QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation) or os.path.expanduser("~")
+
+    def export_data(self):
+        """Spielstand, Tagebuch und eigene Wörter als ZIP-Datei speichern."""
+        from PyQt6.QtWidgets import QFileDialog
+        from . import __version__
+        self.save_state()
+        path, _ = QFileDialog.getSaveFileName(None, tr("Spieldaten exportieren"),
+                                              os.path.join(self.backup_dir(), backup.default_name()), tr("Sicherung (*.zip)"))
+        if not path:
+            return
+        if not path.lower().endswith(".zip"):
+            path += ".zip"
+        try:
+            backup.write_backup(path, self.state, self.diary.entries, self.diary_text.spell.personal, __version__,
+                                [m[1] for m in MOODS])
+        except OSError as e:
+            self.confirm_win.ask(tr("Export fehlgeschlagen"), str(e), tr("OK"))
+            return
+        self.confirm_win.ask(tr("Spieldaten exportiert"), tr("Gespeichert in:\n{path}", path=path), tr("OK"))
+
+    def import_data(self):
+        """Sicherung wählen, prüfen und nach Rückfrage einspielen."""
+        from PyQt6.QtWidgets import QFileDialog
+        from . import __version__
+        path, _ = QFileDialog.getOpenFileName(None, tr("Spieldaten importieren"), self.backup_dir(), tr("Sicherung (*.zip)"))
+        if not path:
+            return
+        try:
+            data = backup.read_backup(path, __version__)
+        except backup.BackupError as e:
+            self.confirm_win.ask(tr("Import nicht möglich"), str(e), tr("OK"))
+            return
+        text = tr("Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt "
+                  "({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. "
+                  "Das Spiel startet danach neu.", date=str(data["manifest"].get("created", "?"))[:10],
+                  entries=len(data["diary"]))
+        self.confirm_win.ask(tr("Spieldaten importieren?"), text, tr("Importieren"),
+                             callback=lambda: self.apply_import(data), cancel_label=tr("Abbrechen"))
+
+    def apply_import(self, data):
+        """Sichert den jetzigen Stand, schreibt die Sicherung und startet neu."""
+        from . import __version__, spell
+        self.save_state()
+        try:
+            backup.make_safety_copy(config.STATE_DIR, self.state, self.diary.entries, self.diary_text.spell.personal,
+                                    __version__, [m[1] for m in MOODS])
+            self._no_save = True
+            self.diary.frozen = True
+            backup.restore(data, config.STATE_FILE, DiaryStore.path(), spell.personal_path())
+        except OSError as e:
+            self._no_save = False
+            self.diary.frozen = False
+            self.confirm_win.ask(tr("Import fehlgeschlagen"), str(e), tr("OK"))
+            return
+        self.restart_now()
 
     def show_menu(self, global_pos):
         m = QMenu(self)
@@ -1152,6 +1222,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
             a.setChecked(code == i18n.language())
             lang_group.addAction(a)
             lang_actions[a] = code
+        data_menu = m.addMenu(tr("Spieldaten"))
+        a_export = data_menu.addAction(tr("Exportieren …"))
+        a_import = data_menu.addAction(tr("Importieren …"))
         a_dark = set_menu.addAction(tr("Dunkelmodus"))
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))
@@ -1179,6 +1252,10 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.show_status()
         elif chosen is a_bubble:
             self.set_bubble(a_bubble.isChecked())
+        elif chosen is a_export:
+            self.export_data()
+        elif chosen is a_import:
+            self.import_data()
         elif chosen in lang_actions:
             self.choose_language(lang_actions[chosen])
         elif chosen is a_dark:

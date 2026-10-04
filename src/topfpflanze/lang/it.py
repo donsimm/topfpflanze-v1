@@ -1122,4 +1122,46 @@ STRINGS = {
         "neutro",
     "Klicken: Kalender ein-/ausblenden":
         "Clicca per mostrare/nascondere il calendario",
+    "Spieldaten":
+        "Dati di gioco",
+    "Exportieren …":
+        "Esporta …",
+    "Importieren …":
+        "Importa …",
+    "Spieldaten exportieren":
+        "Esporta i dati di gioco",
+    "Spieldaten importieren":
+        "Importa i dati di gioco",
+    "Sicherung (*.zip)":
+        "Backup (*.zip)",
+    "Spieldaten exportiert":
+        "Dati di gioco esportati",
+    "Gespeichert in:\n{path}":
+        "Salvato in:\n{path}",
+    "Export fehlgeschlagen":
+        "Esportazione non riuscita",
+    "Import nicht möglich":
+        "Importazione impossibile",
+    "Import fehlgeschlagen":
+        "Importazione non riuscita",
+    "OK":
+        "OK",
+    "Importieren":
+        "Importa",
+    "Spieldaten importieren?":
+        "Importare i dati di gioco?",
+    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "La partita attuale e tutte le voci del diario saranno sostituite dal backup del {date} ({entries} voci). Lo stato attuale viene prima salvato nella cartella «backups». Poi il gioco si riavvia.",
+    "Das ist keine gültige Sicherung von Topfpflanze.":
+        "Questo non è un backup valido di Topfpflanze.",
+    "Die Sicherung ist beschädigt oder zu gross.":
+        "Il backup è danneggiato o troppo grande.",
+    "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
+        "Il backup proviene da una versione più recente ({version}). Aggiorna prima il gioco.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Clic destro → Dati di gioco → Esporta salva la partita, il diario e le tue parole in un file ZIP (il diario anche come file di testo leggibile). Importa sostituisce lo stato attuale con un backup; lo stato attuale viene prima salvato nella cartella backups, poi il gioco si riavvia. Le posizioni delle finestre non vengono importate.",
+    "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
+        "Esporta e importa i dati di gioco (clic destro → Dati di gioco): partita, diario e parole proprie in un file ZIP; prima di un'importazione lo stato attuale viene salvato.",
+    "Spieldaten sichern":
+        "Backup dei dati di gioco",
 }

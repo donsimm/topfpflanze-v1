@@ -11,6 +11,7 @@ from .i18n import tr
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
     (tr("Unveröffentlicht"), None, [
+        tr("Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert."),
         tr("Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline)."),
     ]),
     ("0.2.0", "30.09.2026", [

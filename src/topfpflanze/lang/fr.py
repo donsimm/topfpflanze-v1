@@ -1122,4 +1122,46 @@ STRINGS = {
         "neutre",
     "Klicken: Kalender ein-/ausblenden":
         "Cliquer pour afficher/masquer le calendrier",
+    "Spieldaten":
+        "Données de jeu",
+    "Exportieren …":
+        "Exporter …",
+    "Importieren …":
+        "Importer …",
+    "Spieldaten exportieren":
+        "Exporter les données de jeu",
+    "Spieldaten importieren":
+        "Importer les données de jeu",
+    "Sicherung (*.zip)":
+        "Sauvegarde (*.zip)",
+    "Spieldaten exportiert":
+        "Données de jeu exportées",
+    "Gespeichert in:\n{path}":
+        "Enregistré dans :\n{path}",
+    "Export fehlgeschlagen":
+        "Échec de l'exportation",
+    "Import nicht möglich":
+        "Importation impossible",
+    "Import fehlgeschlagen":
+        "Échec de l'importation",
+    "OK":
+        "OK",
+    "Importieren":
+        "Importer",
+    "Spieldaten importieren?":
+        "Importer les données de jeu ?",
+    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "La partie actuelle et toutes les entrées du journal seront remplacées par la sauvegarde du {date} ({entries} entrées). L'état actuel est d'abord sauvegardé dans le dossier «backups». Le jeu redémarre ensuite.",
+    "Das ist keine gültige Sicherung von Topfpflanze.":
+        "Ce n'est pas une sauvegarde Topfpflanze valide.",
+    "Die Sicherung ist beschädigt oder zu gross.":
+        "La sauvegarde est endommagée ou trop volumineuse.",
+    "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
+        "La sauvegarde provient d'une version plus récente ({version}). Veuillez d'abord mettre le jeu à jour.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Clic droit → Données de jeu → Exporter enregistre la partie, le journal et vos propres mots dans un fichier ZIP (le journal aussi en fichier texte lisible). Importer remplace l'état actuel par une sauvegarde ; l'état actuel est d'abord enregistré dans le dossier backups, puis le jeu redémarre. Les positions des fenêtres ne sont pas importées.",
+    "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
+        "Exporter et importer les données de jeu (clic droit → Données de jeu) : partie, journal et propres mots dans un fichier ZIP ; l'état actuel est sauvegardé avant une importation.",
+    "Spieldaten sichern":
+        "Sauvegarde des données de jeu",
 }

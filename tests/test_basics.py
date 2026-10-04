@@ -1628,3 +1628,126 @@ def test_diary_text_window_can_be_resized_and_remembers_the_size(plant):
     from topfpflanze.diary import DiaryTextWin                                               # Grösse wird beim Start gelesen
     plant.state["diary_text_size"] = [500, 700]
     assert (lambda x: (x.W, x.H))(DiaryTextWin(plant)) == (500, 700)
+
+
+# ---------------------------------------------------------------- Sicherung (Export / Import)
+
+def _sample_backup(tmp_path, version="0.2.0", extra=None):
+    from topfpflanze import backup
+    state = {"version": 2, "plants": {"wiesenblume": {"growth": 12.5}}, "coins": 321, "pos": [5, 6], "bubble_pos": [1, 2],
+             "diary_text_size": [500, 700], "language": "en"}
+    entries = {"2026-10-04": {"text": "Hallo Tagebuch", "mood": 2, "updated": 1.0}, "2026-10-05": {"text": "", "mood": 0, "updated": 2.0}}
+    path = tmp_path / "b.zip"
+    backup.write_backup(path, state, entries, {"Roggwil"}, version, ["schwer", "müde", "ruhig"])
+    return path, state, entries
+
+
+def test_backup_roundtrip_with_readable_diary_and_without_window_positions(tmp_path):
+    import zipfile
+    from topfpflanze import backup
+    path, state, entries = _sample_backup(tmp_path)
+    with zipfile.ZipFile(path) as z:
+        assert set(z.namelist()) == set(backup.NAMES)
+        text = z.read("tagebuch.txt").decode("utf-8")
+    assert "=== 2026-10-04 (ruhig) ===" in text and "Hallo Tagebuch" in text and "=== 2026-10-05 (schwer) ===" in text
+    data = backup.read_backup(path, "0.2.0")
+    assert data["state"]["coins"] == 321 and data["state"]["language"] == "en" and data["state"]["diary_text_size"] == [500, 700]
+    assert "pos" not in data["state"] and "bubble_pos" not in data["state"]          # Positionen gehören zum alten Bildschirm
+    assert data["diary"] == entries and data["words"] == ["Roggwil"] and data["manifest"]["entries"] == 2
+    out = tmp_path / "out"
+    backup.restore(data, out / "state.json", out / "diary.json", out / "diary_words.txt")
+    import json
+    assert json.loads((out / "state.json").read_text(encoding="utf-8"))["coins"] == 321
+    assert json.loads((out / "diary.json").read_text(encoding="utf-8"))["entries"] == entries
+    assert (out / "diary_words.txt").read_text(encoding="utf-8").strip() == "Roggwil"
+
+
+def test_backup_rejects_wrong_files_and_newer_versions(tmp_path):
+    import json, zipfile
+    from topfpflanze import backup
+    junk = tmp_path / "junk.zip"
+    junk.write_bytes(b"das ist keine zip-datei")
+    for bad in (junk, tmp_path / "fehlt.zip"):
+        try:
+            backup.read_backup(bad, "0.2.0")
+            assert False, "hätte scheitern müssen"
+        except backup.BackupError as e:
+            assert "gültige Sicherung" in str(e)
+    other = tmp_path / "other.zip"
+    with zipfile.ZipFile(other, "w") as z:
+        z.writestr("manifest.json", json.dumps({"app": "etwas-anderes"}))
+        z.writestr("state.json", json.dumps({"plants": {}}))
+    try:
+        backup.read_backup(other, "0.2.0")
+        assert False
+    except backup.BackupError:
+        pass
+    newer, _s, _e = _sample_backup(tmp_path, version="9.0.0")
+    try:
+        backup.read_backup(newer, "0.2.0")
+        assert False
+    except backup.BackupError as e:
+        assert "9.0.0" in str(e)
+    evil = tmp_path / "evil.zip"                       # Pfade aus der ZIP-Datei werden nie benutzt
+    ok, _s, _e = _sample_backup(tmp_path)
+    with zipfile.ZipFile(ok) as src, zipfile.ZipFile(evil, "w") as dst:
+        for n in src.namelist():
+            dst.writestr(n, src.read(n))
+        dst.writestr("../../evil.txt", "x")
+    backup.read_backup(evil, "0.2.0")
+    assert not (tmp_path.parent / "evil.txt").exists()
+
+
+def test_export_and_import_replace_the_game_data_and_keep_a_safety_copy(plant, tmp_path, monkeypatch):
+    import datetime, json
+    from PyQt6.QtCore import QProcess
+    from PyQt6.QtWidgets import QApplication, QFileDialog
+    target = tmp_path / "meine-sicherung"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: (str(target), "")))
+    day = datetime.date(2026, 10, 4)
+    plant.state["coins"] = 777
+    plant.diary.put(day, "Mein Eintrag", 2)
+    plant.diary_text.spell.add_word("Roggwil")
+    plant.export_data()
+    zip_path = tmp_path / "meine-sicherung.zip"                      # «.zip» wird ergänzt
+    assert zip_path.exists() and plant.confirm_win.isVisible() and "meine-sicherung.zip" in plant.confirm_win.text
+    plant.confirm_win.hide()
+    # Zustand ändern, dann importieren
+    plant.state["coins"] = 5
+    plant.diary.put(day, "Anderer Text", None)
+    (config.STATE_DIR / "diary_words.txt").unlink()
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (str(zip_path), "")))
+    started = []
+    monkeypatch.setattr(QProcess, "startDetached", staticmethod(lambda prog, args: started.append((prog, args))))
+    app = QApplication.instance()
+    monkeypatch.setattr(app, "quit", lambda: app.aboutToQuit.emit())
+    plant.import_data()
+    win = plant.confirm_win
+    assert win.isVisible() and "Importieren" in win.ok_label and win.cancel_label and "2026" in win.text
+    assert not win.grab().isNull()
+    win.on_click("cancel")                                           # Abbrechen: nichts passiert
+    assert plant.state["coins"] == 5 and not started
+    plant.import_data()
+    plant.confirm_win.on_click("ok")
+    assert started and started[0] == plant.restart_command()
+    assert json.loads(config.STATE_FILE.read_text(encoding="utf-8"))["coins"] == 777
+    assert json.loads((config.STATE_DIR / "diary.json").read_text(encoding="utf-8"))["entries"]["2026-10-04"]["text"] == "Mein Eintrag"
+    assert (config.STATE_DIR / "diary_words.txt").read_text(encoding="utf-8").strip() == "Roggwil"
+    copies = list((config.STATE_DIR / "backups").glob("vor-Import-*.zip"))
+    assert len(copies) == 1 or len(copies) >= 1                      # Sicherung des Stands vor dem Import
+    plant.save_state()                                               # nach dem Import wird nichts mehr überschrieben
+    plant.diary.put(day, "zu spät", None)
+    assert json.loads(config.STATE_FILE.read_text(encoding="utf-8"))["coins"] == 777
+    assert json.loads((config.STATE_DIR / "diary.json").read_text(encoding="utf-8"))["entries"]["2026-10-04"]["text"] == "Mein Eintrag"
+
+
+def test_import_of_an_invalid_file_shows_a_message_and_changes_nothing(plant, tmp_path, monkeypatch):
+    from PyQt6.QtWidgets import QFileDialog
+    junk = tmp_path / "x.zip"
+    junk.write_text("kein zip")
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", staticmethod(lambda *a, **k: (str(junk), "")))
+    plant.state["coins"] = 42
+    plant.import_data()
+    assert plant.confirm_win.isVisible() and "gültige Sicherung" in plant.confirm_win.text and plant.confirm_win.cancel_label is None
+    assert plant.state["coins"] == 42 and not getattr(plant, "_no_save", False)
+    assert not plant.confirm_win.grab().isNull()

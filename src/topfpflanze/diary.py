@@ -42,6 +42,7 @@ class DiaryStore:
     def __init__(self):
         self.entries = {}
         self.error = ""
+        self.frozen = False      # beim Import gesperrt: nichts mehr schreiben
         self.load()
 
     @staticmethod
@@ -59,6 +60,8 @@ class DiaryStore:
 
     def save(self):
         """Schreibt die Datei in einem Zug (zuerst temporär, dann ersetzen), damit sie nie halb geschrieben ist."""
+        if self.frozen:
+            return
         path = self.path()
         tmp = path.with_suffix(".json.tmp")
         try:

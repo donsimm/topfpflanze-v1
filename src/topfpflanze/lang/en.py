@@ -1124,4 +1124,46 @@ STRINGS = {
         "neutral",
     "Klicken: Kalender ein-/ausblenden":
         "Click to show/hide the calendar",
+    "Spieldaten":
+        "Game data",
+    "Exportieren …":
+        "Export …",
+    "Importieren …":
+        "Import …",
+    "Spieldaten exportieren":
+        "Export game data",
+    "Spieldaten importieren":
+        "Import game data",
+    "Sicherung (*.zip)":
+        "Backup (*.zip)",
+    "Spieldaten exportiert":
+        "Game data exported",
+    "Gespeichert in:\n{path}":
+        "Saved to:\n{path}",
+    "Export fehlgeschlagen":
+        "Export failed",
+    "Import nicht möglich":
+        "Import not possible",
+    "Import fehlgeschlagen":
+        "Import failed",
+    "OK":
+        "OK",
+    "Importieren":
+        "Import",
+    "Spieldaten importieren?":
+        "Import game data?",
+    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "The current game and all diary entries will be replaced by the backup from {date} ({entries} diary entries). The current state is backed up first in the folder «backups». The game restarts afterwards.",
+    "Das ist keine gültige Sicherung von Topfpflanze.":
+        "This is not a valid Topfpflanze backup.",
+    "Die Sicherung ist beschädigt oder zu gross.":
+        "The backup is damaged or too large.",
+    "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
+        "The backup comes from a newer version ({version}). Please update the game first.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Right click → Game data → Export saves the game, the diary and your own words in a ZIP file (the diary also as a readable text file). Import replaces the current state with a backup; the current state is first saved in the folder backups, then the game restarts. Window positions are not imported.",
+    "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
+        "Export and import game data (right click → Game data): game, diary and your own words in one ZIP file; the current state is backed up before an import.",
+    "Spieldaten sichern":
+        "Backing up game data",
 }
