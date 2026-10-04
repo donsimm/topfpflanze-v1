@@ -13,7 +13,6 @@ tmp = pathlib.Path(tempfile.mkdtemp())
 config.STATE_DIR, config.STATE_FILE = tmp, tmp / "state.json"
 i18n.set_language("de")
 
-from PyQt6.QtCore import Qt  # noqa: E402
 from PyQt6.QtGui import QColor, QPainter, QPixmap  # noqa: E402
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
