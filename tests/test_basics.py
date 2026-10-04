@@ -1878,3 +1878,17 @@ def test_every_data_menu_entry_reaches_its_function_through_the_real_menu(plant,
         calls.clear()
         plant.show_menu(QPoint(5, 5))
         assert calls == [("open", folder)]
+
+
+def test_ruled_lines_follow_the_text_when_scrolled_and_with_a_title(plant):
+    import datetime
+    w = plant.diary_text
+    w.open_date(datetime.date(2026, 10, 4))
+    w.editor.setPlainText("Titel\n" + "\n".join(f"Zeile {i} " + "lang " * (i % 7) for i in range(120)))
+    w.grab()
+    bar = w.editor.verticalScrollBar()
+    assert bar.maximum() > 0
+    for pos in (0, bar.maximum() // 2, bar.maximum()):
+        bar.setValue(pos)
+        assert not w.grab().isNull()
+    w.hide()

@@ -234,19 +234,25 @@ class PaperEdit(QPlainTextEdit):
         p = QPainter(self.viewport())
         p.setPen(QPen(LINE_COLOR, 1))
         width, height = self.viewport().width(), self.viewport().height()
-        offset = self.contentOffset().y()
-        last, step = offset + self.document().documentMargin(), float(max(8, self.fontMetrics().lineSpacing()))
-        block = self.document().begin()
+        last = self.contentOffset().y() + self.document().documentMargin()
+        step = float(max(8, self.fontMetrics().lineSpacing()))
+        block = self.firstVisibleBlock()
         while block.isValid():
+            # Qt-Weg für eigenes Zeichnen im QPlainTextEdit: Blockrechteck + Versatz des Inhalts
+            top = self.blockBoundingGeometry(block).translated(self.contentOffset()).top()
+            if top > height:
+                break
             layout = block.layout()
-            if layout is not None and block.isVisible():
-                top = offset + layout.position().y()
-                for i in range(layout.lineCount()):
+            count = layout.lineCount() if layout is not None else 0
+            if block.isVisible() and count:
+                for i in range(count):
                     line = layout.lineAt(i)
                     last = top + line.y() + line.height()
                     step = max(8.0, line.height())
-                    if 0 <= last <= height:
-                        p.drawLine(QPointF(0, last - 1), QPointF(width, last - 1))
+                    p.drawLine(QPointF(0, last - 1), QPointF(width, last - 1))
+            elif block.isVisible():             # leere Zeile ohne berechnetes Layout: eine Linie in Blockhöhe
+                last = top + self.blockBoundingRect(block).height()
+                p.drawLine(QPointF(0, last - 1), QPointF(width, last - 1))
             block = block.next()
         y = last + step                                    # leeres Papier unter dem Text
         while y < height + step:
