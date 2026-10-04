@@ -1166,4 +1166,26 @@ STRINGS = {
         "Export and import game data (right click → Game data): game, diary and your own words in one ZIP file; the current state is backed up before an import.",
     "Spieldaten sichern":
         "Backing up game data",
+    "Datenordner öffnen":
+        "Open data folder",
+    "Programmordner öffnen":
+        "Open program folder",
+    "Alle Spieldaten zurücksetzen …":
+        "Reset all game data …",
+    "Alle Spieldaten zurücksetzen?":
+        "Reset all game data?",
+    "Zurücksetzen":
+        "Reset",
+    "Zurücksetzen fehlgeschlagen":
+        "Reset failed",
+    "Ordner nicht gefunden":
+        "Folder not found",
+    "Der Ordner konnte nicht geöffnet werden:\n{path}":
+        "The folder could not be opened:\n{path}",
+    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "All plants, the Gold, the achievements and all diary entries will be deleted, and the game starts from scratch. The current state is backed up first in the folder «backups»; you can bring it back with «Import». The game restarts afterwards.",
+    "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
+        "Game data → Open data folder shows the folder with the save, the diary and the backups; Open program folder shows the folder of the program. Reset all game data deletes everything and starts from scratch (the current state is first backed up in backups).",
+    "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
+        "Game data: open the folders with the save and the program directly, and reset all game data (with confirmation and a backup first).",
 }

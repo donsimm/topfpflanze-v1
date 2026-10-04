@@ -1164,4 +1164,26 @@ STRINGS = {
         "Esporta e importa i dati di gioco (clic destro → Dati di gioco): partita, diario e parole proprie in un file ZIP; prima di un'importazione lo stato attuale viene salvato.",
     "Spieldaten sichern":
         "Backup dei dati di gioco",
+    "Datenordner öffnen":
+        "Apri la cartella dei dati",
+    "Programmordner öffnen":
+        "Apri la cartella del programma",
+    "Alle Spieldaten zurücksetzen …":
+        "Reimposta tutti i dati di gioco …",
+    "Alle Spieldaten zurücksetzen?":
+        "Reimpostare tutti i dati di gioco?",
+    "Zurücksetzen":
+        "Reimposta",
+    "Zurücksetzen fehlgeschlagen":
+        "Reimpostazione non riuscita",
+    "Ordner nicht gefunden":
+        "Cartella non trovata",
+    "Der Ordner konnte nicht geöffnet werden:\n{path}":
+        "Non è stato possibile aprire la cartella:\n{path}",
+    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "Tutte le piante, l'Oro, gli obiettivi e tutte le voci del diario verranno eliminati e il gioco ricomincia da zero. Lo stato attuale viene prima salvato nella cartella «backups»; con «Importa» puoi recuperarlo. Poi il gioco si riavvia.",
+    "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
+        "Dati di gioco → Apri la cartella dei dati mostra la cartella con la partita, il diario e i backup; Apri la cartella del programma mostra la cartella del programma. Reimposta tutti i dati di gioco elimina tutto e ricomincia da zero (lo stato attuale viene prima salvato in backups).",
+    "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
+        "Dati di gioco: aprire direttamente le cartelle della partita e del programma e reimpostare tutti i dati (con conferma e backup preventivo).",
 }

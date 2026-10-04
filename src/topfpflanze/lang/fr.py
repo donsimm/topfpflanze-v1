@@ -1164,4 +1164,26 @@ STRINGS = {
         "Exporter et importer les données de jeu (clic droit → Données de jeu) : partie, journal et propres mots dans un fichier ZIP ; l'état actuel est sauvegardé avant une importation.",
     "Spieldaten sichern":
         "Sauvegarde des données de jeu",
+    "Datenordner öffnen":
+        "Ouvrir le dossier des données",
+    "Programmordner öffnen":
+        "Ouvrir le dossier du programme",
+    "Alle Spieldaten zurücksetzen …":
+        "Réinitialiser toutes les données …",
+    "Alle Spieldaten zurücksetzen?":
+        "Réinitialiser toutes les données de jeu ?",
+    "Zurücksetzen":
+        "Réinitialiser",
+    "Zurücksetzen fehlgeschlagen":
+        "Échec de la réinitialisation",
+    "Ordner nicht gefunden":
+        "Dossier introuvable",
+    "Der Ordner konnte nicht geöffnet werden:\n{path}":
+        "Le dossier n'a pas pu être ouvert :\n{path}",
+    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "Toutes les plantes, l'Or, les succès et toutes les entrées du journal seront supprimés, et le jeu repart de zéro. L'état actuel est d'abord sauvegardé dans le dossier «backups» ; «Importer» permet de le récupérer. Le jeu redémarre ensuite.",
+    "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
+        "Données de jeu → Ouvrir le dossier des données affiche le dossier avec la partie, le journal et les sauvegardes ; Ouvrir le dossier du programme affiche le dossier du programme. Réinitialiser toutes les données supprime tout et repart de zéro (l'état actuel est d'abord sauvegardé dans backups).",
+    "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
+        "Données de jeu : ouvrir directement les dossiers de la partie et du programme, et réinitialiser toutes les données (avec confirmation et sauvegarde préalable).",
 }

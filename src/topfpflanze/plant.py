@@ -1156,6 +1156,55 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.confirm_win.ask(tr("Spieldaten importieren?"), text, tr("Importieren"),
                              callback=lambda: self.apply_import(data), cancel_label=tr("Abbrechen"))
 
+    @staticmethod
+    def data_folder():
+        return config.STATE_DIR
+
+    @staticmethod
+    def install_folder():
+        """Ordner des Programms: bei der gepackten Anwendung der Ordner mit Programm (unter macOS neben der .app),
+        beim Start aus dem Quellcode der Projektordner."""
+        from pathlib import Path
+        if getattr(sys, "frozen", False):
+            exe = Path(sys.executable).resolve()
+            return exe.parents[3] if sys.platform == "darwin" and len(exe.parents) > 3 else exe.parent
+        return Path(__file__).resolve().parents[2]
+
+    def open_folder(self, path):
+        """Zeigt einen Ordner im Dateimanager."""
+        from PyQt6.QtCore import QUrl
+        from PyQt6.QtGui import QDesktopServices
+        if not path.exists() or not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
+            self.confirm_win.ask(tr("Ordner nicht gefunden"), tr("Der Ordner konnte nicht geöffnet werden:\n{path}", path=path), tr("OK"))
+
+    def reset_data(self):
+        """Rückfrage zum Zurücksetzen aller Spieldaten."""
+        self.confirm_win.ask(
+            tr("Alle Spieldaten zurücksetzen?"),
+            tr("Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. "
+               "Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. "
+               "Das Spiel startet danach neu."),
+            tr("Zurücksetzen"), callback=self.apply_reset, cancel_label=tr("Abbrechen"), danger=True)
+
+    def apply_reset(self):
+        """Sichert den jetzigen Stand, löscht Spielstand, Tagebuch und eigene Wörter und startet neu."""
+        from . import __version__, spell
+        self.save_state()
+        try:
+            backup.make_safety_copy(config.STATE_DIR, self.state, self.diary.entries, self.diary_text.spell.personal,
+                                    __version__, [m[1] for m in MOODS], prefix="vor-Zuruecksetzen")
+            self._no_save = True
+            self.diary.frozen = True
+            for f in (config.STATE_FILE, DiaryStore.path(), spell.personal_path()):
+                if f.exists():
+                    f.unlink()
+        except OSError as e:
+            self._no_save = False
+            self.diary.frozen = False
+            self.confirm_win.ask(tr("Zurücksetzen fehlgeschlagen"), str(e), tr("OK"))
+            return
+        self.restart_now()
+
     def apply_import(self, data):
         """Sichert den jetzigen Stand, schreibt die Sicherung und startet neu."""
         from . import __version__, spell
@@ -1225,6 +1274,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
         data_menu = m.addMenu(tr("Spieldaten"))
         a_export = data_menu.addAction(tr("Exportieren …"))
         a_import = data_menu.addAction(tr("Importieren …"))
+        data_menu.addSeparator()
+        a_data_dir = data_menu.addAction(tr("Datenordner öffnen"))
+        a_prog_dir = data_menu.addAction(tr("Programmordner öffnen"))
+        data_menu.addSeparator()
+        a_reset = data_menu.addAction(tr("Alle Spieldaten zurücksetzen …"))
         a_dark = set_menu.addAction(tr("Dunkelmodus"))
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))
@@ -1256,6 +1310,12 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.export_data()
         elif chosen is a_import:
             self.import_data()
+        elif chosen is a_data_dir:
+            self.open_folder(self.data_folder())
+        elif chosen is a_prog_dir:
+            self.open_folder(self.install_folder())
+        elif chosen is a_reset:
+            self.reset_data()
         elif chosen in lang_actions:
             self.choose_language(lang_actions[chosen])
         elif chosen is a_dark:

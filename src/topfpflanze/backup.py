@@ -142,13 +142,13 @@ def restore(data, state_file, diary_file, words_file):
         words_file.unlink()
 
 
-def make_safety_copy(directory, state, diary_entries, words, app_version, moods=None):
-    """Sichert den jetzigen Stand vor einem Import in `backups/` und behält die letzten Sicherungen."""
+def make_safety_copy(directory, state, diary_entries, words, app_version, moods=None, prefix="vor-Import"):
+    """Sichert den jetzigen Stand vor einem Import oder Zurücksetzen in `backups/` und behält die letzten Sicherungen."""
     folder = directory / "backups"
     folder.mkdir(parents=True, exist_ok=True)
-    name = folder / f"vor-Import-{time.strftime('%Y%m%d-%H%M%S')}.zip"
+    name = folder / f"{prefix}-{time.strftime('%Y%m%d-%H%M%S')}.zip"
     write_backup(name, state, diary_entries, words, app_version, moods)
-    old = sorted(folder.glob("vor-Import-*.zip"))
+    old = sorted(folder.glob(f"{prefix}-*.zip"))
     for f in old[:-KEEP_SAFETY_COPIES]:
         try:
             f.unlink()
@@ -166,6 +166,7 @@ class ConfirmWin(Panel):
 
     def __init__(self, plant):
         self.title, self.text, self.ok_label, self.cancel_label, self.callback = "", "", "OK", None, None
+        self.danger = False
         super().__init__(plant, self.W, 170, "confirm_pos")
 
     def place_window(self):
@@ -174,8 +175,9 @@ class ConfirmWin(Panel):
             g = screen.availableGeometry()
             self.move(g.center().x() - self.real_width() // 2, g.center().y() - self.real_height() // 2)
 
-    def ask(self, title, text, ok_label, callback=None, cancel_label=None):
-        """Zeigt das Fenster; `callback` läuft beim Klick auf den ersten Knopf."""
+    def ask(self, title, text, ok_label, callback=None, cancel_label=None, danger=False):
+        """Zeigt das Fenster; `callback` läuft beim Klick auf den ersten Knopf (danger: roter Knopf für Unwiderrufliches)."""
+        self.danger = danger
         self.title, self.text, self.ok_label, self.cancel_label, self.callback = title, text, ok_label, cancel_label, callback
         lines = max(2, int(len(text) / 46) + 1 + text.count("\n"))
         self.setFixedSize(self.W, 92 + lines * 16 + 40)
@@ -209,11 +211,12 @@ class ConfirmWin(Panel):
         for key, r in self.button_rects().items():
             hot = self.hover == key
             primary = key == "ok"
-            p.setPen(QPen(QColor("#2E9E44") if primary else T("btn_border"), 1.6 if primary else 1))
-            p.setBrush(T("active_bg_hover") if primary and hot else T("active_bg") if primary else
+            bad = primary and self.danger
+            p.setPen(QPen(QColor("#D64541") if bad else QColor("#2E9E44") if primary else T("btn_border"), 1.6 if primary else 1))
+            p.setBrush(T("bad_bg") if bad else T("active_bg_hover") if primary and hot else T("active_bg") if primary else
                        T("btn_bg_hover") if hot else T("btn_bg"))
             p.drawRoundedRect(r, 8, 8)
             p.setFont(self.font_px(base, 12, True))
-            p.setPen(T("button_text"))
+            p.setPen(T("bad") if bad else T("button_text"))
             p.drawText(r, Qt.AlignmentFlag.AlignCenter, self.ok_label if primary else self.cancel_label)
         p.end()

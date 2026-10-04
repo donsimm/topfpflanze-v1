@@ -1797,3 +1797,53 @@ def test_formatting_changes_never_overwrite_a_days_entry(plant):
     win.flush()
     assert plant.diary.text(today) == "Wichtiger Eintrag, ergänzt"
     win.hide()
+
+
+def test_reset_deletes_all_game_data_after_a_safety_copy(plant, monkeypatch):
+    import datetime
+    from PyQt6.QtCore import QProcess
+    from PyQt6.QtWidgets import QApplication
+    day = datetime.date(2026, 10, 4)
+    plant.state["coins"] = 999
+    plant.diary.put(day, "Mein Eintrag", 1)
+    plant.diary_text.spell.add_word("Roggwil")
+    plant.save_state()
+    assert config.STATE_FILE.exists() and (config.STATE_DIR / "diary.json").exists()
+    started = []
+    monkeypatch.setattr(QProcess, "startDetached", staticmethod(lambda prog, args: started.append((prog, args))))
+    app = QApplication.instance()
+    monkeypatch.setattr(app, "quit", lambda: app.aboutToQuit.emit())
+    plant.reset_data()
+    win = plant.confirm_win
+    assert win.isVisible() and win.danger and win.cancel_label and "gelöscht" in win.text
+    assert not win.grab().isNull()
+    win.on_click("cancel")                                                 # Abbrechen: alles bleibt
+    assert config.STATE_FILE.exists() and not started
+    plant.reset_data()
+    plant.confirm_win.on_click("ok")
+    assert started and started[0] == plant.restart_command()
+    assert not config.STATE_FILE.exists() and not (config.STATE_DIR / "diary.json").exists()
+    assert not (config.STATE_DIR / "diary_words.txt").exists()
+    copies = list((config.STATE_DIR / "backups").glob("vor-Zuruecksetzen-*.zip"))
+    assert copies                                                           # der alte Stand ist als Sicherung erhalten
+    from topfpflanze import backup
+    saved = backup.read_backup(copies[0], "0.2.0")
+    assert saved["state"]["coins"] == 999 and saved["diary"]["2026-10-04"]["text"] == "Mein Eintrag" and saved["words"] == ["Roggwil"]
+    plant.save_state()                                                      # beim Beenden darf nichts neu geschrieben werden
+    assert not config.STATE_FILE.exists() and not (config.STATE_DIR / "diary.json").exists()
+
+
+def test_folder_buttons_open_the_data_and_program_folders(plant, monkeypatch):
+    from PyQt6.QtGui import QDesktopServices
+    opened = []
+    monkeypatch.setattr(QDesktopServices, "openUrl", staticmethod(lambda url: opened.append(url.toLocalFile()) or True))
+    plant.open_folder(plant.data_folder())
+    plant.open_folder(plant.install_folder())
+    assert opened[0] == str(config.STATE_DIR) and opened[1] == str(plant.install_folder())
+    assert plant.install_folder().exists() and (plant.install_folder() / "pyproject.toml").exists()   # aus dem Quellcode: Projektordner
+    monkeypatch.setattr(QDesktopServices, "openUrl", staticmethod(lambda url: False))
+    plant.open_folder(config.STATE_DIR)
+    assert plant.confirm_win.isVisible() and "Ordner" in plant.confirm_win.title
+    plant.confirm_win.hide()
+    plant.open_folder(config.STATE_DIR / "gibt-es-nicht")
+    assert plant.confirm_win.isVisible()
