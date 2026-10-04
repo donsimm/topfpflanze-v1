@@ -11,10 +11,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - {os: windows-latest, name: windows}
-          - {os: macos-latest, name: macos-arm}      # Apple Silicon (M1 und neuer)
-          - {os: macos-15-intel, name: macos-intel}  # Intel-Macs (ältere Modelle)
-          - {os: ubuntu-latest, name: linux}
+          - {os: windows-latest, name: windows, icon: topfpflanze.ico}
+          - {os: macos-latest, name: macos-arm, icon: topfpflanze.icns}      # Apple Silicon (M1 und neuer)
+          - {os: macos-15-intel, name: macos-intel, icon: topfpflanze.icns}  # Intel-Macs (ältere Modelle)
+          - {os: ubuntu-latest, name: linux, icon: topfpflanze.png}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
             pip install evdev || echo "evdev nicht verfügbar, Tastaturzählung nur über pynput"
           fi
       - name: Build
-        run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src --collect-data topfpflanze src/topfpflanze/__main__.py
+        run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src --collect-data topfpflanze --icon src/topfpflanze/icons/${{ matrix.icon }} src/topfpflanze/__main__.py
       - name: Packen
         shell: bash
         run: |

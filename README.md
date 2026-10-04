@@ -89,6 +89,7 @@ englischen Eintrag ergänzen, sonst schlägt der Test fehl.
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
 | `diary.py` | Tagebuch: Kalender (Wärmekarte), Textfenster mit Stimmungs-Herzen, `diary.json` im Datenordner |
+| `icons/` | Programmsymbol (Wiesenblume): PNG, ICO (Windows), ICNS (macOS) |
 | `backup.py` | Spieldaten exportieren und importieren (ZIP mit Spielstand, Tagebuch, eigenen Wörtern) und das Rückfragefenster |
 | `spell.py`, `dictionaries/` | Rechtschreibprüfung im Tagebuch (Hunspell über spylls, Wörterbücher de_CH, en_US, fr_FR, it_IT; Lizenzen in `dictionaries/NOTICE.md`) |
 | `i18n.py`, `lang/` | Mehrsprachigkeit: `tr()`, Sprachwahl, Übersetzungen |

@@ -26,7 +26,7 @@ topfpflanze = "topfpflanze.app:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-topfpflanze = ["dictionaries/*/*"]
+topfpflanze = ["dictionaries/*/*", "icons/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

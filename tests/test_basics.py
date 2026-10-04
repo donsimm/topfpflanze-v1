@@ -1898,3 +1898,24 @@ def test_ruled_lines_follow_the_text_when_scrolled_and_with_a_title(plant):
         bar.setValue(pos)
         assert not w.grab().isNull()
     w.hide()
+
+
+def test_program_icon_is_the_meadow_flower_in_all_formats():
+    import pathlib
+    from PyQt6.QtGui import QImage
+    root = pathlib.Path(__file__).parent.parent
+    icons = root / "src" / "topfpflanze" / "icons"
+    png = QImage(str(icons / "topfpflanze.png"))
+    assert (png.width(), png.height()) == (512, 512) and png.hasAlphaChannel()
+    assert png.pixelColor(256, 256).alpha() > 0 and png.pixelColor(2, 2).alpha() == 0          # Motiv in der Mitte, Rand durchsichtig
+    px = [png.pixelColor(x, y) for x in range(120, 400, 4) for y in range(40, 200, 4)]
+    assert any(c.alpha() > 200 and c.red() > 200 and c.green() < 120 for c in px)              # rote Blüte oben (Wiesenblume)
+    assert (icons / "topfpflanze.ico").read_bytes()[:4] == b"\x00\x00\x01\x00"                 # ICO-Kopf
+    assert (icons / "topfpflanze.icns").read_bytes()[:4] == b"icns"                            # ICNS-Kopf
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    for name in ("topfpflanze.ico", "topfpflanze.icns", "topfpflanze.png", "--icon"):
+        assert name in workflow
+    assert "icons/topfpflanze.png" in (root / "scripts" / "install-linux.sh").read_text(encoding="utf-8")
+    assert "icons/*" in (root / "pyproject.toml").read_text(encoding="utf-8")
+    from topfpflanze import app
+    assert app.ICON_FILE == icons / "topfpflanze.png" and app.ICON_FILE.exists()

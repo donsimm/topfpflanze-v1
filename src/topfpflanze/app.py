@@ -69,11 +69,16 @@ import argparse
 import os
 import signal
 import sys
+from pathlib import Path
 from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
 from . import config, i18n
 from .config import APP_NAME
+
+
+ICON_FILE = Path(__file__).parent / "icons" / "topfpflanze.png"
 
 
 def parse_args(argv=None):
@@ -102,6 +107,8 @@ def main(argv=None):
         print(f"Debug-Modus, Spielstand: {config.STATE_FILE}", flush=True)
     app = QApplication([sys.argv[0]] + qt_args)
     app.setApplicationName(APP_NAME)
+    app.setDesktopFileName("topfpflanze")      # Linux: Programmmenü-Eintrag (topfpflanze.desktop) und Symbol zuordnen
+    app.setWindowIcon(QIcon(str(ICON_FILE)))   # Symbol der Wiesenblume für Taskleiste, Dock und Fenster
     # Tool-Fenster zählen nicht als Hauptfenster: ohne diese Zeile würde das
     # Schliessen eines Dialogs die Anwendung beenden.
     app.setQuitOnLastWindowClosed(False)

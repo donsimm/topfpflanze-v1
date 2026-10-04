@@ -16,7 +16,7 @@ APPS="$HOME/.local/share/applications"
 ICONS="$HOME/.local/share/icons"
 mkdir -p "$BIN" "$APPS" "$ICONS"
 
-cp "$DIR/assets/topfpflanze.png" "$ICONS/topfpflanze.png"
+cp "$DIR/src/topfpflanze/icons/topfpflanze.png" "$ICONS/topfpflanze.png"
 
 # Startskript: löst sich vom Terminal, schreibt Meldungen in eine Logdatei
 cat > "$BIN/topfpflanze" <<LAUNCH
