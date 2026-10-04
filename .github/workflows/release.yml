@@ -26,6 +26,8 @@ jobs:
       - name: Installieren
         shell: bash
         run: |
+          # Intel-Macs gehen bis macOS 12 (Monterey): Qt 6.10 und neuer braucht macOS 13, Qt 6.8 (LTS) läuft ab macOS 12
+          if [ "${{ matrix.name }}" = macos-intel ]; then pip install "PyQt6==6.8.1" "PyQt6-Qt6==6.8.2"; fi
           pip install -e ".[dev]"
           if [ "${{ matrix.name }}" = linux ]; then
             pip install pynput
