@@ -53,6 +53,20 @@ Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer,
 Besucher erscheinen lassen, Fokus-Timer (1 Minute), Tastendrücke/Klicks für Erfolge, Tages-/Wochenerfolge zurücksetzen,
 alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 
+## Tagebuch
+
+Das Tagebuch-Symbol in der Sprechblase öffnet das Textfenster des heutigen Tags (die erste Zeile ist der Titel). Der Text wird von selbst
+gespeichert, dazu eine von sechs Stimmungen (Herzen). Ein Klick auf das Datum oben blendet den Kalender ein (Wärmekarte: grüner Punkt = Eintrag,
+dunkler = mehr Text). Die Rechtschreibung wird offline mit Hunspell geprüft (Sprache unter dem Blatt wählbar; Rechtsklick auf ein
+markiertes Wort zeigt Vorschläge). Das Textfenster bleibt im Fokusmodus sichtbar. Die Einträge liegen in `diary.json` im Datenordner.
+
+## Spieldaten sichern
+
+Rechtsklick → **Spieldaten**: *Exportieren* speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als
+lesbare Textdatei `tagebuch.txt`), *Importieren* ersetzt den jetzigen Stand durch eine Sicherung (vorher wird der jetzige Stand in `backups/`
+gesichert, danach startet das Spiel neu), *Datenordner öffnen* und *Programmordner öffnen* zeigen die Ordner, *Alle Spieldaten zurücksetzen*
+beginnt von vorn (ebenfalls mit Sicherung vorher).
+
 ## Grösse der Oberfläche
 
 Rechtsklick → Einstellungen → zwei getrennte Regler (50 bis 200 %, «100 %» setzt zurück):
@@ -101,8 +115,25 @@ englischen Eintrag ergänzen, sonst schlägt der Test fehl.
 
 Neue Pflanze: Eintrag in `data.py` (`PLANT_TYPES`, `PLANT_ORDER`, ggf. `POTS`) und eine `draw_<key>`-Methode in `plant_draw.py`.
 
+## Stand der Tests
+
+| System | Stand |
+|---|---|
+| Linux (Ubuntu, X11) | läuft, im Alltag getestet |
+| Windows 10 und 11 | getestet (Version 0.1.0) |
+| macOS Intel, macOS 12.7 (Monterey) | läuft (Bau mit Qt 6.8, das macOS 12 unterstützt; Qt 6.10 und neuer braucht macOS 13) |
+| macOS Apple Silicon | noch nicht getestet; die frühere Version stürzte wegen falsch gepackter App ab, die Packung ist korrigiert |
+
+Die Builds sind nicht signiert: Windows SmartScreen und macOS Gatekeeper fragen beim ersten Start nach.
+
 ## Offene Punkte / Roadmap
 
-- Auf echten Windows-/macOS-Systemen testen (bisher nur unter Linux offscreen geprüft).
-- Autostart, Tray-Symbol, Signierung/Notarisierung der Builds.
-- Mehrsprachigkeit (derzeit nur Deutsch/Schweizer Schreibweise).
+- **Grafik:** Die Bilder sind vorläufig KI-generiert und sollen durch richtige Zeichnungen ersetzt werden (Zeichner und Illustratoren gesucht).
+- **Sound:** Die Klänge sind selbst erzeugt und sollen in der finalen Version von Menschen gemacht sein.
+- **macOS Apple Silicon** testen; Windows und macOS mit der aktuellen Version nochmals prüfen.
+- **Autostart** für Windows und macOS (unter Linux gibt es das Skript `scripts/install-linux.sh --autostart`), **Tray-Symbol**, **Signierung/Notarisierung** der Builds.
+- **Sprachen:** Die englischen, französischen und italienischen Texte sind nicht von Muttersprachlern geprüft; weitere Sprachen sind möglich (siehe «Sprachen»).
+- **Tagebuch:** Stimmung im Kalender anzeigen; Import kann Tagebücher mehrerer Geräte nicht zusammenführen (er ersetzt alles); der Discord-Link im Reiter «Version» ist nicht anklickbar.
+- **Lizenz:** Für den Programmcode ist noch keine Lizenz festgelegt (die Wörterbücher unter `src/topfpflanze/dictionaries/` haben eigene Lizenzen, siehe `NOTICE.md`).
+
+Fragen oder Anregungen: [Discord](https://discord.gg/Gkmkum2G8G)
