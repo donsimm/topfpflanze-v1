@@ -116,7 +116,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "helpers_legacy": None, "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_DEFAULT, "pot_offer": {},
-                "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto"}
+                "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto", "diary_spell": "auto"}
 
     def load_state(self):
         state = self.default_state()

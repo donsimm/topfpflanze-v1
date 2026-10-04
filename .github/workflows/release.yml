@@ -32,7 +32,7 @@ jobs:
             pip install evdev || echo "evdev nicht verfügbar, Tastaturzählung nur über pynput"
           fi
       - name: Build
-        run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src src/topfpflanze/__main__.py
+        run: pyinstaller --noconfirm --windowed --name Topfpflanze --paths src --collect-data topfpflanze src/topfpflanze/__main__.py
       - name: Packen
         shell: bash
         run: |

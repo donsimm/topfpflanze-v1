@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "PyQt6>=6.5",
+    "spylls>=0.1.7",                      # Rechtschreibprüfung (Hunspell in Python)
     "pynput>=1.7; sys_platform != 'linux'",
 ]
 
@@ -23,6 +24,9 @@ topfpflanze = "topfpflanze.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+topfpflanze = ["dictionaries/*/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

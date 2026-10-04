@@ -89,6 +89,7 @@ englischen Eintrag ergänzen, sonst schlägt der Test fehl.
 | `drawing.py`, `theme.py`, `util.py` | Symbole, Farbschemata, Hilfsfunktionen |
 | `keys.py` | Tastaturzählung (nur Anzahl) |
 | `diary.py` | Tagebuch: Kalender (Wärmekarte), Textfenster mit Stimmungs-Herzen, `diary.json` im Datenordner |
+| `spell.py`, `dictionaries/` | Rechtschreibprüfung im Tagebuch (Hunspell über spylls, Wörterbücher de_CH, en_US, fr_FR, it_IT; Lizenzen in `dictionaries/NOTICE.md`) |
 | `i18n.py`, `lang/` | Mehrsprachigkeit: `tr()`, Sprachwahl, Übersetzungen |
 | `sound.py` | Ton: Giesssound und Gong (selbst erzeugt), Lautstärke |
 | `sow.py`, `pots.py` | Dialog «Einlagern & neu aussäen», zufällige Topf-Varianten (Skins) |

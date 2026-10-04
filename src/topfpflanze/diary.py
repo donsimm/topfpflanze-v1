@@ -12,12 +12,13 @@ import os
 import time
 
 from PyQt6.QtCore import QDate, QLocale, QPointF, QRectF, QTimer, Qt
-from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
-from PyQt6.QtWidgets import QPlainTextEdit
+from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QSyntaxHighlighter, QTextCharFormat, QTextCursor
+from PyQt6.QtWidgets import QApplication, QMenu, QPlainTextEdit
 
 from . import config, i18n
 from .i18n import tr
 from .panels import Panel
+from .spell import DICTIONARIES, LANGUAGE_NAMES, WORD_RE, SpellChecker
 from .theme import T, _THEME
 
 MOODS = (("#5B7FC4", tr("schwer")), ("#8E8E9A", tr("müde")), ("#F2C230", tr("ruhig")),
@@ -170,9 +171,43 @@ def paper_color():
     return QColor(PAPER_DIM if _THEME["dark"] else PAPER_LIGHT)
 
 
+class SpellHighlighter(QSyntaxHighlighter):
+    """Unterstreicht falsch geschriebene Wörter rot (Wellenlinie); das Wort, in dem der Cursor steht, bleibt unmarkiert."""
+
+    def __init__(self, document, win):
+        super().__init__(document)
+        self.win = win
+        self.fmt = QTextCharFormat()
+        self.fmt.setUnderlineStyle(QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+        self.fmt.setUnderlineColor(QColor("#D64541"))
+
+    def highlightBlock(self, text):
+        lang = self.win.spell_lang()
+        spell = self.win.spell
+        if not lang or not spell.ready(lang):
+            return
+        editor = self.win.editor
+        cursor = editor.textCursor()
+        typing = editor.hasFocus() and self.currentBlock().blockNumber() == cursor.blockNumber()
+        pos = cursor.positionInBlock()
+        for m in WORD_RE.finditer(text):
+            if typing and m.start() <= pos <= m.end():
+                continue
+            if not spell.check(lang, m.group()):
+                self.setFormat(m.start(), m.end() - m.start(), self.fmt)
+
+
 class PaperEdit(QPlainTextEdit):
     """Textfeld auf liniertem Papier: durchsichtig; die Linien liegen genau unter den Textzeilen (auch bei
     Zeilenumbrüchen und leeren Zeilen) und setzen sich darunter in gleichem Abstand fort."""
+
+    owner = None   # das Textfenster (baut das Kontextmenü mit Rechtschreib-Vorschlägen)
+
+    def contextMenuEvent(self, e):
+        if self.owner is not None:
+            self.owner.show_editor_menu(e)
+        else:
+            super().contextMenuEvent(e)
 
     def paintEvent(self, e):
         p = QPainter(self.viewport())
@@ -220,6 +255,15 @@ class DiaryTextWin(Panel):
         self.editor.setFrameShape(QPlainTextEdit.Shape.NoFrame)
         self.editor.setPlaceholderText(tr("Schreibe hier deine Gedanken …"))
         self.editor.textChanged.connect(self._changed)
+        self.editor.owner = self
+        self.spell = SpellChecker()
+        self.spell.loaded.connect(self._spell_loaded)
+        self.highlighter = SpellHighlighter(self.editor.document(), self)
+        self.recheck = QTimer(self)             # nach Cursorbewegungen das Wort unter dem Cursor neu bewerten
+        self.recheck.setSingleShot(True)
+        self.recheck.setInterval(250)
+        self.recheck.timeout.connect(self.highlighter.rehighlight)
+        self.editor.cursorPositionChanged.connect(self.recheck.start)
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(SAVE_DELAY_MS)
@@ -261,6 +305,102 @@ class DiaryTextWin(Panel):
             " selection-background-color: #9CCF9C; selection-color: #1E1E1E; }")
         self.editor.viewport().setAutoFillBackground(False)
 
+    # ---------- Rechtschreibung ----------
+
+    def spell_lang(self):
+        """Sprache der Rechtschreibprüfung (None = aus): «auto» folgt der Sprache des Spiels."""
+        choice = self.plant.state.get("diary_spell", "auto")
+        if choice == "off":
+            return None
+        lang = i18n.language() if choice == "auto" else choice
+        return lang if lang in DICTIONARIES else None
+
+    def apply_spell(self):
+        lang = self.spell_lang()
+        if lang:
+            self.spell.ensure(lang)
+        self.highlighter.rehighlight()
+        self.update()
+
+    def _spell_loaded(self, _lang):
+        self.highlighter.rehighlight()
+        self.update()
+
+    def spell_label(self):
+        lang = self.spell_lang()
+        if lang is None:
+            return tr("Rechtschreibung: aus")
+        if not self.spell.available(lang):
+            return tr("Rechtschreibung: nicht verfügbar")
+        name = LANGUAGE_NAMES[lang]
+        return tr("Rechtschreibung: {lang}", lang=name) if self.spell.ready(lang) else \
+            tr("Rechtschreibung: {lang} (lädt …)", lang=name)
+
+    def spell_rect(self):
+        return QRectF(self.PAPER.left() + 32, self.PAPER.bottom() - 18, 230, 16)
+
+    def choose_spell(self):
+        """Menü unter der Fusszeile: Aus, Automatisch (Sprache des Spiels) oder eine bestimmte Sprache."""
+        menu = QMenu(self)
+        current = self.plant.state.get("diary_spell", "auto")
+        entries = [("off", tr("Aus")), ("auto", tr("Automatisch (Sprache des Spiels)"))] + list(LANGUAGE_NAMES.items())
+        for value, name in entries:
+            a = menu.addAction(name)
+            a.setCheckable(True)
+            a.setChecked(value == current)
+            a.triggered.connect(lambda _=False, v=value: self.set_spell(v))
+        r = self.spell_rect()
+        menu.exec(self.mapToGlobal(QPointF(r.left() * self._k, r.bottom() * self._k).toPoint()))
+
+    def set_spell(self, value):
+        self.plant.state["diary_spell"] = value
+        self.apply_spell()
+        self.plant.save_state()
+
+    def show_editor_menu(self, e):
+        """Kontextmenü des Textfelds: bei einem falsch geschriebenen Wort zuerst die Vorschläge."""
+        ed = self.editor
+        cursor = ed.cursorForPosition(e.pos())
+        cursor.select(QTextCursor.SelectionType.WordUnderCursor)
+        word = cursor.selectedText()
+        lang = self.spell_lang()
+        menu = QMenu(ed)
+        if lang and self.spell.ready(lang) and word and WORD_RE.fullmatch(word) and not self.spell.check(lang, word):
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            try:
+                suggestions = self.spell.suggest(lang, word)
+            finally:
+                QApplication.restoreOverrideCursor()
+            for sug in suggestions:
+                a = menu.addAction(sug)
+                f = a.font()
+                f.setBold(True)
+                a.setFont(f)
+                a.triggered.connect(lambda _=False, s=sug, c=QTextCursor(cursor): c.insertText(s))
+            if not suggestions:
+                menu.addAction(tr("Keine Vorschläge")).setEnabled(False)
+            menu.addSeparator()
+            menu.addAction(tr("Zum Wörterbuch hinzufügen")).triggered.connect(lambda: self._learn(word, True))
+            menu.addAction(tr("Ignorieren")).triggered.connect(lambda: self._learn(word, False))
+            menu.addSeparator()
+        has_sel = ed.textCursor().hasSelection()
+        for text, slot, enabled in ((tr("Rückgängig"), ed.undo, ed.document().isUndoAvailable()),
+                                    (tr("Wiederholen"), ed.redo, ed.document().isRedoAvailable()),
+                                    (None, None, True),
+                                    (tr("Ausschneiden"), ed.cut, has_sel), (tr("Kopieren"), ed.copy, has_sel),
+                                    (tr("Einfügen"), ed.paste, ed.canPaste()), (tr("Alles auswählen"), ed.selectAll, True)):
+            if text is None:
+                menu.addSeparator()
+                continue
+            a = menu.addAction(text)
+            a.setEnabled(enabled)
+            a.triggered.connect(lambda _=False, f=slot: f())
+        menu.exec(e.globalPos())
+
+    def _learn(self, word, permanent):
+        self.spell.add_word(word) if permanent else self.spell.ignore(word)
+        self.highlighter.rehighlight()
+
     # ---------- Inhalt ----------
 
     def open_date(self, day):
@@ -273,6 +413,7 @@ class DiaryTextWin(Panel):
         self.editor.blockSignals(False)
         self.mood = store.mood(day)
         self.dirty = False
+        self.apply_spell()
         if not self.isVisible():
             self.show()
         self.raise_()
@@ -308,10 +449,12 @@ class DiaryTextWin(Panel):
         return [QRectF(14 + i * 70, 466, 62, 50) for i in range(len(MOODS))]
 
     def items(self):
-        return [(("m", i), r, True) for i, r in enumerate(self.mood_rects())]
+        return [(("m", i), r, True) for i, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True)]
 
     def on_click(self, key):
-        if key[0] == "m":
+        if key == "spell":
+            self.choose_spell()
+        elif key[0] == "m":
             self.mood = None if self.mood == key[1] else key[1]   # nochmal klicken: Stimmung entfernen
             self.dirty = True
             self.flush()
@@ -341,6 +484,10 @@ class DiaryTextWin(Panel):
                    tr("{n} Zeichen", n=len(self.editor.toPlainText())))
         p.setPen(QPen(T("sep"), 1))
         p.drawLine(QPointF(12, 436), QPointF(self.W - 12, 436))
+        p.setFont(self.font_px(base, 10))
+        p.setPen(QColor(PAPER_TEXT) if self.hover == "spell" else QColor(PAPER_MUTED))
+        sr = self.spell_rect()
+        p.drawText(sr, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.spell_label())
         p.setFont(self.font_px(base, 11, True))
         p.setPen(T("text2"))
         p.drawText(QRectF(14, 440, 150, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, tr("Stimmung"))

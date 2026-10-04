@@ -51,6 +51,7 @@ def plant(tmp_path, monkeypatch):
     from topfpflanze.plant import Plant
     app = QApplication.instance() or QApplication([])
     p = Plant()
+    p.state["diary_spell"] = "off"   # die Rechtschreibprüfung wird nur in den eigenen Tests geladen
     p.show()
     app.processEvents()
     yield p
@@ -1494,3 +1495,62 @@ def test_diary_text_scales_with_the_menu_slider(plant, scale_reset):
     plant.set_ui_scale(1.5, "menu")
     assert plant.diary_text.editor.geometry().width() > base
     assert plant.diary_text.editor.font().pixelSize() == round(plant.diary_text.EDIT_PX * plant.diary_text._k)
+
+
+# ---------------------------------------------------------------- Rechtschreibung
+
+def test_spell_checker_english_words_suggestions_and_personal_dictionary(plant):
+    from topfpflanze import spell
+    sc = spell.SpellChecker()
+    assert sc.load_now("en") and sc.ready("en") and sc.check("en", "garden")
+    assert not sc.check("en", "gardn") and sc.check("en", "NASA") and sc.check("en", "a")      # Kürzel und 1 Buchstabe nie falsch
+    assert "receive" in sc.suggest("en", "recieve")
+    assert not sc.check("en", "Roggwil")
+    sc.add_word("Roggwil")
+    assert sc.check("en", "Roggwil") and "Roggwil" in (config.STATE_DIR / "diary_words.txt").read_text(encoding="utf-8")
+    assert "Roggwil" in spell.SpellChecker().personal                                          # bleibt nach einem Neustart
+    sc.ignore("gardn")
+    assert sc.check("en", "gardn")
+    assert not sc.load_now("xx") and sc.check("xx", "irgendwas")                               # unbekannte Sprache: nichts markieren
+
+
+def test_spell_checker_swiss_german_and_apostrophes(plant):
+    from topfpflanze import spell
+    sc = spell.SpellChecker()
+    assert sc.load_now("de")
+    assert sc.check("de", "Strasse") and not sc.check("de", "Straße")                          # Schweizer Rechtschreibung: ss
+    assert sc.check("de", "Wiesenblume") and not sc.check("de", "lkjsdfkljsdflkj")
+    assert sc.check("de", "Rad-Weg") and sc.check("de", "geht's")
+    assert not sc.check("de", "gemütszustandd")
+    assert sc.load_now("fr") and sc.check("fr", "l'amour") and not sc.check("fr", "bonjuor")
+    assert sc.load_now("it") and sc.check("it", "dell'arte") and not sc.check("it", "ciaoo")
+
+
+def test_diary_underlines_misspelled_words_but_not_the_word_being_typed(plant):
+    w = plant.diary_text
+    plant.state["diary_spell"] = "en"
+    w.spell.load_now("en")
+    w.open_date(__import__("datetime").date(2026, 10, 4))
+    w.editor.setPlainText("The gardn is nice and gardn")
+    w.highlighter.rehighlight()
+    block = w.editor.document().firstBlock()
+    marked = {f.start for f in block.layout().formats()}
+    assert {4, 22} <= marked and 0 not in marked                                           # beide «gardn», nicht «The»
+    assert w.spell_label() == "Rechtschreibung: English"
+    plant.state["diary_spell"] = "off"
+    w.apply_spell()
+    assert not block.layout().formats() and w.spell_label() == "Rechtschreibung: aus"
+    plant.state["diary_spell"] = "auto"
+    assert w.spell_lang() == "de"                                                           # folgt der Sprache des Spiels
+    assert not w.grab().isNull()
+
+
+def test_dictionaries_ship_with_the_program_and_notice_lists_licences():
+    import pathlib
+    from topfpflanze import spell
+    for name in spell.DICTIONARIES.values():
+        assert (spell.DICT_DIR / name / f"{name}.dic").exists() and (spell.DICT_DIR / name / f"{name}.aff").exists()
+    notice = (spell.DICT_DIR / "NOTICE.md").read_text(encoding="utf-8")
+    assert "GPL" in notice and "MPL" in notice and "SCOWL" in notice
+    pyproject = (pathlib.Path(__file__).parent.parent / "pyproject.toml").read_text(encoding="utf-8")
+    assert "spylls" in pyproject and "dictionaries" in pyproject
