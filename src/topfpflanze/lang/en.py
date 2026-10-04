@@ -1204,4 +1204,8 @@ STRINGS = {
         "Program icon: the meadow flower (Windows, macOS, Linux; in the program menu, the taskbar and the dock).",
     "macOS: Die App ist korrigiert verpackt und startet wieder; die Intel-Version läuft ab macOS 12 (Monterey).":
         "macOS: the app is packaged correctly and starts again; the Intel version runs on macOS 12 (Monterey) and newer.",
+    "Lizenz: Freie Software unter der GNU General Public License, Version 3 oder später (GPL-3.0-or-later). Lizenzen der verwendeten Bibliotheken und Wörterbücher: siehe THIRD_PARTY_NOTICES.md im Quellcode.":
+        "Licence: free software under the GNU General Public License, version 3 or later (GPL-3.0-or-later). Licences of the libraries and dictionaries used: see THIRD_PARTY_NOTICES.md in the source code.",
+    "Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei.":
+        "Info window, «Version» tab: note on the licence (GPL 3 or later); the licence texts are included with the program.",
 }

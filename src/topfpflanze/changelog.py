@@ -10,6 +10,9 @@ from .i18n import tr
 
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
+    ("Unveröffentlicht", None, [
+        tr("Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei."),
+    ]),
     ("0.3.0", "04.10.2026", [
         tr("Info-Fenster, Reiter «Version»: Beschreibung des Projekts mit Hinweisen zu KI-generiertem Code, Grafik und Sound sowie Discord-Link."),
         tr("Programmsymbol: die Wiesenblume (Windows, macOS, Linux; im Programmmenü, in der Taskleiste und im Dock)."),

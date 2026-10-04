@@ -1202,4 +1202,8 @@ STRINGS = {
         "Icona del programma: il fiore di prato (Windows, macOS, Linux; nel menu dei programmi, nella barra delle applicazioni e nel Dock).",
     "macOS: Die App ist korrigiert verpackt und startet wieder; die Intel-Version läuft ab macOS 12 (Monterey).":
         "macOS: l'app è impacchettata correttamente e si avvia di nuovo; la versione Intel funziona da macOS 12 (Monterey) in poi.",
+    "Lizenz: Freie Software unter der GNU General Public License, Version 3 oder später (GPL-3.0-or-later). Lizenzen der verwendeten Bibliotheken und Wörterbücher: siehe THIRD_PARTY_NOTICES.md im Quellcode.":
+        "Licenza: software libero sotto la GNU General Public License, versione 3 o successiva (GPL-3.0-or-later). Licenze delle librerie e dei dizionari usati: vedi THIRD_PARTY_NOTICES.md nel codice sorgente.",
+    "Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei.":
+        "Finestra info, scheda «Version»: nota sulla licenza (GPL 3 o successiva); i testi delle licenze sono inclusi nel programma.",
 }

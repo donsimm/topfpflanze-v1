@@ -131,6 +131,7 @@ def version_blocks(plant):
            ("p", tr("Das Projekt ist Vibecoding. Das bezeichnet eine Art der Softwareentwicklung, bei der nahezu ausschliesslich über den Prompt eines Sprachmodells gearbeitet wird, um den für die Software erforderlichen Quellcode zu erzeugen. Der Code ist also zu 100 % KI-generiert.")),
            ("p", tr("Für den Moment, als Platzhalter, ist auch die Grafik KI-generiert, da ich leider nicht zeichnen kann! Sie wird so schnell wie möglich ausgetauscht!")),
            ("p", tr("Bei Fragen oder Anregungen: Discord: https://discord.gg/Gkmkum2G8G")),
+           ("p", tr("Lizenz: Freie Software unter der GNU General Public License, Version 3 oder später (GPL-3.0-or-later). Lizenzen der verwendeten Bibliotheken und Wörterbücher: siehe THIRD_PARTY_NOTICES.md im Quellcode.")),
            ("h", tr("Programmangaben")),
            ("p", tr("System: {system} {release}", system=platform.system(), release=platform.release())),
            ("p", f"Python {platform.python_version()} · Qt {QT_VERSION_STR} · PyQt {PYQT_VERSION_STR}"),
