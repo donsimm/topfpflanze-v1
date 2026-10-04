@@ -1534,12 +1534,17 @@ def test_diary_underlines_misspelled_words_but_not_the_word_being_typed(plant):
     w.editor.setPlainText("The gardn is nice and gardn")
     w.highlighter.rehighlight()
     block = w.editor.document().firstBlock()
-    marked = {f.start for f in block.layout().formats()}
+    from PyQt6.QtGui import QTextCharFormat
+
+    def wavy(b):
+        return {f.start for f in b.layout().formats()
+                if f.format.underlineStyle() == QTextCharFormat.UnderlineStyle.SpellCheckUnderline}
+    marked = wavy(block)
     assert {4, 22} <= marked and 0 not in marked                                           # beide «gardn», nicht «The»
     assert w.spell_label() == "Rechtschreibung: English"
     plant.state["diary_spell"] = "off"
     w.apply_spell()
-    assert not block.layout().formats() and w.spell_label() == "Rechtschreibung: aus"
+    assert not wavy(block) and w.spell_label() == "Rechtschreibung: aus"
     plant.state["diary_spell"] = "auto"
     assert w.spell_lang() == "de"                                                           # folgt der Sprache des Spiels
     assert not w.grab().isNull()
@@ -1751,3 +1756,44 @@ def test_import_of_an_invalid_file_shows_a_message_and_changes_nothing(plant, tm
     assert plant.confirm_win.isVisible() and "gültige Sicherung" in plant.confirm_win.text and plant.confirm_win.cancel_label is None
     assert plant.state["coins"] == 42 and not getattr(plant, "_no_save", False)
     assert not plant.confirm_win.grab().isNull()
+
+
+def test_first_line_of_the_diary_is_a_bold_larger_title(plant):
+    import datetime
+    w = plant.diary_text
+    w.open_date(datetime.date(2026, 10, 4))
+    w.editor.setPlainText("Mein Titel\nDer normale Text darunter.")
+    w.highlighter.rehighlight()
+    w.grab()                                                          # Layout berechnen lassen
+    doc = w.editor.document()
+    first, second = doc.firstBlock(), doc.firstBlock().next()
+    f1 = first.layout().formats()
+    assert f1 and f1[0].format.fontWeight() >= 700
+    assert not second.layout().formats() or all(f.format.fontWeight() < 700 for f in second.layout().formats())
+    assert first.layout().lineAt(0).height() > second.layout().lineAt(0).height()          # Titelzeile ist höher
+    w.editor.setPlainText("")
+    w.editor.setPlainText("Neu")
+    assert doc.firstBlock().layout().formats()[0].format.fontWeight() >= 700               # auch beim Neuschreiben
+    w.hide()
+
+
+def test_formatting_changes_never_overwrite_a_days_entry(plant):
+    import datetime
+    from topfpflanze.diary import DiaryTextWin
+    today = datetime.date.today()
+    plant.diary.put(today, "Wichtiger Eintrag", 3)
+    win = DiaryTextWin(plant)                              # frisch gestartet: lädt den Eintrag von heute
+    assert win.editor.toPlainText() == "Wichtiger Eintrag" and win.mood == 3 and not win.dirty
+    win.highlighter.rehighlight()                          # Formatänderungen melden textChanged, sind aber keine Änderung
+    win.rescale()
+    plant.set_dark(True)
+    plant.set_dark(False)
+    assert not win.dirty
+    win.flush()
+    plant.save_state()
+    assert plant.diary.text(today) == "Wichtiger Eintrag" and plant.diary.mood(today) == 3
+    win.editor.setPlainText("Wichtiger Eintrag, ergänzt")
+    assert win.dirty
+    win.flush()
+    assert plant.diary.text(today) == "Wichtiger Eintrag, ergänzt"
+    win.hide()

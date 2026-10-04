@@ -12,7 +12,8 @@ import os
 import time
 
 from PyQt6.QtCore import QDate, QLocale, QPointF, QRectF, QTimer, Qt
-from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QSyntaxHighlighter, QTextCharFormat, QTextCursor
+from PyQt6.QtGui import (QColor, QFont, QPainter, QPainterPath, QPen, QSyntaxHighlighter, QTextCharFormat, QTextCursor,
+                         QTextFormat)
 from PyQt6.QtWidgets import QApplication, QMenu, QPlainTextEdit
 
 from . import config, i18n
@@ -175,17 +176,30 @@ def paper_color():
     return QColor(PAPER_DIM if _THEME["dark"] else PAPER_LIGHT)
 
 
+TITLE_SCALE = 1.3            # die erste Zeile des Textes ist der Titel: grösser und fett
+
+
 class SpellHighlighter(QSyntaxHighlighter):
-    """Unterstreicht falsch geschriebene Wörter rot (Wellenlinie); das Wort, in dem der Cursor steht, bleibt unmarkiert."""
+    """Gestaltet die erste Zeile als Titel (fett, grösser) und unterstreicht falsch geschriebene Wörter rot
+    (Wellenlinie); das Wort, in dem der Cursor steht, bleibt unmarkiert."""
 
     def __init__(self, document, win):
         super().__init__(document)
         self.win = win
-        self.fmt = QTextCharFormat()
-        self.fmt.setUnderlineStyle(QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
-        self.fmt.setUnderlineColor(QColor("#D64541"))
+
+    def title_format(self):
+        fmt = QTextCharFormat()
+        fmt.setFontWeight(QFont.Weight.Bold)
+        px = self.win.editor.font().pixelSize()
+        if px > 0:
+            fmt.setProperty(QTextFormat.Property.FontPixelSize, int(round(px * TITLE_SCALE)))
+        return fmt
 
     def highlightBlock(self, text):
+        title = self.currentBlock().blockNumber() == 0
+        base = self.title_format() if title else QTextCharFormat()
+        if title and text:
+            self.setFormat(0, len(text), base)
         lang = self.win.spell_lang()
         spell = self.win.spell
         if not lang or not spell.ready(lang):
@@ -194,11 +208,14 @@ class SpellHighlighter(QSyntaxHighlighter):
         cursor = editor.textCursor()
         typing = editor.hasFocus() and self.currentBlock().blockNumber() == cursor.blockNumber()
         pos = cursor.positionInBlock()
+        wavy = QTextCharFormat(base)
+        wavy.setUnderlineStyle(QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+        wavy.setUnderlineColor(QColor("#D64541"))
         for m in WORD_RE.finditer(text):
             if typing and m.start() <= pos <= m.end():
                 continue
             if not spell.check(lang, m.group()):
-                self.setFormat(m.start(), m.end() - m.start(), self.fmt)
+                self.setFormat(m.start(), m.end() - m.start(), wavy)
 
 
 class PaperEdit(QPlainTextEdit):
@@ -254,6 +271,7 @@ class DiaryTextWin(Panel):
         self.date = datetime.date.today()
         self.mood = None
         self.dirty = False
+        self._loaded = ""
         self._theme = None
         self._resizing = None
         size = plant.state.get("diary_text_size")
@@ -278,6 +296,7 @@ class DiaryTextWin(Panel):
         self.timer.setInterval(SAVE_DELAY_MS)
         self.timer.timeout.connect(self.flush)
         self._layout_editor()
+        self._load_day(self.date)           # das Textfeld gehört von Anfang an zu einem Tag (heute)
 
     def place_window(self):
         pos = self.plant.state.get(self.pos_key)
@@ -316,6 +335,8 @@ class DiaryTextWin(Panel):
         font.setPixelSize(max(8, int(round(self.EDIT_PX * k))))
         self.editor.setFont(font)
         self._style_editor()
+        if hasattr(self, "highlighter"):
+            self.highlighter.rehighlight()      # Titelgrösse folgt der Schriftgrösse
 
     def _style_editor(self):
         if self._k == self._theme:
@@ -428,12 +449,7 @@ class DiaryTextWin(Panel):
         """Zeigt den Eintrag des Tages (der bisherige wird vorher gespeichert) und setzt den Cursor ins Textfeld."""
         self.flush()
         self.date = day
-        store = self.plant.diary
-        self.editor.blockSignals(True)
-        self.editor.setPlainText(store.text(day))
-        self.editor.blockSignals(False)
-        self.mood = store.mood(day)
-        self.dirty = False
+        self._load_day(day)
         self.apply_spell()
         if not self.isVisible():
             self.show()
@@ -443,7 +459,22 @@ class DiaryTextWin(Panel):
         self.update()
         self.plant.diary_win.update()
 
+    def _load_day(self, day):
+        """Lädt den Eintrag des Tages ins Textfeld, ohne dass das als Änderung zählt."""
+        store = self.plant.diary
+        self._loaded = store.text(day)
+        self.editor.blockSignals(True)
+        self.editor.setPlainText(self._loaded)
+        self.editor.blockSignals(False)
+        self.mood = store.mood(day)
+        self.dirty = False
+        self.highlighter.rehighlight()
+
     def _changed(self):
+        # Auch reine Formatänderungen (Rechtschreib-Unterstreichung, Titelschrift) melden textChanged:
+        # nur ein tatsächlich anderer Text zählt als Änderung, sonst würde ein ungeladener Tag überschrieben
+        if self.editor.toPlainText() == self._loaded:
+            return
         self.dirty = True
         self.timer.start()
         self.update()
@@ -454,7 +485,8 @@ class DiaryTextWin(Panel):
         if not self.dirty:
             return
         self.dirty = False
-        self.plant.diary.put(self.date, self.editor.toPlainText(), self.mood)
+        self._loaded = self.editor.toPlainText()
+        self.plant.diary.put(self.date, self._loaded, self.mood)
         self.update()
         win = getattr(self.plant, "diary_win", None)
         if win is not None:
