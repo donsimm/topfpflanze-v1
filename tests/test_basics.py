@@ -1920,3 +1920,16 @@ def test_program_icon_is_the_meadow_flower_in_all_formats():
     assert "icons/*" in (root / "pyproject.toml").read_text(encoding="utf-8")
     from topfpflanze import app
     assert app.ICON_FILE == icons / "topfpflanze.png" and app.ICON_FILE.exists()
+
+
+def test_license_files_are_present_and_packaged():
+    """GPL-Text im Projekt und im Paket; jedes Wörterbuch bringt seinen Lizenztext oder Hinweis mit."""
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parent.parent
+    pkg = root / "src" / "topfpflanze"
+    assert "GNU GENERAL PUBLIC LICENSE" in (root / "LICENSE").read_text()
+    assert (root / "LICENSE").read_text() == (pkg / "licenses" / "GPL-3.0.txt").read_text()
+    assert "Mozilla Public License" in (pkg / "licenses" / "MPL-2.0.txt").read_text()
+    for code, f in (("de_CH", "COPYING_GPLv3"), ("en_US", "README_en_US.txt"), ("fr_FR", "LICENSE-MPL-2.0.txt"), ("it_IT", "README-it.txt")):
+        assert (pkg / "dictionaries" / code / f).is_file(), code
+    assert "licenses/*" in (root / "pyproject.toml").read_text()

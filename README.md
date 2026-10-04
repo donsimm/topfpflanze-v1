@@ -4,7 +4,7 @@
 
 **Ein Fokus-Spiel für den Desktop:** Während du am Computer arbeitest, wächst neben deinem Bildschirm eine Pflanze. Jeder Mausklick
 und jeder Tastendruck lässt sie wachsen. Dazu gibt es einen Fokus-Timer, ein Tagebuch mit Kalender und Stimmungen, Besucher zum Sammeln,
-Erfolge und vieles mehr. Läuft unter Windows, macOS und Linux (PyQt6).
+Erfolge und vieles mehr. Läuft unter Windows, macOS und Linux (PyQt6). Freie Software unter der [GPL v3+](LICENSE).
 
 > **Datenschutz:** Gezählt wird nur die *Anzahl* der Tastendrücke, nie welche Taste. Alles bleibt auf deinem Gerät: Spielstand, Tagebuch und
 > Rechtschreibprüfung arbeiten offline.
@@ -181,7 +181,12 @@ Die Builds sind nicht signiert: Windows SmartScreen und macOS Gatekeeper fragen 
 - **Autostart** für Windows und macOS (unter Linux gibt es das Skript `scripts/install-linux.sh --autostart`), **Tray-Symbol**, **Signierung/Notarisierung** der Builds.
 - **Sprachen:** Die englischen, französischen und italienischen Texte sind nicht von Muttersprachlern geprüft; weitere Sprachen sind möglich (siehe «Sprachen»).
 - **Tagebuch:** Stimmung im Kalender anzeigen; Import kann Tagebücher mehrerer Geräte nicht zusammenführen (er ersetzt alles); der Discord-Link im Reiter «Version» ist nicht anklickbar.
-- **Lizenz:** Für den Programmcode ist noch keine Lizenz festgelegt (die Wörterbücher unter `src/topfpflanze/dictionaries/` haben eigene Lizenzen, siehe `NOTICE.md`).
+
+## Lizenz
+
+Freie Software unter der [GNU General Public License, Version 3 oder später](LICENSE) (`GPL-3.0-or-later`), Copyright © 2026 donsimm.
+Die verwendeten Bibliotheken (u. a. PyQt6, spylls) und die Wörterbücher der Rechtschreibprüfung haben eigene, mit der GPL verträgliche Lizenzen:
+siehe [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) und `src/topfpflanze/dictionaries/NOTICE.md`.
 
 ## Über das Projekt
 

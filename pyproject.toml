@@ -7,6 +7,10 @@ name = "topfpflanze"
 version = "0.3.0"
 description = "Desktop-Pflanzen, die durch Klicks und Tastaturanschläge wachsen"
 readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
 requires-python = ">=3.9"
 dependencies = [
     "PyQt6>=6.5",
@@ -26,7 +30,7 @@ topfpflanze = "topfpflanze.app:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-topfpflanze = ["dictionaries/*/*", "icons/*"]
+topfpflanze = ["dictionaries/*/*", "icons/*", "licenses/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
