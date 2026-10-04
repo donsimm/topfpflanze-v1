@@ -161,25 +161,41 @@ def draw_mood_heart(p, c, s, index, dim=False):
     draw_face(p, QPointF(c.x(), c.y() + 1), s, FACES[index])
 
 
+PAPER_LIGHT, PAPER_DIM = "#FCFAF2", "#E6E2D4"      # Papier bleibt auch im Dunkelmodus hell, nur etwas abgedunkelt
+PAPER_TEXT, PAPER_MUTED = "#1E1E1E", "#7A776C"
+LINE_COLOR = QColor(150, 170, 200, 110)
+
+
 def paper_color():
-    return QColor("#2A2C2F") if _THEME["dark"] else QColor("#FCFAF2")
+    return QColor(PAPER_DIM if _THEME["dark"] else PAPER_LIGHT)
 
 
 class PaperEdit(QPlainTextEdit):
-    """Textfeld auf liniertem Papier: durchsichtig, die Linien folgen der Zeilenhöhe."""
+    """Textfeld auf liniertem Papier: durchsichtig; die Linien liegen genau unter den Textzeilen (auch bei
+    Zeilenumbrüchen und leeren Zeilen) und setzen sich darunter in gleichem Abstand fort."""
 
     def paintEvent(self, e):
         p = QPainter(self.viewport())
-        ls = max(8, self.fontMetrics().lineSpacing())
-        top = self.contentOffset().y() + self.document().documentMargin()
-        y = top + ls + 1
-        while y < 0:
-            y += ls
-        p.setPen(QPen(QColor(255, 255, 255, 30) if _THEME["dark"] else QColor(150, 170, 200, 95), 1))
-        w = self.viewport().width()
-        while y < self.viewport().height():
-            p.drawLine(QPointF(0, y), QPointF(w, y))
-            y += ls
+        p.setPen(QPen(LINE_COLOR, 1))
+        width, height = self.viewport().width(), self.viewport().height()
+        offset = self.contentOffset().y()
+        last, step = offset + self.document().documentMargin(), float(max(8, self.fontMetrics().lineSpacing()))
+        block = self.document().begin()
+        while block.isValid():
+            layout = block.layout()
+            if layout is not None and block.isVisible():
+                top = offset + layout.position().y()
+                for i in range(layout.lineCount()):
+                    line = layout.lineAt(i)
+                    last = top + line.y() + line.height()
+                    step = max(8.0, line.height())
+                    if 0 <= last <= height:
+                        p.drawLine(QPointF(0, last - 1), QPointF(width, last - 1))
+            block = block.next()
+        y = last + step                                    # leeres Papier unter dem Text
+        while y < height + step:
+            p.drawLine(QPointF(0, y - 1), QPointF(width, y - 1))
+            y += step
         p.end()
         super().paintEvent(e)
 
@@ -237,13 +253,11 @@ class DiaryTextWin(Panel):
         self._style_editor()
 
     def _style_editor(self):
-        key = (_THEME["dark"], self._k)
-        if key == self._theme:
+        if self._k == self._theme:
             return
-        self._theme = key
-        text = "#E8E8E8" if _THEME["dark"] else "#1E1E1E"
+        self._theme = self._k
         self.editor.setStyleSheet(
-            f"QPlainTextEdit {{ background: transparent; border: none; color: {text};"
+            f"QPlainTextEdit {{ background: transparent; border: none; color: {PAPER_TEXT};"
             " selection-background-color: #9CCF9C; selection-color: #1E1E1E; }")
         self.editor.viewport().setAutoFillBackground(False)
 
@@ -318,10 +332,10 @@ class DiaryTextWin(Panel):
         p.setPen(QPen(T("cell_border"), 1))
         p.setBrush(paper_color())
         p.drawRoundedRect(paper, 7, 7)
-        p.setPen(QPen(QColor(220, 110, 110, 120), 1))                      # roter Rand wie auf Schulpapier
+        p.setPen(QPen(QColor(220, 110, 110, 130), 1))                      # roter Rand wie auf Schulpapier
         p.drawLine(QPointF(paper.left() + 28, paper.top() + 4), QPointF(paper.left() + 28, paper.bottom() - 4))
         p.setFont(self.font_px(base, 10))
-        p.setPen(T("muted"))
+        p.setPen(QColor(PAPER_MUTED))
         p.drawText(QRectF(paper.left() + 8, paper.bottom() - 16, paper.width() - 16, 14),
                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                    tr("{n} Zeichen", n=len(self.editor.toPlainText())))
