@@ -1118,4 +1118,8 @@ STRINGS = {
         "Correcteur orthographique indisponible :\n{error}",
     "Klicken: Sprache der Rechtschreibung wählen":
         "Cliquer pour choisir la langue de l'orthographe",
+    "neutral":
+        "neutre",
+    "Klicken: Kalender ein-/ausblenden":
+        "Cliquer pour afficher/masquer le calendrier",
 }

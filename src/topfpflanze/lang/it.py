@@ -1118,4 +1118,8 @@ STRINGS = {
         "Controllo ortografico non disponibile:\n{error}",
     "Klicken: Sprache der Rechtschreibung wählen":
         "Clicca per scegliere la lingua dell'ortografia",
+    "neutral":
+        "neutro",
+    "Klicken: Kalender ein-/ausblenden":
+        "Clicca per mostrare/nascondere il calendario",
 }

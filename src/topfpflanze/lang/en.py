@@ -1120,4 +1120,8 @@ STRINGS = {
         "Spell checking not available:\n{error}",
     "Klicken: Sprache der Rechtschreibung wählen":
         "Click to choose the spelling language",
+    "neutral":
+        "neutral",
+    "Klicken: Kalender ein-/ausblenden":
+        "Click to show/hide the calendar",
 }

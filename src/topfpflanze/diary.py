@@ -22,8 +22,8 @@ from .spell import DICTIONARIES, LANGUAGE_NAMES, WORD_RE, SpellChecker
 from .theme import T, _THEME
 
 MOODS = (("#5B7FC4", tr("schwer")), ("#8E8E9A", tr("müde")), ("#F2C230", tr("ruhig")),
-         ("#F08A32", tr("gut")), ("#E0384F", tr("glücklich")))
-FACES = ("sad", "tired", "calm", "happy", "love")
+         ("#F08A32", tr("gut")), ("#E0384F", tr("glücklich")), ("#4FAE5B", tr("neutral")))   # neu hinten: gespeicherte Nummern bleiben gültig
+FACES = ("sad", "tired", "calm", "happy", "love", "neutral")
 SAVE_DELAY_MS = 700            # so lange nach dem letzten Tippen wird gespeichert
 HEAT = {"light": ("#CFE9CF", "#A9D9AE", "#7CC587"), "dark": ("#2F4A33", "#3C6B45", "#4E8A58")}
 HEAT_STEPS = (100, 250)        # Zeichen: bis dahin hell, dann mittel, darüber dunkel
@@ -144,8 +144,8 @@ def draw_face(p, c, s, kind, dark="#4A2A2A"):
     p.setPen(pen)
     my = c.y() + s * 0.32
     mouth = QPainterPath(QPointF(c.x() - s * 0.3, my))
-    bend = {"sad": -0.28, "tired": 0.0, "calm": 0.12, "happy": 0.34, "love": 0.5}[kind]
-    if kind == "tired":
+    bend = {"sad": -0.28, "tired": 0.0, "calm": 0.12, "happy": 0.34, "love": 0.5, "neutral": 0.0}[kind]
+    if kind in ("tired", "neutral"):
         mouth.lineTo(QPointF(c.x() + s * 0.3, my))
     else:
         mouth.quadTo(QPointF(c.x(), my + s * bend), QPointF(c.x() + s * 0.3, my))
@@ -238,18 +238,23 @@ class PaperEdit(QPlainTextEdit):
 # ---------------------------------------------------------------- Textfenster
 
 class DiaryTextWin(Panel):
-    """Eigenständiges Textfenster eines Tages mit fünf Stimmungs-Herzen (blendet sich im Fokusmodus nicht aus)."""
+    """Eigenständiges Textfenster eines Tages mit Stimmungs-Herzen (blendet sich im Fokusmodus nicht aus).
+    Die Grösse lässt sich an der Ecke unten rechts ziehen und wird gemerkt."""
 
-    W, H = 380, 540
-    PAPER = QRectF(12, 62, 356, 358)
-    EDIT = QRectF(42, 65, 320, 352)
+    DEFAULT_SIZE = (380, 540)
+    MIN_SIZE = (320, 420)
     EDIT_PX = 14
+    GRIP = 16                   # Kantenlänge der Zieh-Ecke (logische Pixel)
 
     def __init__(self, plant):
         self.date = datetime.date.today()
         self.mood = None
         self.dirty = False
         self._theme = None
+        self._resizing = None
+        size = plant.state.get("diary_text_size")
+        w, h = (size if isinstance(size, (list, tuple)) and len(size) == 2 else self.DEFAULT_SIZE)
+        self.W, self.H = max(self.MIN_SIZE[0], int(w)), max(self.MIN_SIZE[1], int(h))
         super().__init__(plant, self.W, self.H, "diary_text_pos")
         self.editor = PaperEdit(self)
         self.editor.setFrameShape(QPlainTextEdit.Shape.NoFrame)
@@ -287,9 +292,21 @@ class DiaryTextWin(Panel):
         if hasattr(self, "editor"):
             self._layout_editor()
 
+    def paper_rect(self):
+        return QRectF(12, 62, self.W - 24, self.H - 182)
+
+    def edit_rect(self):
+        return QRectF(42, 65, self.W - 60, self.H - 188)
+
+    def grip_rect(self):
+        return QRectF(self.W - self.GRIP - 2, self.H - self.GRIP - 2, self.GRIP, self.GRIP)
+
+    def date_rect(self):
+        return QRectF(12, 28, min(self.W - 24, 260), 18)
+
     def _layout_editor(self):
         k = self._k
-        r = self.EDIT
+        r = self.edit_rect()
         self.editor.setGeometry(int(r.x() * k), int(r.y() * k), int(r.width() * k), int(r.height() * k))
         font = QFont(self.font())
         font.setPixelSize(max(8, int(round(self.EDIT_PX * k))))
@@ -337,7 +354,7 @@ class DiaryTextWin(Panel):
             tr("Rechtschreibung: {lang} (lädt …)", lang=name)
 
     def spell_rect(self):
-        return QRectF(self.PAPER.left() + 32, self.PAPER.bottom() - 18, 230, 16)
+        return QRectF(self.paper_rect().left() + 32, self.paper_rect().bottom() - 18, 230, 16)
 
     def choose_spell(self):
         """Menü unter der Fusszeile: Aus, Automatisch (Sprache des Spiels) oder eine bestimmte Sprache."""
@@ -443,30 +460,83 @@ class DiaryTextWin(Panel):
         self.flush()
         super().hideEvent(e)
 
+    # ---------- Grösse ändern ----------
+
+    def resize_to(self, w, h):
+        """Setzt die logische Grösse (zwischen Mindestgrösse und Bildschirmgrösse)."""
+        screen = QApplication.primaryScreen()
+        max_w = max_h = 100000
+        if screen:
+            g = screen.availableGeometry()
+            max_w, max_h = int(g.width() * 0.98 / self._k), int(g.height() * 0.96 / self._k)
+        w = int(max(self.MIN_SIZE[0], min(w, max_w)))
+        h = int(max(self.MIN_SIZE[1], min(h, max_h)))
+        if (w, h) != (self.W, self.H):
+            self.W, self.H = w, h
+            self.setFixedSize(w, h)
+
+    def mousePressEvent(self, e):
+        if e.button() == Qt.MouseButton.LeftButton and self.grip_rect().contains(e.position()):
+            self._resizing = (e.globalPosition(), self.W, self.H)
+            return
+        super().mousePressEvent(e)
+
+    def mouseMoveEvent(self, e):
+        if self._resizing:
+            start, w0, h0 = self._resizing
+            delta = (e.globalPosition() - start) / self._k
+            self.resize_to(w0 + delta.x(), h0 + delta.y())
+            return
+        super().mouseMoveEvent(e)
+        if self.grip_rect().contains(e.position()):
+            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+
+    def mouseReleaseEvent(self, e):
+        if self._resizing:
+            self._resizing = None
+            self.plant.state["diary_text_size"] = [self.W, self.H]
+            self.plant.clamp_to_screen(self)
+            self.plant.save_state()
+            return
+        super().mouseReleaseEvent(e)
+
     # ---------- Klicks ----------
 
     def mood_rects(self):
-        return [QRectF(14 + i * 70, 466, 62, 50) for i in range(len(MOODS))]
+        n = len(MOODS)
+        cw = min(66.0, (self.W - 28 - (n - 1) * 6) / n)
+        gap = (self.W - 28 - n * cw) / (n - 1)
+        return [QRectF(14 + i * (cw + gap), self.H - 74, cw, 50) for i in range(n)]
 
     def items(self):
-        return [(("m", i), r, True) for i, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True)]
+        return [(("m", i), r, True) for i, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True),
+                                                                     ("date", self.date_rect(), True)]
 
     def on_click(self, key):
         if key == "spell":
             self.choose_spell()
+        elif key == "date":      # Klick auf das Datum blendet den Kalender ein oder aus
+            cal = self.plant.diary_win
+            if cal.isVisible():
+                cal.hide()
+            else:
+                cal.show_month_of(self.date)
+                cal.show()
         elif key[0] == "m":
             self.mood = None if self.mood == key[1] else key[1]   # nochmal klicken: Stimmung entfernen
             self.dirty = True
             self.flush()
 
     def tooltip_at(self, pos):
+        if self.date_rect().contains(pos):
+            return tr("Klicken: Kalender ein-/ausblenden")
         if self.spell_rect().contains(pos):
             lang = self.spell_lang()
             if lang and not self.spell.available(lang):
                 return tr("Rechtschreibprüfung nicht verfügbar:\n{error}", error=self.spell.error(lang) or "?")
             return tr("Klicken: Sprache der Rechtschreibung wählen")
         for key, r, _c in self.items():
-            if r.contains(pos) and key != "spell":
+            if r.contains(pos) and key not in ("spell", "date"):
                 return MOODS[key[1]][1]
         return super().tooltip_at(pos)
 
@@ -475,8 +545,15 @@ class DiaryTextWin(Panel):
     def paintEvent(self, _e):
         self._style_editor()
         base = self.font()
-        p = self.begin(tr("Tagebuch"), long_date(self.date))
-        paper = self.PAPER
+        p = self.begin(tr("Tagebuch"), "")
+        hot = self.hover == "date"          # das Datum ist anklickbar: Kalender ein-/ausblenden
+        f = self.font_px(base, 12)
+        f.setUnderline(hot)
+        p.setFont(f)
+        p.setPen(T("text") if hot else T("text2"))
+        p.drawText(self.date_rect().adjusted(0, 0, 14, 0), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   long_date(self.date) + " ▾")
+        paper = self.paper_rect()
         p.setPen(QPen(T("cell_border"), 1))
         p.setBrush(paper_color())
         p.drawRoundedRect(paper, 7, 7)
@@ -488,18 +565,18 @@ class DiaryTextWin(Panel):
                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                    tr("{n} Zeichen", n=len(self.editor.toPlainText())))
         p.setPen(QPen(T("sep"), 1))
-        p.drawLine(QPointF(12, 436), QPointF(self.W - 12, 436))
+        p.drawLine(QPointF(12, self.H - 104), QPointF(self.W - 12, self.H - 104))
         p.setFont(self.font_px(base, 10))
         p.setPen(QColor(PAPER_TEXT) if self.hover == "spell" else QColor(PAPER_MUTED))
         sr = self.spell_rect()
         p.drawText(sr, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.spell_label() + " ▾")
         p.setFont(self.font_px(base, 11, True))
         p.setPen(T("text2"))
-        p.drawText(QRectF(14, 440, 150, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, tr("Stimmung"))
+        p.drawText(QRectF(14, self.H - 100, 150, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, tr("Stimmung"))
         if self.mood is not None:
             p.setFont(self.font_px(base, 11))
             p.setPen(T("muted"))
-            p.drawText(QRectF(150, 440, self.W - 164, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+            p.drawText(QRectF(150, self.H - 100, self.W - 164, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                        MOODS[self.mood][1])
         for i, r in enumerate(self.mood_rects()):
             sel = self.mood == i
@@ -511,8 +588,12 @@ class DiaryTextWin(Panel):
         if not self.dirty and self.plant.diary.has(self.date):
             p.setFont(self.font_px(base, 10))
             p.setPen(T("ok"))
-            p.drawText(QRectF(self.W - 214, 522, 200, 14), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+            p.drawText(QRectF(self.W - 232, self.H - 18, 200, 14), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                        tr("✓ automatisch gespeichert"))
+        g = self.grip_rect()                # Zieh-Ecke: drei kurze Schrägstriche
+        p.setPen(QPen(T("muted"), 1.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        for i in (4, 8, 12):
+            p.drawLine(QPointF(g.right() - 2, g.top() + g.height() - 2 - i), QPointF(g.right() - 2 - i, g.bottom() - 2))
         p.end()
 
 

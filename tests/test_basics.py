@@ -1569,3 +1569,57 @@ def test_spell_failure_is_explained_in_label_and_tooltip(plant, monkeypatch):
     assert "FileNotFoundError" in w.tooltip_at(w.spell_rect().center()) or "Error" in w.tooltip_at(w.spell_rect().center())
     w.choose_spell.__func__        # Menü existiert
     assert not w.grab().isNull()
+
+
+def test_diary_has_six_moods_with_neutral_last(plant):
+    from topfpflanze import diary
+    assert len(diary.MOODS) == 6
+    assert diary.MOODS[5][1] == "neutral" and diary.FACES[5] == "neutral"
+    w = plant.diary_text
+    rects = w.mood_rects()
+    assert len(rects) == 6 and all(r.right() <= w.W - 14 + 0.5 for r in rects)
+    import datetime
+    d = datetime.date(2026, 10, 4)
+    w.open_date(d)
+    w.on_click(("m", 5))
+    assert plant.diary.mood(d) == 5 and w.mood == 5
+    assert not w.grab().isNull()
+
+
+def test_clicking_the_date_toggles_the_calendar(plant):
+    w, cal = plant.diary_text, plant.diary_win
+    w.show()
+    cal.hide()
+    assert w.item_at(w.date_rect().center()) == "date"
+    w.on_click("date")
+    assert cal.isVisible()
+    w.on_click("date")
+    assert not cal.isVisible()
+    assert "Kalender" in w.tooltip_at(w.date_rect().center())
+
+
+def test_diary_text_window_can_be_resized_and_remembers_the_size(plant):
+    from PyQt6.QtCore import QEvent, QPointF, Qt
+    from PyQt6.QtGui import QMouseEvent
+    w = plant.diary_text
+    w.show()
+    w0, h0 = w.W, w.H
+    g = w.grip_rect().center()
+
+    def ev(kind, pos, buttons=Qt.MouseButton.LeftButton):
+        return QMouseEvent(kind, QPointF(pos), QPointF(w.mapToGlobal(QPointF(pos).toPoint())),
+                           Qt.MouseButton.LeftButton, buttons, Qt.KeyboardModifier.NoModifier)
+    w.mousePressEvent(ev(QEvent.Type.MouseButtonPress, g))
+    target = QPointF(g.x() + 100, g.y() + 80)
+    w.mouseMoveEvent(ev(QEvent.Type.MouseMove, target))
+    w.mouseReleaseEvent(ev(QEvent.Type.MouseButtonRelease, target, Qt.MouseButton.NoButton))
+    assert w.W > w0 and w.H > h0
+    assert plant.state["diary_text_size"] == [w.W, w.H]
+    assert w.paper_rect().height() > 358 and w.editor.geometry().height() > 300           # die Seite ist grösser
+    w.resize_to(10, 10)                                                                      # nie unter die Mindestgrösse
+    assert (w.W, w.H) == w.MIN_SIZE
+    assert w.mood_rects()[-1].right() <= w.W
+    assert not w.grab().isNull()
+    from topfpflanze.diary import DiaryTextWin                                               # Grösse wird beim Start gelesen
+    plant.state["diary_text_size"] = [500, 700]
+    assert (lambda x: (x.W, x.H))(DiaryTextWin(plant)) == (500, 700)
