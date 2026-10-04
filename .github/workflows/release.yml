@@ -44,6 +44,31 @@ jobs:
           elif [ "${{ matrix.name }}" = macos-arm ]; then ditto -c -k --sequesterRsrc --keepParent Topfpflanze.app ../Topfpflanze-macos-apple-silicon.zip
           elif [ "${{ matrix.name }}" = macos-intel ]; then ditto -c -k --sequesterRsrc --keepParent Topfpflanze.app ../Topfpflanze-macos-intel.zip
           else tar czf ../Topfpflanze-linux.tar.gz Topfpflanze; fi
+      - name: Prüfung Mindest-macOS (Intel)
+        if: matrix.name == 'macos-intel'
+        continue-on-error: true       # Hinweis im Protokoll, bricht den Bau nicht ab
+        shell: python
+        run: |
+          # Alle Programmdateien der App lesen: welches macOS verlangen sie mindestens? Ziel: nicht über 12 (Monterey)
+          import pathlib, re, subprocess, sys
+          worst = []
+          for f in pathlib.Path("dist/Topfpflanze.app").rglob("*"):
+              if f.is_symlink() or not f.is_file() or f.stat().st_size < 4:
+                  continue
+              with open(f, "rb") as fh:
+                  if fh.read(4) not in (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe", b"\xfe\xed\xfa\xcf"):
+                      continue
+              out = subprocess.run(["otool", "-l", str(f)], capture_output=True, text=True).stdout
+              vers = re.findall(r"LC_BUILD_VERSION.*?minos (\d+(?:\.\d+)*)", out, re.S) + \
+                     re.findall(r"LC_VERSION_MIN_MACOSX.*?version (\d+(?:\.\d+)*)", out, re.S)
+              if vers:
+                  worst.append((max(tuple(int(x) for x in v.split(".")) for v in vers), str(f)))
+          worst.sort(reverse=True)
+          for v, f in worst[:8]:
+              print(".".join(map(str, v)), f)
+          top = worst[0][0] if worst else ()
+          print("Höchste verlangte macOS-Version:", ".".join(map(str, top)))
+          sys.exit(1 if top and top > (12, 0) else 0)
       - name: Rauchtest (macOS)
         if: runner.os == 'macOS'
         shell: bash
