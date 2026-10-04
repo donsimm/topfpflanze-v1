@@ -460,8 +460,13 @@ class DiaryTextWin(Panel):
             self.flush()
 
     def tooltip_at(self, pos):
+        if self.spell_rect().contains(pos):
+            lang = self.spell_lang()
+            if lang and not self.spell.available(lang):
+                return tr("Rechtschreibprüfung nicht verfügbar:\n{error}", error=self.spell.error(lang) or "?")
+            return tr("Klicken: Sprache der Rechtschreibung wählen")
         for key, r, _c in self.items():
-            if r.contains(pos):
+            if r.contains(pos) and key != "spell":
                 return MOODS[key[1]][1]
         return super().tooltip_at(pos)
 
@@ -487,7 +492,7 @@ class DiaryTextWin(Panel):
         p.setFont(self.font_px(base, 10))
         p.setPen(QColor(PAPER_TEXT) if self.hover == "spell" else QColor(PAPER_MUTED))
         sr = self.spell_rect()
-        p.drawText(sr, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.spell_label())
+        p.drawText(sr, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.spell_label() + " ▾")
         p.setFont(self.font_px(base, 11, True))
         p.setPen(T("text2"))
         p.drawText(QRectF(14, 440, 150, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, tr("Stimmung"))

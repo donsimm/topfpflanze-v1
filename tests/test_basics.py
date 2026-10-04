@@ -1554,3 +1554,18 @@ def test_dictionaries_ship_with_the_program_and_notice_lists_licences():
     assert "GPL" in notice and "MPL" in notice and "SCOWL" in notice
     pyproject = (pathlib.Path(__file__).parent.parent / "pyproject.toml").read_text(encoding="utf-8")
     assert "spylls" in pyproject and "dictionaries" in pyproject
+
+
+def test_spell_failure_is_explained_in_label_and_tooltip(plant, monkeypatch):
+    from topfpflanze import spell
+    monkeypatch.setattr(spell, "_DICTS", {})
+    monkeypatch.setattr(spell, "_FAILED", set())
+    monkeypatch.setattr(spell, "_ERRORS", {})
+    monkeypatch.setattr(spell, "DICT_DIR", spell.DICT_DIR / "fehlt")        # Wörterbuch nicht auffindbar
+    w = plant.diary_text
+    plant.state["diary_spell"] = "en"
+    assert not w.spell.load_now("en")
+    assert w.spell_label() == "Rechtschreibung: nicht verfügbar"
+    assert "FileNotFoundError" in w.tooltip_at(w.spell_rect().center()) or "Error" in w.tooltip_at(w.spell_rect().center())
+    w.choose_spell.__func__        # Menü existiert
+    assert not w.grab().isNull()

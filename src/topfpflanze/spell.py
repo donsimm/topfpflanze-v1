@@ -21,6 +21,7 @@ WORD_RE = re.compile(r"[^\W\d_]+(?:['’\-][^\W\d_]+)*")      # Buchstaben, inne
 PERSONAL = "diary_words.txt"
 _DICTS = {}                 # Sprache → Wörterbuch (einmal je Programmlauf geladen und von allen Prüfern geteilt)
 _FAILED = set()
+_ERRORS = {}                # Sprache → Fehlertext, falls das Laden scheiterte
 _WORDS = {}                 # Sprache → {Wort: richtig?}
 _LOCK = threading.Lock()
 
@@ -63,8 +64,9 @@ class SpellChecker(QObject):
                 from spylls.hunspell import Dictionary
                 _DICTS[lang] = Dictionary.from_files(str(DICT_DIR / name / name))
                 _WORDS[lang] = {}
-            except Exception:                  # fehlende Bibliothek oder Datei: Prüfung bleibt aus
+            except Exception as e:             # fehlende Bibliothek oder Datei: Prüfung bleibt aus
                 _FAILED.add(lang)
+                _ERRORS[lang] = f"{type(e).__name__}: {e}"
                 return False
         return True
 
@@ -89,6 +91,9 @@ class SpellChecker(QObject):
 
     def loading(self, lang):
         return lang in self.pending
+
+    def error(self, lang):
+        return _ERRORS.get(lang, "")
 
     def available(self, lang):
         return lang in DICTIONARIES and lang not in _FAILED

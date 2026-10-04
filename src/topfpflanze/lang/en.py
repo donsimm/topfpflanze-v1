@@ -1116,4 +1116,8 @@ STRINGS = {
         "Paste",
     "Alles auswählen":
         "Select all",
+    "Rechtschreibprüfung nicht verfügbar:\n{error}":
+        "Spell checking not available:\n{error}",
+    "Klicken: Sprache der Rechtschreibung wählen":
+        "Click to choose the spelling language",
 }

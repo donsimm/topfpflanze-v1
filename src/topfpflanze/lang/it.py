@@ -1114,4 +1114,8 @@ STRINGS = {
         "Incolla",
     "Alles auswählen":
         "Seleziona tutto",
+    "Rechtschreibprüfung nicht verfügbar:\n{error}":
+        "Controllo ortografico non disponibile:\n{error}",
+    "Klicken: Sprache der Rechtschreibung wählen":
+        "Clicca per scegliere la lingua dell'ortografia",
 }

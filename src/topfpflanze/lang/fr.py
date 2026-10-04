@@ -1114,4 +1114,8 @@ STRINGS = {
         "Coller",
     "Alles auswählen":
         "Tout sélectionner",
+    "Rechtschreibprüfung nicht verfügbar:\n{error}":
+        "Correcteur orthographique indisponible :\n{error}",
+    "Klicken: Sprache der Rechtschreibung wählen":
+        "Cliquer pour choisir la langue de l'orthographe",
 }
