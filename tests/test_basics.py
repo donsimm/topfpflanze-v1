@@ -1847,3 +1847,34 @@ def test_folder_buttons_open_the_data_and_program_folders(plant, monkeypatch):
     plant.confirm_win.hide()
     plant.open_folder(config.STATE_DIR / "gibt-es-nicht")
     assert plant.confirm_win.isVisible()
+
+
+def _menu_action(menu, prefix):
+    for a in menu.actions():
+        if a.menu():
+            found = _menu_action(a.menu(), prefix)
+            if found:
+                return found
+        elif a.text().startswith(prefix):
+            return a
+
+
+def test_every_data_menu_entry_reaches_its_function_through_the_real_menu(plant, monkeypatch):
+    """Die Einträge im Rechtsklick-Menü müssen wirklich ihre Funktion aufrufen (Namenskollision-Schutz)."""
+    from PyQt6.QtCore import QPoint
+    from PyQt6.QtWidgets import QMenu
+    calls = []
+    for name in ("export_data", "import_data", "reset_data", "reset_plant"):
+        monkeypatch.setattr(plant, name, lambda n=name: calls.append(n))
+    monkeypatch.setattr(plant, "open_folder", lambda path: calls.append(("open", path)))
+    for prefix, expected in (("Exportieren", "export_data"), ("Importieren", "import_data"),
+                             ("Alle Spieldaten zurücksetzen", "reset_data"), ("«", "reset_plant")):
+        monkeypatch.setattr(QMenu, "exec", lambda self, *a, p=prefix, **k: _menu_action(self, p))
+        calls.clear()
+        plant.show_menu(QPoint(5, 5))
+        assert calls == [expected], (prefix, calls)
+    for prefix, folder in (("Datenordner", plant.data_folder()), ("Programmordner", plant.install_folder())):
+        monkeypatch.setattr(QMenu, "exec", lambda self, *a, p=prefix, **k: _menu_action(self, p))
+        calls.clear()
+        plant.show_menu(QPoint(5, 5))
+        assert calls == [("open", folder)]

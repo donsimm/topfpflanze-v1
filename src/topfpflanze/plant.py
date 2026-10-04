@@ -1278,7 +1278,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         a_data_dir = data_menu.addAction(tr("Datenordner öffnen"))
         a_prog_dir = data_menu.addAction(tr("Programmordner öffnen"))
         data_menu.addSeparator()
-        a_reset = data_menu.addAction(tr("Alle Spieldaten zurücksetzen …"))
+        a_reset_data = data_menu.addAction(tr("Alle Spieldaten zurücksetzen …"))
         a_dark = set_menu.addAction(tr("Dunkelmodus"))
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))
@@ -1314,7 +1314,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.open_folder(self.data_folder())
         elif chosen is a_prog_dir:
             self.open_folder(self.install_folder())
-        elif chosen is a_reset:
+        elif chosen is a_reset_data:
             self.reset_data()
         elif chosen in lang_actions:
             self.choose_language(lang_actions[chosen])
