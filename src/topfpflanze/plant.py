@@ -308,16 +308,19 @@ class Plant(PlantDrawMixin, ScaledWidget):
             win.update()
         self.save_state()
 
+    def tool_open(self, key):
+        """Ist das Fenster des Werkzeugs offen? Beim Tagebuch zählt das Textfenster (der Kalender ist optional)."""
+        return (self.diary_text if key == "diary" else self.windows[key]).isVisible()
+
     def toggle_window(self, key):
         win = self.windows[key]
-        if key == "diary":      # Kalender und Textfenster gehören zusammen: öffnen zeigt den heutigen Tag
-            if win.isVisible():
-                win.hide()
+        if key == "diary":      # öffnet nur das Textfenster des heutigen Tags; der Kalender bleibt zu (Klick auf das Datum)
+            if self.diary_text.isVisible():
                 self.diary_text.hide()
+                win.hide()
             else:
                 today = datetime.date.today()
                 win.show_month_of(today)
-                win.show()
                 self.diary_text.open_date(today)
             return
         win.setVisible(not win.isVisible())
@@ -1249,7 +1252,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         for key in TOOL_ORDER:
             a = win_menu.addAction(TOOL_NAMES[key])
             a.setCheckable(True)
-            a.setChecked(self.windows[key].isVisible())
+            a.setChecked(self.tool_open(key))
             win_actions[a] = key
         set_menu = m.addMenu(tr("Einstellungen"))
         a_kb = set_menu.addAction(tr("Tastaturanschläge zählen"))

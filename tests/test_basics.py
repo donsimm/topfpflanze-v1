@@ -1470,11 +1470,14 @@ def test_diary_calendar_selects_days_and_navigates_months(plant):
     assert cal.heat(300).name() != cal.heat(10).name()                       # mehr Text = dunkler
 
 
-def test_diary_icon_opens_both_windows_and_focus_mode_keeps_the_text_window(plant):
+def test_diary_icon_opens_only_the_text_window_and_focus_mode_keeps_it(plant):
     assert "diary" in config.TOOL_ORDER
     plant.toggle_window("diary")
-    assert plant.diary_win.isVisible() and plant.diary_text.isVisible()
+    assert plant.diary_text.isVisible() and not plant.diary_win.isVisible()          # der Kalender bleibt geschlossen
+    assert plant.tool_open("diary")                                                  # Symbol zeigt «offen»
     assert plant.diary_text.date.isoformat() == __import__("time").strftime("%Y-%m-%d")
+    plant.diary_text.on_click("date")                                                # Kalender per Klick auf das Datum
+    assert plant.diary_win.isVisible()
     plant.bubble.show()
     plant.ach_win.show()
     plant.start_focus(25)                                  # Fokusmodus: Menüfenster weg, Textfenster bleibt
@@ -1484,7 +1487,10 @@ def test_diary_icon_opens_both_windows_and_focus_mode_keeps_the_text_window(plan
     plant.abort_focus()
     assert plant.diary_win.isVisible() and plant.diary_text.isVisible() and plant.ach_win.isVisible()
     plant.toggle_window("diary")                           # nochmal klicken: beide zu
-    assert not plant.diary_win.isVisible() and not plant.diary_text.isVisible()
+    assert not plant.diary_win.isVisible() and not plant.diary_text.isVisible() and not plant.tool_open("diary")
+    plant.toggle_window("diary")                           # wieder öffnen: nur das Textfenster
+    assert plant.diary_text.isVisible() and not plant.diary_win.isVisible()
+    plant.toggle_window("diary")
     assert "Tagebuch" in plant.bubble.tooltip_text("diary")
     assert not plant.bubble.grab().isNull()
 

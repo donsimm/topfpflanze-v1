@@ -111,7 +111,7 @@ class Bubble(ScaledWidget):
     def tooltip_text(self, key):
         """Text beim Überfahren eines Symbols: zuerst, was der Klick auslöst, darunter Angaben dazu."""
         pl = self.plant
-        opened = key in TOOL_ORDER and pl.windows[key].isVisible()
+        opened = key in TOOL_ORDER and pl.tool_open(key)
         if key == "shop":
             head = tr("Dünger-Shop schliessen") if opened else tr("Dünger-Shop öffnen")
             return head + tr("\nGold: {coins} (+{rate} pro Stunde)", coins=fmt_int(pl.state.get("coins", 0)), rate=PASSIVE_PER_HOUR)
@@ -215,8 +215,7 @@ class Bubble(ScaledWidget):
         prestige = self.plant.state.get("prestige", {})
         for key, r in self.icon_rects():
             if key in TOOL_ORDER:
-                win = self.plant.windows.get(key) if hasattr(self.plant, "windows") else None
-                is_open = win is not None and win.isVisible()
+                is_open = hasattr(self.plant, "windows") and self.plant.tool_open(key)
                 p.setPen(QPen(QColor("#D4A017"), 2.0) if is_open else QPen(T("cell_border"), 1))
                 p.setBrush(T("gold_bg") if is_open else T("cell"))
                 p.drawRoundedRect(r, 5, 5)
