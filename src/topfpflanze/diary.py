@@ -243,7 +243,7 @@ class DiaryTextWin(Panel):
     Die Grösse lässt sich an der Ecke unten rechts ziehen und wird gemerkt."""
 
     DEFAULT_SIZE = (380, 540)
-    MIN_SIZE = (320, 420)
+    MIN_SIZE = (370, 420)      # schmal genug für die sechs Herzen in festem Abstand
     EDIT_PX = 14
     GRIP = 16                   # Kantenlänge der Zieh-Ecke (logische Pixel)
 
@@ -503,11 +503,12 @@ class DiaryTextWin(Panel):
 
     # ---------- Klicks ----------
 
+    MOOD_CELL, MOOD_GAP = 52, 6      # feste Grösse und Abstand der Herzen: sie wachsen nicht mit dem Fenster mit
+
     def mood_rects(self):
+        """Die Herzen sitzen links, in festem Abstand (auch bei grösserem Fenster)."""
         n = len(MOODS)
-        cw = min(66.0, (self.W - 28 - (n - 1) * 6) / n)
-        gap = (self.W - 28 - n * cw) / (n - 1)
-        return [QRectF(14 + pos * (cw + gap), self.H - 74, cw, 50) for pos in range(n)]
+        return [QRectF(14 + pos * (self.MOOD_CELL + self.MOOD_GAP), self.H - 74, self.MOOD_CELL, 50) for pos in range(n)]
 
     def items(self):
         return [(("m", MOOD_ORDER[pos]), r, True) for pos, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True),
