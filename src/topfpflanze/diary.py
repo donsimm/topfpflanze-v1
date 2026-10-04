@@ -24,6 +24,7 @@ from .theme import T, _THEME
 MOODS = (("#5B7FC4", tr("schwer")), ("#8E8E9A", tr("müde")), ("#F2C230", tr("ruhig")),
          ("#F08A32", tr("gut")), ("#E0384F", tr("glücklich")), ("#4FAE5B", tr("neutral")))   # neu hinten: gespeicherte Nummern bleiben gültig
 FACES = ("sad", "tired", "calm", "happy", "love", "neutral")
+MOOD_ORDER = (0, 1, 5, 2, 3, 4)   # Reihenfolge der Herzen von links nach rechts; neutral steht zwischen müde und ruhig
 SAVE_DELAY_MS = 700            # so lange nach dem letzten Tippen wird gespeichert
 HEAT = {"light": ("#CFE9CF", "#A9D9AE", "#7CC587"), "dark": ("#2F4A33", "#3C6B45", "#4E8A58")}
 HEAT_STEPS = (100, 250)        # Zeichen: bis dahin hell, dann mittel, darüber dunkel
@@ -293,10 +294,10 @@ class DiaryTextWin(Panel):
             self._layout_editor()
 
     def paper_rect(self):
-        return QRectF(12, 62, self.W - 24, self.H - 182)
+        return QRectF(12, 62, self.W - 24, self.H - 202)
 
     def edit_rect(self):
-        return QRectF(42, 65, self.W - 60, self.H - 188)
+        return QRectF(42, 65, self.W - 60, self.H - 208)
 
     def grip_rect(self):
         return QRectF(self.W - self.GRIP - 2, self.H - self.GRIP - 2, self.GRIP, self.GRIP)
@@ -354,7 +355,7 @@ class DiaryTextWin(Panel):
             tr("Rechtschreibung: {lang} (lädt …)", lang=name)
 
     def spell_rect(self):
-        return QRectF(self.paper_rect().left() + 32, self.paper_rect().bottom() - 18, 230, 16)
+        return QRectF(14, self.paper_rect().bottom() + 3, 230, 16)       # unter dem Blatt, links
 
     def choose_spell(self):
         """Menü unter der Fusszeile: Aus, Automatisch (Sprache des Spiels) oder eine bestimmte Sprache."""
@@ -506,10 +507,10 @@ class DiaryTextWin(Panel):
         n = len(MOODS)
         cw = min(66.0, (self.W - 28 - (n - 1) * 6) / n)
         gap = (self.W - 28 - n * cw) / (n - 1)
-        return [QRectF(14 + i * (cw + gap), self.H - 74, cw, 50) for i in range(n)]
+        return [QRectF(14 + pos * (cw + gap), self.H - 74, cw, 50) for pos in range(n)]
 
     def items(self):
-        return [(("m", i), r, True) for i, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True),
+        return [(("m", MOOD_ORDER[pos]), r, True) for pos, r in enumerate(self.mood_rects())] + [("spell", self.spell_rect(), True),
                                                                      ("date", self.date_rect(), True)]
 
     def on_click(self, key):
@@ -560,14 +561,14 @@ class DiaryTextWin(Panel):
         p.setPen(QPen(QColor(220, 110, 110, 130), 1))                      # roter Rand wie auf Schulpapier
         p.drawLine(QPointF(paper.left() + 28, paper.top() + 4), QPointF(paper.left() + 28, paper.bottom() - 4))
         p.setFont(self.font_px(base, 10))
-        p.setPen(QColor(PAPER_MUTED))
-        p.drawText(QRectF(paper.left() + 8, paper.bottom() - 16, paper.width() - 16, 14),
+        p.setPen(T("muted"))
+        p.drawText(QRectF(paper.right() - 150, paper.bottom() + 3, 148, 16),
                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                    tr("{n} Zeichen", n=len(self.editor.toPlainText())))
         p.setPen(QPen(T("sep"), 1))
         p.drawLine(QPointF(12, self.H - 104), QPointF(self.W - 12, self.H - 104))
         p.setFont(self.font_px(base, 10))
-        p.setPen(QColor(PAPER_TEXT) if self.hover == "spell" else QColor(PAPER_MUTED))
+        p.setPen(T("text") if self.hover == "spell" else T("muted"))
         sr = self.spell_rect()
         p.drawText(sr, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.spell_label() + " ▾")
         p.setFont(self.font_px(base, 11, True))
@@ -578,7 +579,8 @@ class DiaryTextWin(Panel):
             p.setPen(T("muted"))
             p.drawText(QRectF(150, self.H - 100, self.W - 164, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                        MOODS[self.mood][1])
-        for i, r in enumerate(self.mood_rects()):
+        for pos, r in enumerate(self.mood_rects()):
+            i = MOOD_ORDER[pos]
             sel = self.mood == i
             hover = self.hover == ("m", i)
             p.setPen(QPen(GREEN, 2.2) if sel else QPen(GOLD, 1.6) if hover else QPen(T("cell_border"), 1))

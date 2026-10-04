@@ -1583,6 +1583,11 @@ def test_diary_has_six_moods_with_neutral_last(plant):
     w.open_date(d)
     w.on_click(("m", 5))
     assert plant.diary.mood(d) == 5 and w.mood == 5
+    order = [k[1] for k, _r, _c in w.items() if k[0] == "m"]
+    assert order == [0, 1, 5, 2, 3, 4]                                  # neutral steht zwischen müde und ruhig
+    rects = {k[1]: r for k, r, _c in w.items() if k[0] == "m"}
+    assert rects[1].right() < rects[5].left() < rects[5].right() < rects[2].left()
+    assert w.spell_rect().top() >= w.paper_rect().bottom()               # Rechtschreibung und Zeichenzahl unter dem Blatt
     assert not w.grab().isNull()
 
 
@@ -1615,7 +1620,7 @@ def test_diary_text_window_can_be_resized_and_remembers_the_size(plant):
     w.mouseReleaseEvent(ev(QEvent.Type.MouseButtonRelease, target, Qt.MouseButton.NoButton))
     assert w.W > w0 and w.H > h0
     assert plant.state["diary_text_size"] == [w.W, w.H]
-    assert w.paper_rect().height() > 358 and w.editor.geometry().height() > 300           # die Seite ist grösser
+    assert w.paper_rect().height() > 338 and w.editor.geometry().height() > 300           # die Seite ist grösser
     w.resize_to(10, 10)                                                                      # nie unter die Mindestgrösse
     assert (w.W, w.H) == w.MIN_SIZE
     assert w.mood_rects()[-1].right() <= w.W
