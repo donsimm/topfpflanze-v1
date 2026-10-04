@@ -1080,12 +1080,10 @@ STRINGS = {
         "Open diary",
     "\n{n} Einträge":
         "\n{n} entries",
-    "Unveröffentlicht":
-        "Unreleased",
-    "Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.":
-        "The diary icon opens the text window of today; clicking the date at the top shows or hides the calendar. The text is saved automatically, along with one of five mood hearts (click again to remove). Clicking a day in the calendar opens its entry; green dot = entry, darker = more text. The entries are stored in the file diary.json in the save folder. In focus mode an open text window stays visible. Spelling is checked with Hunspell (red wavy underline, right click shows suggestions, your own words go into diary_words.txt); the language can be chosen below the paper.",
-    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline).":
-        "Diary: a new icon in the menu with a calendar (heat map, green dot on days with an entry) and its own text window. The text is saved automatically, with five mood hearts. The text window stays visible in focus mode. With spell checking (Hunspell, offline).",
+    "Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von sechs Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.":
+        "The diary icon opens the text window of today; clicking the date at the top shows or hides the calendar. The text is saved automatically, along with one of six mood hearts (click again to remove). Clicking a day in the calendar opens its entry; green dot = entry, darker = more text. The entries are stored in the file diary.json in the save folder. In focus mode an open text window stays visible. Spelling is checked with Hunspell (red wavy underline, right click shows suggestions, your own words go into diary_words.txt); the language can be chosen below the paper.",
+    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu sechs Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline).":
+        "Diary: a new icon in the menu with a calendar (heat map, green dot on days with an entry) and its own text window. The text is saved automatically, with six mood hearts. The text window stays visible in focus mode. With spell checking (Hunspell, offline).",
     "Rechtschreibung: aus":
         "Spelling: off",
     "Rechtschreibung: {lang}":
@@ -1188,4 +1186,22 @@ STRINGS = {
         "Game data → Open data folder shows the folder with the save, the diary and the backups; Open program folder shows the folder of the program. Reset all game data deletes everything and starts from scratch (the current state is first backed up in backups).",
     "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
         "Game data: open the folders with the save and the program directly, and reset all game data (with confirmation and a backup first).",
+    "Das Spiel soll helfen, sich bei der PC-Arbeit zu fokussieren. Ausserdem kann es als Tagebuch und/oder Kalender verwendet werden. Während des Arbeitens, also beim Schreiben auf der Tastatur, wächst eine Pflanze!":
+        "The game is meant to help you stay focused while working at the PC. It can also be used as a diary and/or calendar. While you work, that is while you type on the keyboard, a plant grows!",
+    "Die Grafik wird noch durch richtige Zeichnungen ersetzt, es werden Zeichner und Illustratoren gesucht! Auch der Sound wird in der finalen Version von Menschen gemacht sein!":
+        "The graphics will still be replaced by real drawings, and illustrators and artists are wanted! The sound will also be human-made in the final version!",
+    "Das Projekt ist Vibecoding. Das bezeichnet eine Art der Softwareentwicklung, bei der nahezu ausschliesslich über den Prompt eines Sprachmodells gearbeitet wird, um den für die Software erforderlichen Quellcode zu erzeugen. Der Code ist also zu 100 % KI-generiert.":
+        "The project is vibe coding. This describes a way of developing software in which almost exclusively the prompt of a language model is used to generate the source code the software needs. So the code is 100 % AI-generated.",
+    "Für den Moment, als Platzhalter, ist auch die Grafik KI-generiert, da ich leider nicht zeichnen kann! Sie wird so schnell wie möglich ausgetauscht!":
+        "For now, as a placeholder, the graphics are AI-generated too, because I unfortunately cannot draw! They will be replaced as soon as possible!",
+    "Bei Fragen oder Anregungen: Discord: https://discord.gg/Gkmkum2G8G":
+        "Questions or suggestions? Discord: https://discord.gg/Gkmkum2G8G",
+    "Programmangaben":
+        "Program details",
+    "Info-Fenster, Reiter «Version»: Beschreibung des Projekts mit Hinweisen zu KI-generiertem Code, Grafik und Sound sowie Discord-Link.":
+        "Info window, «Version» tab: description of the project with notes on AI-generated code, graphics and sound, and a Discord link.",
+    "Programmsymbol: die Wiesenblume (Windows, macOS, Linux; im Programmmenü, in der Taskleiste und im Dock).":
+        "Program icon: the meadow flower (Windows, macOS, Linux; in the program menu, the taskbar and the dock).",
+    "macOS: Die App ist korrigiert verpackt und startet wieder; die Intel-Version läuft ab macOS 12 (Monterey).":
+        "macOS: the app is packaged correctly and starts again; the Intel version runs on macOS 12 (Monterey) and newer.",
 }

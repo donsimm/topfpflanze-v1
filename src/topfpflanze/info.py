@@ -38,7 +38,7 @@ def blocks(tab, plant=None):
             ("p", tr("Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).")),
             ("p", tr("Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.")),
             ("h", tr("Tagebuch")),
-            ("p", tr("Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.")),
+            ("p", tr("Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von sechs Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.")),
             ("h", tr("Spieldaten sichern")),
             ("p", tr("Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.")),
             ("p", tr("Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).")),
@@ -126,6 +126,12 @@ def version_blocks(plant):
     from .changelog import CHANGELOG
     src = {"evdev": "evdev", "pynput": "pynput"}.get(getattr(plant, "key_source", None), tr("nicht verfügbar"))
     out = [("h", f"Topfpflanze {__version__}"),
+           ("p", tr("Das Spiel soll helfen, sich bei der PC-Arbeit zu fokussieren. Ausserdem kann es als Tagebuch und/oder Kalender verwendet werden. Während des Arbeitens, also beim Schreiben auf der Tastatur, wächst eine Pflanze!")),
+           ("p", tr("Die Grafik wird noch durch richtige Zeichnungen ersetzt, es werden Zeichner und Illustratoren gesucht! Auch der Sound wird in der finalen Version von Menschen gemacht sein!")),
+           ("p", tr("Das Projekt ist Vibecoding. Das bezeichnet eine Art der Softwareentwicklung, bei der nahezu ausschliesslich über den Prompt eines Sprachmodells gearbeitet wird, um den für die Software erforderlichen Quellcode zu erzeugen. Der Code ist also zu 100 % KI-generiert.")),
+           ("p", tr("Für den Moment, als Platzhalter, ist auch die Grafik KI-generiert, da ich leider nicht zeichnen kann! Sie wird so schnell wie möglich ausgetauscht!")),
+           ("p", tr("Bei Fragen oder Anregungen: Discord: https://discord.gg/Gkmkum2G8G")),
+           ("h", tr("Programmangaben")),
            ("p", tr("System: {system} {release}", system=platform.system(), release=platform.release())),
            ("p", f"Python {platform.python_version()} · Qt {QT_VERSION_STR} · PyQt {PYQT_VERSION_STR}"),
            ("p", tr("Tastaturzählung: {src}", src=src)),

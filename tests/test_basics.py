@@ -1833,7 +1833,8 @@ def test_reset_deletes_all_game_data_after_a_safety_copy(plant, monkeypatch):
     copies = list((config.STATE_DIR / "backups").glob("vor-Zuruecksetzen-*.zip"))
     assert copies                                                           # der alte Stand ist als Sicherung erhalten
     from topfpflanze import backup
-    saved = backup.read_backup(copies[0], "0.2.0")
+    from topfpflanze import __version__
+    saved = backup.read_backup(copies[0], __version__)
     assert saved["state"]["coins"] == 999 and saved["diary"]["2026-10-04"]["text"] == "Mein Eintrag" and saved["words"] == ["Roggwil"]
     plant.save_state()                                                      # beim Beenden darf nichts neu geschrieben werden
     assert not config.STATE_FILE.exists() and not (config.STATE_DIR / "diary.json").exists()

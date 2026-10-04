@@ -10,10 +10,13 @@ from .i18n import tr
 
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
-    (tr("Unveröffentlicht"), None, [
+    ("0.3.0", "04.10.2026", [
+        tr("Info-Fenster, Reiter «Version»: Beschreibung des Projekts mit Hinweisen zu KI-generiertem Code, Grafik und Sound sowie Discord-Link."),
+        tr("Programmsymbol: die Wiesenblume (Windows, macOS, Linux; im Programmmenü, in der Taskleiste und im Dock)."),
+        tr("macOS: Die App ist korrigiert verpackt und startet wieder; die Intel-Version läuft ab macOS 12 (Monterey)."),
         tr("Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung)."),
         tr("Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert."),
-        tr("Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline)."),
+        tr("Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu sechs Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline)."),
     ]),
     ("0.2.0", "30.09.2026", [
         tr("Helfer gelten je Pflanze (wie der Dünger): pro Pflanze kaufen und ein-/ausschalten; beim Neuaussäen bleiben sie bei der Pflanze. Bereits gekaufte Helfer gelten weiterhin für alle Pflanzen."),

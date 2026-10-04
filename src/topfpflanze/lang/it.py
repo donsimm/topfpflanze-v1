@@ -1078,12 +1078,10 @@ STRINGS = {
         "Apri il diario",
     "\n{n} Einträge":
         "\n{n} voci",
-    "Unveröffentlicht":
-        "Non pubblicato",
-    "Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.":
-        "L'icona del diario apre la finestra di testo di oggi; un clic sulla data in alto mostra o nasconde il calendario. Il testo viene salvato automaticamente, insieme a uno dei cinque cuori dell'umore (clic di nuovo: rimuovere). Un clic su un giorno del calendario apre la sua voce; punto verde = voce, più scuro = più testo. Le voci si trovano nel file diary.json nella cartella di salvataggio. In modalità focus una finestra di testo aperta resta visibile. L'ortografia viene controllata con Hunspell (linea ondulata rossa, il clic destro mostra i suggerimenti, le tue parole vanno in diary_words.txt); la lingua si sceglie sotto il foglio.",
-    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline).":
-        "Diario: nuova icona nel menu con calendario (mappa di calore, punto verde nei giorni con una voce) e una finestra di testo propria. Il testo viene salvato automaticamente, con cinque cuori dell'umore. La finestra di testo resta visibile in modalità focus. Con controllo ortografico (Hunspell, offline).",
+    "Das Tagebuch-Symbol öffnet das Textfenster des heutigen Tags; ein Klick auf das Datum oben blendet den Kalender ein oder aus. Der Text wird von selbst gespeichert, dazu eine von sechs Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar. Die Rechtschreibung wird mit Hunspell geprüft (rote Wellenlinie, Rechtsklick zeigt Vorschläge, eigene Wörter landen in diary_words.txt); die Sprache lässt sich unter dem Papier wählen.":
+        "L'icona del diario apre la finestra di testo di oggi; un clic sulla data in alto mostra o nasconde il calendario. Il testo viene salvato automaticamente, insieme a uno dei sei cuori dell'umore (clic di nuovo: rimuovere). Un clic su un giorno del calendario apre la sua voce; punto verde = voce, più scuro = più testo. Le voci si trovano nel file diary.json nella cartella di salvataggio. In modalità focus una finestra di testo aperta resta visibile. L'ortografia viene controllata con Hunspell (linea ondulata rossa, il clic destro mostra i suggerimenti, le tue parole vanno in diary_words.txt); la lingua si sceglie sotto il foglio.",
+    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu sechs Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar. Mit Rechtschreibprüfung (Hunspell, offline).":
+        "Diario: nuova icona nel menu con calendario (mappa di calore, punto verde nei giorni con una voce) e una finestra di testo propria. Il testo viene salvato automaticamente, con sei cuori dell'umore. La finestra di testo resta visibile in modalità focus. Con controllo ortografico (Hunspell, offline).",
     "Rechtschreibung: aus":
         "Ortografia: disattivata",
     "Rechtschreibung: {lang}":
@@ -1186,4 +1184,22 @@ STRINGS = {
         "Dati di gioco → Apri la cartella dei dati mostra la cartella con la partita, il diario e i backup; Apri la cartella del programma mostra la cartella del programma. Reimposta tutti i dati di gioco elimina tutto e ricomincia da zero (lo stato attuale viene prima salvato in backups).",
     "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
         "Dati di gioco: aprire direttamente le cartelle della partita e del programma e reimpostare tutti i dati (con conferma e backup preventivo).",
+    "Das Spiel soll helfen, sich bei der PC-Arbeit zu fokussieren. Ausserdem kann es als Tagebuch und/oder Kalender verwendet werden. Während des Arbeitens, also beim Schreiben auf der Tastatur, wächst eine Pflanze!":
+        "Il gioco vuole aiutare a concentrarsi durante il lavoro al PC. Può inoltre essere usato come diario e/o calendario. Mentre lavori, cioè mentre scrivi sulla tastiera, cresce una pianta!",
+    "Die Grafik wird noch durch richtige Zeichnungen ersetzt, es werden Zeichner und Illustratoren gesucht! Auch der Sound wird in der finalen Version von Menschen gemacht sein!":
+        "La grafica verrà ancora sostituita da veri disegni, si cercano disegnatori e illustratori! Anche il suono, nella versione finale, sarà fatto da persone!",
+    "Das Projekt ist Vibecoding. Das bezeichnet eine Art der Softwareentwicklung, bei der nahezu ausschliesslich über den Prompt eines Sprachmodells gearbeitet wird, um den für die Software erforderlichen Quellcode zu erzeugen. Der Code ist also zu 100 % KI-generiert.":
+        "Il progetto è vibe coding. Indica un modo di sviluppare software in cui si usa quasi esclusivamente il prompt di un modello linguistico per generare il codice sorgente necessario. Il codice è quindi generato al 100 % da un'IA.",
+    "Für den Moment, als Platzhalter, ist auch die Grafik KI-generiert, da ich leider nicht zeichnen kann! Sie wird so schnell wie möglich ausgetauscht!":
+        "Per ora, come segnaposto, anche la grafica è generata da un'IA, perché purtroppo non so disegnare! Verrà sostituita il prima possibile!",
+    "Bei Fragen oder Anregungen: Discord: https://discord.gg/Gkmkum2G8G":
+        "Domande o suggerimenti? Discord: https://discord.gg/Gkmkum2G8G",
+    "Programmangaben":
+        "Dettagli del programma",
+    "Info-Fenster, Reiter «Version»: Beschreibung des Projekts mit Hinweisen zu KI-generiertem Code, Grafik und Sound sowie Discord-Link.":
+        "Finestra info, scheda «Versione»: descrizione del progetto con note su codice, grafica e suono generati da IA e un link Discord.",
+    "Programmsymbol: die Wiesenblume (Windows, macOS, Linux; im Programmmenü, in der Taskleiste und im Dock).":
+        "Icona del programma: il fiore di prato (Windows, macOS, Linux; nel menu dei programmi, nella barra delle applicazioni e nel Dock).",
+    "macOS: Die App ist korrigiert verpackt und startet wieder; die Intel-Version läuft ab macOS 12 (Monterey).":
+        "macOS: l'app è impacchettata correttamente e si avvia di nuovo; la versione Intel funziona da macOS 12 (Monterey) in poi.",
 }
