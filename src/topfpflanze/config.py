@@ -39,7 +39,7 @@ BUBBLE_ROWS_H = 164         # Höhe des Textbereichs
 ICON, ICON_GAP = 30, 7 * 2 / 3  # Pflanzensymbole in der Sprechblase
 SHOP_GAP = 16 * 2 / 3        # (nicht mehr verwendet)
 TOOL, TOOL_GAP = 24, 6       # Werkzeugsymbole (zweite Reihe)
-TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "info"]
+TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "diary", "info"]
 
 VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze (+30 %); das Sammelbuch bleibt unverändert
 PRESTIGE_AURA_ALPHA = (30, 78)  # Goldene Aura bei Prestige-Bereitschaft: Deckkraft (0–255) im Mittelpunkt, dunkel/hell

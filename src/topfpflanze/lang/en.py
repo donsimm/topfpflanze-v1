@@ -678,8 +678,8 @@ STRINGS = {
         "Bubble icons",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "Top: select a plant (each has its own save; unselected plants pause).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info.":
-        "Bottom: Shop, Garden Shed, Achievements, Focus Timer, Visitor Book, Info.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
+        "Bottom: Shop, Garden Shed, Achievements, Focus Timer, Visitor Book, Diary, Info.",
     "Einstellungen":
         "Settings",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1042,4 +1042,48 @@ STRINGS = {
         "%Y-%m-%d",
     "%d.%m.%Y %H:%M":
         "%Y-%m-%d %H:%M",
+    "schwer":
+        "heavy",
+    "müde":
+        "tired",
+    "ruhig":
+        "calm",
+    "glücklich":
+        "happy",
+    "Schreibe hier deine Gedanken …":
+        "Write your thoughts here …",
+    "Tagebuch":
+        "Diary",
+    "{n} Zeichen":
+        "{n} characters",
+    "Stimmung":
+        "Mood",
+    "✓ automatisch gespeichert":
+        "✓ saved automatically",
+    "Keine Einträge in diesem Monat":
+        "No entries this month",
+    "1 Eintrag in diesem Monat":
+        "1 entry this month",
+    "{n} Einträge in diesem Monat":
+        "{n} entries this month",
+    "Vorheriger Monat":
+        "Previous month",
+    "Nächster Monat":
+        "Next month",
+    "grüner Punkt = Eintrag,\ndunkler = mehr Text":
+        "green dot = entry,\ndarker = more text",
+    "Heute":
+        "Today",
+    "Tagebuch schliessen":
+        "Close diary",
+    "Tagebuch öffnen":
+        "Open diary",
+    "\n{n} Einträge":
+        "\n{n} entries",
+    "Unveröffentlicht":
+        "Unreleased",
+    "Das Tagebuch-Symbol öffnet den Kalender und das Textfenster des heutigen Tags. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar.":
+        "The diary icon opens the calendar and the text window of today. The text is saved automatically, along with one of five mood hearts (click again to remove). Clicking a day in the calendar opens its entry; green dot = entry, darker = more text. The entries are stored in the file diary.json in the save folder. In focus mode an open text window stays visible.",
+    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar.":
+        "Diary: a new icon in the menu with a calendar (heat map, green dot on days with an entry) and its own text window. The text is saved automatically, with five mood hearts. The text window stays visible in focus mode.",
 }

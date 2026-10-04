@@ -317,4 +317,4 @@ POTS = {
 
 # Namen der Werkzeug-Fenster (Reihenfolge: config.TOOL_ORDER)
 TOOL_NAMES = {"shop": tr("Shop"), "garden": tr("Gartenhaus"), "ach": tr("Erfolge"), "focus": tr("Fokus-Timer"),
-              "book": tr("Besucher-Sammelbuch"), "info": tr("Info")}
+              "book": tr("Besucher-Sammelbuch"), "diary": tr("Tagebuch"), "info": tr("Info")}

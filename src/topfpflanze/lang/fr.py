@@ -672,8 +672,8 @@ STRINGS = {
         "Icônes de la bulle",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "En haut : choisir une plante (chacune a sa sauvegarde, les plantes non choisies font une pause).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info.":
-        "En bas : Boutique, Cabane du jardin, Succès, Minuteur focus, Carnet des visiteurs, Infos.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
+        "En bas : Boutique, Cabane du jardin, Succès, Minuteur focus, Carnet des visiteurs, Journal, Infos.",
     "Einstellungen":
         "Réglages",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1040,4 +1040,48 @@ STRINGS = {
         "%d.%m.%Y",
     "%d.%m.%Y %H:%M":
         "%d.%m.%Y %H:%M",
+    "schwer":
+        "lourd",
+    "müde":
+        "fatigué",
+    "ruhig":
+        "calme",
+    "glücklich":
+        "heureux",
+    "Schreibe hier deine Gedanken …":
+        "Écris tes pensées ici …",
+    "Tagebuch":
+        "Journal",
+    "{n} Zeichen":
+        "{n} caractères",
+    "Stimmung":
+        "Humeur",
+    "✓ automatisch gespeichert":
+        "✓ enregistré automatiquement",
+    "Keine Einträge in diesem Monat":
+        "Aucune entrée ce mois-ci",
+    "1 Eintrag in diesem Monat":
+        "1 entrée ce mois-ci",
+    "{n} Einträge in diesem Monat":
+        "{n} entrées ce mois-ci",
+    "Vorheriger Monat":
+        "Mois précédent",
+    "Nächster Monat":
+        "Mois suivant",
+    "grüner Punkt = Eintrag,\ndunkler = mehr Text":
+        "point vert = entrée,\nplus foncé = plus de texte",
+    "Heute":
+        "Aujourd'hui",
+    "Tagebuch schliessen":
+        "Fermer le journal",
+    "Tagebuch öffnen":
+        "Ouvrir le journal",
+    "\n{n} Einträge":
+        "\n{n} entrées",
+    "Unveröffentlicht":
+        "Non publié",
+    "Das Tagebuch-Symbol öffnet den Kalender und das Textfenster des heutigen Tags. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar.":
+        "L'icône du journal ouvre le calendrier et la fenêtre de texte du jour. Le texte est enregistré automatiquement, avec l'un des cinq cœurs d'humeur (recliquer : retirer). Un clic sur un jour du calendrier ouvre son entrée ; point vert = entrée, plus foncé = plus de texte. Les entrées sont dans le fichier diary.json du dossier de sauvegarde. En mode focus, une fenêtre de texte ouverte reste visible.",
+    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar.":
+        "Journal : nouvelle icône dans le menu avec calendrier (carte de chaleur, point vert les jours avec entrée) et sa propre fenêtre de texte. Le texte est enregistré automatiquement, avec cinq cœurs d'humeur. La fenêtre de texte reste visible en mode focus.",
 }

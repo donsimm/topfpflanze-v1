@@ -128,6 +128,9 @@ class Bubble(ScaledWidget):
         if key == "info":
             head = tr("Info schliessen") if opened else tr("Info öffnen")
             return head + tr("\nSpielregeln und Werte")
+        if key == "diary":
+            head = tr("Tagebuch schliessen") if opened else tr("Tagebuch öffnen")
+            return head + tr("\n{n} Einträge", n=len(pl.diary.entries))
         if key == "book":
             head = tr("Besucher-Sammelbuch schliessen") if opened else tr("Besucher-Sammelbuch öffnen")
             return head + tr("\n{book} / {total} entdeckt", book=len(pl.state.get("book", {})), total=len(VISITORS))
@@ -398,6 +401,28 @@ class Bubble(ScaledWidget):
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QColor("#4C9A4A"))
             p.drawEllipse(QPointF(15, 16), 1.4, 1.4)
+
+        elif key == "diary":    # Notizbuch mit Gummiband, Lesebändchen und kleiner Pflanze
+            p.setPen(QPen(QColor("#5A2B2B"), 0.9))
+            p.setBrush(QColor("#F4F1E6"))
+            p.drawRect(QRectF(9, 6.5, 15, 19))
+            p.setBrush(QColor("#8E3B46"))
+            p.drawRoundedRect(QRectF(7, 5, 15, 20), 1.5, 1.5)
+            p.setBrush(QColor("#6E2B35"))
+            p.drawRect(QRectF(7, 5, 3, 20))
+            p.setPen(nopen)
+            p.setBrush(QColor("#F3E24A"))
+            p.drawRoundedRect(QRectF(17.2, 5, 1.8, 20), 0.4, 0.4)
+            p.setBrush(QColor("#E8C8A0"))
+            p.drawRoundedRect(QRectF(11.5, 9, 4.8, 4.8), 1, 1)
+            p.setPen(round_pen(QColor("#4C9A4A"), 1.0))
+            p.drawLine(QPointF(13.9, 12.8), QPointF(13.9, 10.2))
+            p.setPen(nopen)
+            p.setBrush(QColor("#4C9A4A"))
+            p.drawEllipse(QPointF(13.0, 10.6), 1.1, 0.7)
+            p.drawEllipse(QPointF(14.8, 10.2), 1.1, 0.7)
+            p.setBrush(QColor("#D64541"))
+            p.drawRect(QRectF(20.5, 23.5, 2.2, 4.5))
 
         elif key == "info":
             p.setPen(QPen(QColor("#2F6DB5"), 1.3))

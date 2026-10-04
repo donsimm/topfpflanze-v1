@@ -1322,7 +1322,7 @@ def test_game_starts_in_each_language_in_a_fresh_process(tmp_path, code):
         assert PLANT_TYPES["kaktus"].name == {{"en": "Cactus", "fr": "Cactus", "it": "Cactus"}}[{code!r}]
         assert RARITY_LABEL["sehr selten"] == {{"en": "very rare", "fr": "très rare", "it": "molto raro"}}[{code!r}]
         assert all(a.name for a in ACHIEVEMENTS)
-        for w in (p, p.bubble, p.shop, p.garden, p.ach_win, p.focus_win, p.book_win, p.info_win, p.sow_win):
+        for w in (p, p.bubble, p.shop, p.garden, p.ach_win, p.focus_win, p.book_win, p.info_win, p.sow_win, p.diary_win, p.diary_text):
             assert not w.grab().isNull()
         print("OK")
     """)
@@ -1395,3 +1395,102 @@ def test_old_global_helpers_migrate_to_every_plant(plant, tmp_path, monkeypatch)
     assert plant.state["plants"]["wiesenblume"]["helpers_off"] == ["lampe"]
     plant.activate("kaktus")                     # später erstellte Pflanze erhält die früheren Käufe ebenfalls
     assert plant.ps["helpers"] == ["hummel", "lampe"] and plant.helper_on("hummel") and not plant.helper_on("lampe")
+
+
+# ---------------------------------------------------------------- Tagebuch
+
+def test_diary_store_saves_loads_and_removes_empty_entries(plant):
+    import datetime, json
+    from topfpflanze.diary import DiaryStore
+    day = datetime.date(2026, 10, 4)
+    store = plant.diary
+    store.put(day, "Heute war ein guter Tag.", 3)
+    path = config.STATE_DIR / "diary.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["entries"]["2026-10-04"]["text"] == "Heute war ein guter Tag." and data["entries"]["2026-10-04"]["mood"] == 3
+    again = DiaryStore()                                   # frisch von der Platte
+    assert again.text(day) == "Heute war ein guter Tag." and again.mood(day) == 3 and again.has(day)
+    assert again.month_count(2026, 10) == 1 and again.month_count(2026, 9) == 0
+    again.put(day, "   ", None)                            # leer und ohne Stimmung: Eintrag verschwindet
+    assert not again.has(day) and DiaryStore().entries == {}
+    again.put(day, "", 1)                                  # nur eine Stimmung zählt als Eintrag
+    assert again.has(day) and again.size(day) == 0
+    assert not (config.STATE_DIR / "diary.json.tmp").exists()
+
+
+def test_diary_text_window_autosaves_and_switches_days(plant):
+    import datetime
+    w = plant.diary_text
+    d1, d2 = datetime.date(2026, 10, 4), datetime.date(2026, 10, 5)
+    w.open_date(d1)
+    assert w.isVisible() and w.date == d1
+    w.editor.setPlainText("Gedanken vom Sonntag")
+    assert w.dirty and not plant.diary.has(d1)             # gespeichert wird nach kurzer Pause
+    w.timer.timeout.emit()
+    assert plant.diary.text(d1) == "Gedanken vom Sonntag" and not w.dirty
+    w.editor.setPlainText("Noch ein Satz")
+    w.open_date(d2)                                        # Datumswechsel speichert den bisherigen Tag
+    assert plant.diary.text(d1) == "Noch ein Satz" and w.editor.toPlainText() == ""
+    w.on_click(("m", 4))                                   # Stimmung wählen speichert sofort
+    assert plant.diary.mood(d2) == 4 and w.mood == 4
+    w.on_click(("m", 4))
+    assert plant.diary.mood(d2) is None and not plant.diary.has(d2)
+    w.open_date(d1)
+    assert w.editor.toPlainText() == "Noch ein Satz"
+    w.editor.setPlainText("zuletzt")
+    w.hide()                                               # beim Schliessen wird gespeichert
+    assert plant.diary.text(d1) == "zuletzt"
+    plant.diary_text.editor.setPlainText("beim Beenden")
+    plant.save_state()
+    assert plant.diary.text(d1) == "beim Beenden"
+    for win in (plant.diary_win, w):
+        assert not win.grab().isNull()
+
+
+def test_diary_calendar_selects_days_and_navigates_months(plant):
+    import datetime
+    cal = plant.diary_win
+    today = datetime.date.today()
+    plant.diary.put(today, "x" * 300, 2)
+    cal.show_month_of(today)
+    assert (cal.year, cal.month) == (today.year, today.month)
+    assert not cal.grab().isNull()
+    cal.on_click(("d", 1))
+    assert plant.diary_text.date == today.replace(day=1) and plant.diary_text.isVisible()
+    cal.on_click("prev")
+    assert (cal.year, cal.month) == ((today.year, today.month - 1) if today.month > 1 else (today.year - 1, 12))
+    cal.on_click("next")
+    cal.on_click("next")
+    nxt = (today.month % 12) + 1
+    assert cal.month == nxt
+    cal.on_click("today")
+    assert plant.diary_text.date == today and (cal.year, cal.month) == (today.year, today.month)
+    assert any(k == ("d", today.day) for k, _r, _c in cal.items())
+    assert cal.heat(300).name() != cal.heat(10).name()                       # mehr Text = dunkler
+
+
+def test_diary_icon_opens_both_windows_and_focus_mode_keeps_the_text_window(plant):
+    assert "diary" in config.TOOL_ORDER
+    plant.toggle_window("diary")
+    assert plant.diary_win.isVisible() and plant.diary_text.isVisible()
+    assert plant.diary_text.date.isoformat() == __import__("time").strftime("%Y-%m-%d")
+    plant.bubble.show()
+    plant.ach_win.show()
+    plant.start_focus(25)                                  # Fokusmodus: Menüfenster weg, Textfenster bleibt
+    assert plant.focus_mode_active
+    assert plant.diary_text.isVisible() and not plant.diary_win.isVisible()
+    assert not plant.ach_win.isVisible() and not plant.bubble.isVisible()
+    plant.abort_focus()
+    assert plant.diary_win.isVisible() and plant.diary_text.isVisible() and plant.ach_win.isVisible()
+    plant.toggle_window("diary")                           # nochmal klicken: beide zu
+    assert not plant.diary_win.isVisible() and not plant.diary_text.isVisible()
+    assert "Tagebuch" in plant.bubble.tooltip_text("diary")
+    assert not plant.bubble.grab().isNull()
+
+
+def test_diary_text_scales_with_the_menu_slider(plant, scale_reset):
+    plant.diary_text.show()
+    base = plant.diary_text.editor.geometry().width()
+    plant.set_ui_scale(1.5, "menu")
+    assert plant.diary_text.editor.geometry().width() > base
+    assert plant.diary_text.editor.font().pixelSize() == round(plant.diary_text.EDIT_PX * plant.diary_text._k)

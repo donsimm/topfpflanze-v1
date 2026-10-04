@@ -36,7 +36,9 @@ def blocks(tab, plant=None):
                   "Anzahl, nie welche Taste.")),
             ("h", tr("Symbole der Sprechblase")),
             ("p", tr("Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).")),
-            ("p", tr("Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info.")),
+            ("p", tr("Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.")),
+            ("h", tr("Tagebuch")),
+            ("p", tr("Das Tagebuch-Symbol öffnet den Kalender und das Textfenster des heutigen Tags. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar.")),
             ("h", tr("Einstellungen")),
             ("p", tr("Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.")),
         ]

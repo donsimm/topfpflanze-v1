@@ -672,8 +672,8 @@ STRINGS = {
         "Icone della nuvoletta",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "In alto: scegliere una pianta (ognuna ha il suo salvataggio, quelle non scelte sono in pausa).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Info.":
-        "In basso: Negozio, Casetta del giardino, Obiettivi, Timer focus, Libro dei visitatori, Info.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
+        "In basso: Negozio, Casetta del giardino, Obiettivi, Timer focus, Libro dei visitatori, Diario, Info.",
     "Einstellungen":
         "Impostazioni",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1040,4 +1040,48 @@ STRINGS = {
         "%d.%m.%Y",
     "%d.%m.%Y %H:%M":
         "%d.%m.%Y %H:%M",
+    "schwer":
+        "pesante",
+    "müde":
+        "stanco",
+    "ruhig":
+        "calmo",
+    "glücklich":
+        "felice",
+    "Schreibe hier deine Gedanken …":
+        "Scrivi qui i tuoi pensieri …",
+    "Tagebuch":
+        "Diario",
+    "{n} Zeichen":
+        "{n} caratteri",
+    "Stimmung":
+        "Umore",
+    "✓ automatisch gespeichert":
+        "✓ salvato automaticamente",
+    "Keine Einträge in diesem Monat":
+        "Nessuna voce questo mese",
+    "1 Eintrag in diesem Monat":
+        "1 voce questo mese",
+    "{n} Einträge in diesem Monat":
+        "{n} voci questo mese",
+    "Vorheriger Monat":
+        "Mese precedente",
+    "Nächster Monat":
+        "Mese successivo",
+    "grüner Punkt = Eintrag,\ndunkler = mehr Text":
+        "punto verde = voce,\npiù scuro = più testo",
+    "Heute":
+        "Oggi",
+    "Tagebuch schliessen":
+        "Chiudi il diario",
+    "Tagebuch öffnen":
+        "Apri il diario",
+    "\n{n} Einträge":
+        "\n{n} voci",
+    "Unveröffentlicht":
+        "Non pubblicato",
+    "Das Tagebuch-Symbol öffnet den Kalender und das Textfenster des heutigen Tags. Der Text wird von selbst gespeichert, dazu eine von fünf Stimmungs-Herzen (nochmal klicken: entfernen). Ein Klick auf einen Tag im Kalender öffnet dessen Eintrag; grüner Punkt = Eintrag, dunkler = mehr Text. Die Einträge liegen in der Datei diary.json im Spielstand-Ordner. Im Fokusmodus bleibt ein offenes Textfenster sichtbar.":
+        "L'icona del diario apre il calendario e la finestra di testo di oggi. Il testo viene salvato automaticamente, insieme a uno dei cinque cuori dell'umore (clic di nuovo: rimuovere). Un clic su un giorno del calendario apre la sua voce; punto verde = voce, più scuro = più testo. Le voci si trovano nel file diary.json nella cartella di salvataggio. In modalità focus una finestra di testo aperta resta visibile.",
+    "Tagebuch: neues Symbol im Menü mit Kalender (Wärmekarte, grüner Punkt bei Tagen mit Eintrag) und eigenem Textfenster. Der Text wird von selbst gespeichert, dazu fünf Stimmungs-Herzen. Das Textfenster bleibt im Fokusmodus sichtbar.":
+        "Diario: nuova icona nel menu con calendario (mappa di calore, punto verde nei giorni con una voce) e una finestra di testo propria. Il testo viene salvato automaticamente, con cinque cuori dell'umore. La finestra di testo resta visibile in modalità focus.",
 }

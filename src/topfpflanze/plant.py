@@ -17,6 +17,7 @@ from . import config, debug, i18n, pots, scaling, sound, tooltip
 from .bubble import Bubble
 from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_HOUR, SCENE_DY, SEED_FRAC, STAGE_COINS, TOOL_ORDER, WATER_MAX, WIN_H, WIN_W
 from .data import TOOL_NAMES, ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_DEFAULT, FOCUS_MULT, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
+from .diary import DiaryCalWin, DiaryStore, DiaryTextWin
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -80,9 +81,12 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.book_win = BookWin(self)
         self.info_win = InfoWin(self)
         self.sow_win = SowWin(self)
+        self.diary = DiaryStore()
+        self.diary_win = DiaryCalWin(self)
+        self.diary_text = DiaryTextWin(self)
         self.windows = {"shop": self.shop, "garden": self.garden, "ach": self.ach_win,
-                        "focus": self.focus_win, "book": self.book_win, "info": self.info_win,
-                        "sow": self.sow_win}
+                        "focus": self.focus_win, "book": self.book_win, "diary": self.diary_win,
+                        "info": self.info_win, "sow": self.sow_win, "diary_text": self.diary_text}
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick)
@@ -160,6 +164,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         return state
 
     def save_state(self):
+        if hasattr(self, "diary_text"):
+            self.diary_text.flush()
         now = time.time()
         self.ps["last_update"] = now
         self.state["pos"] = [self.x(), self.y()]
@@ -170,7 +176,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if hasattr(self, "garden"):
             self.state["garden_pos"] = [self.garden.x(), self.garden.y()]
         if hasattr(self, "windows"):
-            for win in (self.ach_win, self.focus_win, self.book_win, self.info_win):
+            for win in (self.ach_win, self.focus_win, self.book_win, self.info_win, self.diary_win, self.diary_text):
                 self.state[win.pos_key] = list(win.saved_pos())
         try:
             config.STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -299,6 +305,16 @@ class Plant(PlantDrawMixin, ScaledWidget):
 
     def toggle_window(self, key):
         win = self.windows[key]
+        if key == "diary":      # Kalender und Textfenster gehören zusammen: öffnen zeigt den heutigen Tag
+            if win.isVisible():
+                win.hide()
+                self.diary_text.hide()
+            else:
+                today = datetime.date.today()
+                win.show_month_of(today)
+                win.show()
+                self.diary_text.open_date(today)
+            return
         win.setVisible(not win.isVisible())
 
     def toggle_shop(self):
@@ -593,7 +609,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         Gemerkt wird, welche Fenster offen waren, damit sie danach zurückkommen."""
         if self.focus_mode_active or not self.state.get("focus_mode", True):
             return
-        others = [w for w in (self.bubble, *self.windows.values()) if w is not self.focus_win]
+        # Das Tagebuch-Textfenster bleibt im Fokusmodus sichtbar, wenn es offen ist
+        others = [w for w in (self.bubble, *self.windows.values()) if w not in (self.focus_win, self.diary_text)]
         self._focus_restore = [w for w in others if w.isVisible()]
         self._focus_win_was_visible = self.focus_win.isVisible()
         for w in self._focus_restore:
