@@ -2071,7 +2071,6 @@ def test_mushroom_is_a_very_hard_sixth_plant_with_spores_instead_of_blossoms(pla
 
 
 def test_mushroom_draws_in_every_stage_color_and_water_state(plant):
-    from topfpflanze.data import PLANT_TYPES
     plant.select_plant("pilz")
     k = plant.kind
     assert k.key == "pilz" and plant.ps["color"] in k.palette
