@@ -13,7 +13,7 @@ Erfolge und vieles mehr. Läuft unter Windows, macOS und Linux (PyQt6). Freie So
 
 ## Das Wichtigste
 
-- **Fünf Pflanzen** (Wiesenblume, Kaktus, Tulpe, Sonnenblume, Bonsai) mit eigenen Töpfen (über 30 Designs) und eigenem Spielstand.
+- **Sechs Pflanzen** (Wiesenblume, Kaktus, Tulpe, Sonnenblume, Bonsai und der sehr schwere Pilz, der statt Blüten Sporen bildet) mit eigenen Töpfen (über 30 Designs) und eigenem Spielstand.
 - **Wachsen durch Arbeit:** Klicks giessen und lassen wachsen, Tastendrücke ebenso. Wasser, Dünger und Helfer (je Pflanze) bestimmen das Tempo.
 - **Fokus-Timer** mit Fokusmodus: Beim Start verschwinden alle Menüfenster, nur Pflanze und Zeit bleiben.
 - **Tagebuch** mit Kalender, sechs Stimmungs-Herzen und Rechtschreibprüfung; der Text wird von selbst gespeichert.
@@ -66,7 +66,7 @@ Aktualisieren: im Projektordner `git pull` und `pip install -e .`, dann das Spie
 Eine ausführliche Anleitung mit allen Werten steht im Spiel (Sprechblase → Info-Symbol). Kurz:
 
 - **Linksklick** auf die Pflanze: giessen und wachsen lassen. **Ziehen:** Fenster verschieben. **Mittelklick:** Sprechblase ein/aus. **Rechtsklick:** Menü.
-- **Sprechblase:** oben die fünf Pflanzen, unten Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben und Info.
+- **Sprechblase:** oben die sechs Pflanzen, unten Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben und Info.
 - **Rechtsklick → Einstellungen:** Tastaturzählung, Sprache, Dunkelmodus, Immer im Vordergrund, Pflanzen- und Menügrösse, Lautstärke (standardmässig stumm).
 
 ## Plattformhinweise

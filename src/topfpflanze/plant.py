@@ -432,7 +432,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         return {
             "d_keys": d.get("keys", 0), "d_clicks": d.get("clicks", 0), "d_focus": d.get("focus", 0),
             "w_keys": w.get("keys", 0), "w_growth": int(w.get("growth", 0)), "w_focus": w.get("focus", 0),
-            **{k: len(st["bloomed_species"]) for k in ("g_bloom", "g_bloom2", "g_bloom3", "g_bloom4", "g_species")},
+            **{k: len(st["bloomed_species"]) for k in ("g_bloom", "g_bloom2", "g_bloom3", "g_bloom4", "g_bloom5", "g_species")},
             "g_garden": len(st["garden"]), "g_garden150": len(st["garden"]), "g_garden500": len(st["garden"]),
             "g_prestige": max(st["prestige"].values(), default=0),
             "g_keys": keys, "g_keys1": keys, "g_keys10": keys, "g_keys500": keys, "g_keys1m": keys,

@@ -74,8 +74,17 @@ PLANT_TYPES = {
         note=tr("Wächst nur gut bei 30–80 % Wasser."), coin_mult=3.0,
         colors=("#F7B7C8",),
         palette=("#F7B7C8", "#FFFFFF", "#F48FB1", "#E75480", "#FCE4EC")),
+    "pilz": PlantType(
+        "pilz", tr("Pilz"), tr("Sehr schwer"), "holz",
+        bloom_at=6000, growth_per_click=0.25, growth_per_key=0.01,
+        water_per_click=3.0, water_per_key=0.004, drain_hours=5,
+        water_low=50, water_high=85, wilt_below=40,
+        stages=(tr("Spore"), tr("Myzel"), tr("Pilzknötchen"), tr("Jungpilz"), tr("Grosser Pilz"), tr("Reifender Pilz"), tr("Sporenreif")),
+        note=tr("Statt Blüten bildet er Sporen. Wächst nur bei 50–85 % Wasser."), coin_mult=4.0,
+        colors=("#C62828",),
+        palette=("#C62828", "#8D5A3B", "#E58F2A", "#E8DCC0", "#7E57C2", "#F2C94C", "#D81B60", "#4E8F7A")),
 }
-PLANT_ORDER = ["wiesenblume", "kaktus", "tulpe", "sonnenblume", "bonsai"]
+PLANT_ORDER = ["wiesenblume", "kaktus", "tulpe", "sonnenblume", "bonsai", "pilz"]
 
 
 @dataclass(frozen=True)
@@ -231,7 +240,8 @@ ACHIEVEMENTS = [
     Achievement("g_bloom2", "general", tr("Zweite Art"), tr("2 Arten blühen lassen"), 2, 75, "blueten"),
     Achievement("g_bloom3", "general", tr("Dreierstrauss"), tr("3 Arten blühen lassen"), 3, 100, "blueten"),
     Achievement("g_bloom4", "general", tr("Blumenbeet"), tr("4 Arten blühen lassen"), 4, 150, "blueten"),
-    Achievement("g_species", "general", tr("Artenvielfalt"), tr("Alle 5 Arten blühen lassen"), 5, 200, "blueten"),
+    Achievement("g_bloom5", "general", tr("Beinahe vollständig"), tr("5 Arten blühen lassen"), 5, 175, "blueten"),
+    Achievement("g_species", "general", tr("Artenvielfalt"), tr("Alle 6 Arten blühen lassen"), 6, 250, "blueten"),
     Achievement("g_garden", "general", tr("Sammler"), tr("5 Pflanzen im Gartenhaus"), 5, 75, "garten"),
     Achievement("g_garden15", "general", tr("Gartenhaus-Besitzer"), tr("15 Pflanzen im Gartenhaus"), 15, 150, "garten"),
     Achievement("g_garden50", "general", tr("Gartenbaumeister"), tr("50 Pflanzen im Gartenhaus"), 50, 400, "garten"),
@@ -313,6 +323,7 @@ POTS = {
     "keramik":    {"soil_y": 244, "soil_rx": 40, "soil_ry": 4.5, "drop_y": 290, "drop_r": 7.5},
     "zink":       {"soil_y": 238, "soil_rx": 56, "soil_ry": 5.0, "drop_y": 288, "drop_r": 8.5},
     "schale":     {"soil_y": 290, "soil_rx": 78, "soil_ry": 3.5, "drop_y": 306, "drop_r": 5.0},
+    "holz":       {"soil_y": 242, "soil_rx": 40, "soil_ry": 5.0, "drop_y": 294, "drop_r": 8.0},
 }
 
 # Namen der Werkzeug-Fenster (Reihenfolge: config.TOOL_ORDER)

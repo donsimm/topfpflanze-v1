@@ -284,8 +284,6 @@ STRINGS = {
         "Bloom 4 species",
     "Artenvielfalt":
         "Biodiversity",
-    "Alle 5 Arten blühen lassen":
-        "Bloom all 5 species",
     "Sammler":
         "Collector",
     "5 Pflanzen im Gartenhaus":
@@ -1260,4 +1258,38 @@ STRINGS = {
         "Tasks: the clipboard icon in the menu opens the list for a day. Type a new task at the bottom (Enter), tick it off, or delete it. Tasks that are not done move to the next day and show their original date («since …»). Tasks are part of the backup.",
     "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
         "Tasks (to-do): a list for each day with check boxes. Open tasks move to the next day by themselves and keep their original date.",
+    "Pilz":
+        "Mushroom",
+    "Spore":
+        "Spore",
+    "Myzel":
+        "Mycelium",
+    "Pilzknötchen":
+        "Pinhead",
+    "Jungpilz":
+        "Young mushroom",
+    "Grosser Pilz":
+        "Large mushroom",
+    "Reifender Pilz":
+        "Ripening mushroom",
+    "Sporenreif":
+        "Spore-ripe",
+    "Statt Blüten bildet er Sporen. Wächst nur bei 50–85 % Wasser.":
+        "Instead of blossoms it forms spores. Only grows at 50–85 % water.",
+    "Birke, Ringe":
+        "Birch, rings",
+    "Moosgrün, Punkte":
+        "Moss green, dots",
+    "Anthrazit, Goldband":
+        "Anthracite, gold band",
+    "Kupfer gebürstet":
+        "Brushed copper",
+    "Beinahe vollständig":
+        "Almost complete",
+    "5 Arten blühen lassen":
+        "Make 5 species bloom",
+    "Alle 6 Arten blühen lassen":
+        "Make all 6 species bloom",
+    "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
+        "Mushroom: sixth plant, very hard: grows in a tree stump, needs 50–85 % water and forms spores instead of blossoms. New achievements for the sixth species.",
 }

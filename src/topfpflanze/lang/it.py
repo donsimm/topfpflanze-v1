@@ -278,8 +278,6 @@ STRINGS = {
         "Far fiorire 4 specie",
     "Artenvielfalt":
         "Biodiversità",
-    "Alle 5 Arten blühen lassen":
-        "Far fiorire tutte e 5 le specie",
     "Sammler":
         "Collezionista",
     "5 Pflanzen im Gartenhaus":
@@ -1258,4 +1256,38 @@ STRINGS = {
         "Attività: l'icona della cartellina nel menu apre l'elenco di un giorno. Scrivi una nuova attività in basso (Invio), spuntala o eliminala. Le attività non completate passano al giorno dopo e mostrano la data originale («dal …»). Le attività fanno parte del backup.",
     "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
         "Attività (to-do): un elenco per ogni giorno con caselle da spuntare. Le attività aperte passano da sole al giorno dopo e mantengono la data originale.",
+    "Pilz":
+        "Fungo",
+    "Spore":
+        "Spora",
+    "Myzel":
+        "Micelio",
+    "Pilzknötchen":
+        "Primordio",
+    "Jungpilz":
+        "Fungo giovane",
+    "Grosser Pilz":
+        "Fungo grande",
+    "Reifender Pilz":
+        "Fungo in maturazione",
+    "Sporenreif":
+        "Maturo (spore)",
+    "Statt Blüten bildet er Sporen. Wächst nur bei 50–85 % Wasser.":
+        "Invece dei fiori forma spore. Cresce solo con il 50–85 % di acqua.",
+    "Birke, Ringe":
+        "Betulla, anelli",
+    "Moosgrün, Punkte":
+        "Verde muschio, punti",
+    "Anthrazit, Goldband":
+        "Antracite, fascia dorata",
+    "Kupfer gebürstet":
+        "Rame spazzolato",
+    "Beinahe vollständig":
+        "Quasi completo",
+    "5 Arten blühen lassen":
+        "Far fiorire 5 specie",
+    "Alle 6 Arten blühen lassen":
+        "Far fiorire tutte e 6 le specie",
+    "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
+        "Fungo: sesta pianta, molto difficile: cresce in un ceppo, richiede il 50–85 % di acqua e forma spore invece di fiori. Nuovi obiettivi per la sesta specie.",
 }

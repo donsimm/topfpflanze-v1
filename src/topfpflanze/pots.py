@@ -27,6 +27,7 @@ RAMPS = {
     "kupfer": ("#5A2A14", "#C8703F", "#FFD2B0"), "messing": ("#6E5A1E", "#C9A94A", "#F5E5A8"),
     "gold": ("#6E4B0B", "#E6B422", "#FFF1B0"), "weiss": ("#B9BDC2", "#ECEEEF", "#FFFFFF"),
     "waldgruen": ("#16301F", "#2F5A3A", "#7EAA88"), "terra": ("#9A5A3C", "#D89A73", "#F3CBB0"),
+    "birke": ("#6A675F", "#DAD5C8", "#F7F4EB"), "moos": ("#1E3A22", "#4E7A45", "#A9C79A"),
     "creme": ("#B8A98C", "#E9DFC8", "#FAF5E8"), "schwarz": ("#050607", "#1D1F22", "#4A4E54"),
 }
 
@@ -459,3 +460,8 @@ def _bbox(img):
 
 def clear_cache():
     _CACHE.clear()
+# --- Pilz (Holzstamm)
+_d("holz", "birke-ringe", tr("Birke, Ringe"), TIER_CHEAP, 35, "birke", ("lines", (.30, .58), 1.4, "#5A5448"))
+_d("holz", "moos-punkte", tr("Moosgrün, Punkte"), TIER_CHEAP, 40, "moos", ("dots", 3.2, 20, 16, .30, .90, "#C9E0B8"))
+_d("holz", "anthrazit-goldband", tr("Anthrazit, Goldband"), TIER_PREMIUM, 190, "anthrazit", ("band", .46, .58, GOLD))
+_d("holz", "kupfer-gebuerstet", tr("Kupfer gebürstet"), TIER_PREMIUM, 230, "kupfer", ("brush", "#FFFFFF", 30))

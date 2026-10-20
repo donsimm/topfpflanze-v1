@@ -278,8 +278,6 @@ STRINGS = {
         "Faire fleurir 4 espèces",
     "Artenvielfalt":
         "Biodiversité",
-    "Alle 5 Arten blühen lassen":
-        "Faire fleurir les 5 espèces",
     "Sammler":
         "Collectionneur",
     "5 Pflanzen im Gartenhaus":
@@ -1258,4 +1256,38 @@ STRINGS = {
         "Tâches : l'icône du bloc-notes dans le menu ouvre la liste d'un jour. Saisissez une nouvelle tâche en bas (Entrée), cochez-la ou supprimez-la. Les tâches non faites passent au jour suivant et gardent leur date d'origine («depuis …»). Les tâches font partie de la sauvegarde.",
     "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
         "Tâches (to-do) : une liste par jour avec cases à cocher. Les tâches en cours passent d'elles-mêmes au jour suivant et gardent leur date d'origine.",
+    "Pilz":
+        "Champignon",
+    "Spore":
+        "Spore",
+    "Myzel":
+        "Mycélium",
+    "Pilzknötchen":
+        "Primordium",
+    "Jungpilz":
+        "Jeune champignon",
+    "Grosser Pilz":
+        "Grand champignon",
+    "Reifender Pilz":
+        "Champignon en maturation",
+    "Sporenreif":
+        "À maturité des spores",
+    "Statt Blüten bildet er Sporen. Wächst nur bei 50–85 % Wasser.":
+        "Au lieu de fleurs, il forme des spores. Ne pousse qu'à 50–85 % d'eau.",
+    "Birke, Ringe":
+        "Bouleau, anneaux",
+    "Moosgrün, Punkte":
+        "Vert mousse, points",
+    "Anthrazit, Goldband":
+        "Anthracite, bande dorée",
+    "Kupfer gebürstet":
+        "Cuivre brossé",
+    "Beinahe vollständig":
+        "Presque complet",
+    "5 Arten blühen lassen":
+        "Faire fleurir 5 espèces",
+    "Alle 6 Arten blühen lassen":
+        "Faire fleurir les 6 espèces",
+    "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
+        "Champignon : sixième plante, très difficile : pousse dans une souche, demande 50–85 % d'eau et forme des spores au lieu de fleurs. Nouveaux succès pour la sixième espèce.",
 }

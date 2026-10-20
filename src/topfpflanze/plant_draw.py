@@ -455,6 +455,48 @@ class PlantDrawMixin:
 
     # ---------- Zeichnen: Bausteine ----------
 
+    def draw_pot_holz(self, p):
+        """Baumstumpf als Topf (für den Pilz): Rinde, Jahresringe oben, etwas Moos am Fuss."""
+        cx, top, bottom = WIN_W / 2, 242, SCENE_H - 8
+        body = QPainterPath()
+        body.moveTo(cx - 46, top)
+        body.lineTo(cx + 46, top)
+        body.lineTo(cx + 48, bottom - 12)
+        body.quadTo(QPointF(cx + 48, bottom), QPointF(cx + 38, bottom))
+        body.lineTo(cx - 38, bottom)
+        body.quadTo(QPointF(cx - 48, bottom), QPointF(cx - 48, bottom - 12))
+        body.closeSubpath()
+        grad = QLinearGradient(cx - 48, 0, cx + 48, 0)
+        grad.setColorAt(0, QColor("#4E3621"))
+        grad.setColorAt(0.35, QColor("#8A6240"))
+        grad.setColorAt(0.7, QColor("#6E4C30"))
+        grad.setColorAt(1, QColor("#4A311E"))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QBrush(grad))
+        p.drawPath(body)
+        p.save()
+        p.setClipPath(body)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        for i, x in enumerate((-36, -24, -12, 0, 13, 25, 37)):    # Rindenfurchen
+            p.setPen(QPen(QColor(35, 22, 12, 110), 1.3))
+            path = QPainterPath(QPointF(cx + x, top + 6))
+            path.cubicTo(QPointF(cx + x + 4, top + 28), QPointF(cx + x - 4, top + 52), QPointF(cx + x + 2 * (i % 2), bottom))
+            p.drawPath(path)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(20, 12, 6, 90))                           # Astloch
+        p.drawEllipse(QPointF(cx + 14, top + 44), 5, 7)
+        p.setBrush(QColor(110, 150, 70, 170))                       # Moos am Fuss
+        for x, r in ((-36, 7), (-26, 5), (-8, 4), (22, 6), (34, 8)):
+            p.drawEllipse(QPointF(cx + x, bottom - 3), r, r * 0.55)
+        p.restore()
+        p.setBrush(QColor("#C9A272"))                               # Schnittfläche oben
+        p.setPen(QPen(QColor("#8A6240"), 1))
+        p.drawEllipse(QPointF(cx, top), 47, 7)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(QColor(120, 84, 48, 140), 0.8))
+        for k in (0.75, 0.5):
+            p.drawEllipse(QPointF(cx, top), 47 * k, 7 * k)
+
     def draw_seed(self, p, base):
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QColor("#7A5230"))
@@ -928,3 +970,116 @@ class PlantDrawMixin:
                 if frac >= 1.0:
                     p.setBrush(QColor("#E0607E"))
                     p.drawEllipse(pt, size * 0.35, size * 0.35)
+
+
+    # ---------- Zeichnen: Pilz (Sporen statt Blüten) ----------
+
+    def draw_mushroom(self, p, bx, by, h, cw, open_, bend, tilt, cap_col, stem_col, spot_seed, ring):
+        """Ein Pilz: Stiel, Lamellen, Hut mit Punkten. `open_` 0 = Kugelhut, 1 = flach aufgeschirmt.
+        Gibt (Mitte des Hutansatzes, Hutrand-Halbbreite, Hutrand-Höhe) zurück."""
+        wb, wt = cw * 0.30 + 1.2, cw * 0.19 + 0.9
+        tx, ty = bx + bend, by - h
+        stem = QPainterPath(QPointF(bx - wb, by))
+        stem.quadTo(QPointF(bx - wt * 1.1 + bend * 0.1, by - h * 0.5), QPointF(tx - wt, ty))
+        stem.lineTo(QPointF(tx + wt, ty))
+        stem.quadTo(QPointF(bx + wt * 1.1 + bend * 0.1, by - h * 0.5), QPointF(bx + wb, by))
+        stem.closeSubpath()
+        p.setPen(QPen(stem_col.darker(125), 0.9))
+        p.setBrush(stem_col)
+        p.drawPath(stem)
+        p.save()
+        p.setClipPath(stem)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(0, 0, 0, 34))
+        p.drawRect(QRectF(min(bx, tx) + wt * 0.3, ty, wb * 2, h))
+        p.restore()
+        if ring:
+            ry = by - h * 0.68
+            p.setPen(QPen(stem_col.darker(120), 0.8))
+            p.setBrush(stem_col.lighter(108))
+            p.drawEllipse(QPointF(bx + bend * 0.68, ry), wt * 1.9, max(1.2, wt * 0.55))
+        ch = cw * (0.78 - 0.42 * open_)
+        ry_g = max(1.2, cw * 0.16 * (0.4 + open_))
+        p.save()
+        p.translate(tx, ty)
+        p.rotate(tilt)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(mix(QColor("#E6D3B0"), QColor("#7A5A44"), 0.3))
+        p.drawEllipse(QPointF(0, 0.5), cw * 0.98, ry_g)
+        if open_ > 0.25 and cw > 10:
+            p.setPen(QPen(QColor(90, 62, 44, 110), 0.7))
+            for k in range(-6, 7):
+                p.drawLine(QPointF(k * cw / 7.0, 0.5 - ry_g * 0.2), QPointF(k * cw / 6.5, 0.5 + ry_g * 0.85))
+        cap = QPainterPath(QPointF(-cw, 0))
+        cap.cubicTo(QPointF(-cw * 1.02, -ch * 1.35), QPointF(cw * 1.02, -ch * 1.35), QPointF(cw, 0))
+        cap.quadTo(QPointF(0, ry_g * 0.9), QPointF(-cw, 0))
+        p.setPen(QPen(cap_col.darker(140), 1.0))
+        p.setBrush(cap_col)
+        p.drawPath(cap)
+        p.save()
+        p.setClipPath(cap)
+        p.setPen(Qt.PenStyle.NoPen)
+        light = cap_col.lightness() > 170
+        p.setBrush(QColor("#B8603E") if light else QColor(255, 255, 255, 235))
+        if cw > 7:
+            for i in range(8):
+                a, b, c3 = self.blossom[(spot_seed + i) % 100]
+                x = (a - 0.5) * 1.6 * cw
+                r = (0.07 + 0.08 * c3) * cw
+                p.drawEllipse(QPointF(x, -(0.15 + 0.7 * b) * ch * (1 - (x / cw) ** 2)), r, r * 0.8)
+        p.setBrush(QColor(0, 0, 0, 30))
+        p.drawRect(QRectF(cw * 0.35, -ch * 2, cw, ch * 2))
+        p.restore()
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(255, 255, 255, 70))
+        p.drawEllipse(QPointF(-cw * 0.38, -ch * 0.78), cw * 0.3, ch * 0.13)
+        p.restore()
+        return QPointF(tx, ty), cw, ch
+
+    def draw_pilz(self, p, sy):
+        _g, frac, pv = self.basics()
+        wilt = self.wilt()
+        cx = WIN_W / 2
+        cap_col = mix(self.flower_color, QColor("#8C7B6B"), wilt)
+        stem_col = mix(QColor("#F1E8D2"), QColor("#B8AD94"), wilt)
+        if frac < SEED_FRAC:                      # Spore: ein paar helle Pünktchen auf der Erde
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor("#EDE3CF"))
+            for i in range(5):
+                p.drawEllipse(QPointF(cx + (self.rnd[i] - 0.5) * 18, sy - 0.5 + (self.rnd[i + 9] - 0.5) * 3), 1.3, 1.0)
+            self.top_point = QPointF(cx, sy - 6)
+            return
+        m = min(1.0, frac * 7)                    # Myzel: feine weisse Fäden auf der Erde
+        p.setPen(QPen(QColor(245, 240, 228, 150), 0.8))
+        for i in range(14):
+            a = (i / 14.0) * math.pi * 2 + self.rnd[i]
+            r = (6 + 30 * m) * (0.5 + self.rnd[20 + i] * 0.7)
+            p.drawLine(QPointF(cx + math.cos(a) * 2, sy), QPointF(cx + math.cos(a) * r, sy + math.sin(a) * 3.2))
+        young = max(0.0, 1.0 - frac / 0.15)       # junge Hüte sind noch blass
+        cap_now = mix(cap_col, QColor("#EDE3CF"), young * 0.8)
+        open_ = max(0.0, min(1.0, (frac - 0.4) / 0.6))
+        sway = math.sin(self.t * 0.7) * 0.8 * (1 - wilt * 0.7)
+        droop = wilt * 16 * self.lean_dir
+        # kleinere Pilze rund um den grossen, sie erscheinen nach und nach
+        for i, (start, side, scale) in enumerate(((0.12, -1, 0.55), (0.30, 1, 0.45), (0.55, -1, 0.34), (0.7, 1, 0.3))):
+            g = max(0.0, min(1.0, (frac - start) / 0.25))
+            if g <= 0:
+                continue
+            q = g ** 0.5
+            bx = cx + side * (15 + 14 * self.rnd[40 + i]) + (i // 2) * side * 5
+            h, cw = (6 + 70 * q) * scale, (4 + 28 * q) * scale
+            self.draw_mushroom(p, bx, sy + 0.5, h, cw, open_ * 0.8, side * 4 * q + sway, side * 10 + droop * 0.6,
+                               mix(cap_col, QColor("#EDE3CF"), max(0.0, 1.0 - g) * 0.7), stem_col, 17 * i + 5, False)
+        h, cw = 8 + 78 * pv, 5 + 30 * pv
+        bend = self.lean * 0.5 * pv + sway
+        c, w, ch = self.draw_mushroom(p, cx, sy + 0.5, h, cw, open_, bend, self.lean * 0.25 + droop, cap_now, stem_col, 3,
+                                      frac >= 0.4)
+        self.top_point = QPointF(c.x(), c.y() - ch * 0.95)
+        if frac >= 1.0:                           # Sporenreif: feine Sporen rieseln unter dem Hut heraus
+            p.setPen(Qt.PenStyle.NoPen)
+            for i in range(20):
+                ph = (self.t / 6.0 + self.rnd[60 + i]) % 1.0
+                x = c.x() + (self.rnd[80 + i] - 0.5) * w * 1.5 + math.sin(ph * 9 + i) * 4 + ph * 14 * self.lean_dir
+                y = c.y() + 2 + ph * (sy - c.y() + 6) * 0.8
+                p.setBrush(QColor(236, 226, 205, int(190 * (1 - ph) * min(1.0, ph * 6))))
+                p.drawEllipse(QPointF(x, y), 1.3, 1.3)

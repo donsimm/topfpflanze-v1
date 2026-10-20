@@ -719,14 +719,14 @@ def test_clamp_to_screen_moves_only_the_given_window(plant):
 
 
 KEPT = {  # was du ausgesucht hast: Topfform -> Anzahl Designs (günstig, edel)
-    "terrakotta": (5, 4), "beton": (3, 5), "keramik": (4, 4), "zink": (1, 4), "schale": (1, 1),
+    "terrakotta": (5, 4), "beton": (3, 5), "keramik": (4, 4), "zink": (1, 4), "schale": (1, 1), "holz": (2, 2),
 }
 
 
 def test_catalog_matches_the_chosen_pots():
     import json
     from topfpflanze import pots
-    assert sum(len(v) for v in pots.BY_POT.values()) == 32 == len(pots.DESIGNS)
+    assert sum(len(v) for v in pots.BY_POT.values()) == 36 == len(pots.DESIGNS)
     for pot, (cheap, edel) in KEPT.items():
         assert len(pots.designs_for(pot, "cheap")) == cheap, pot
         assert len(pots.designs_for(pot, "premium")) == edel, pot
@@ -1262,7 +1262,7 @@ def test_every_achievement_series_has_at_least_five_ascending_tiers(plant):
         assert len(tiers) >= 5, name
         targets = [t.target for t in tiers if t.key not in ("g_zen", "g_helpers")]   # andere Messgrösse
         assert targets == sorted(set(targets)), name
-    assert len([a for a in series["blueten"]]) == 5 and len(series["farben"]) == 8
+    assert len([a for a in series["blueten"]]) == 6 and len(series["farben"]) == 8
 
 
 # ---------------------------------------------------------------- Sprachen
@@ -2053,3 +2053,50 @@ def test_todo_is_part_of_backup_and_reset(plant, monkeypatch, tmp_path):
     assert not plant.todo.path().exists() and plant.todo.frozen
     plant.todo.save()                                                              # gesperrt: schreibt nichts mehr
     assert not plant.todo.path().exists()
+
+
+# ---------------------------------------------------------------- Pilz
+
+def test_mushroom_is_a_very_hard_sixth_plant_with_spores_instead_of_blossoms(plant):
+    from topfpflanze.data import PLANT_ORDER, PLANT_TYPES
+    from topfpflanze.util import stage_name
+    k = PLANT_TYPES["pilz"]
+    assert PLANT_ORDER[-1] == "pilz" and len(PLANT_ORDER) == 6 and k.pot == "holz" and k.pot in __import__("topfpflanze.data", fromlist=["POTS"]).POTS
+    bonsai = PLANT_TYPES["bonsai"]
+    assert k.bloom_at > bonsai.bloom_at and k.drain_hours < bonsai.drain_hours       # schwerer als der Bonsai
+    assert k.water_low > bonsai.water_low and k.water_high - k.water_low < bonsai.water_high - bonsai.water_low
+    assert len(k.stages) == 7 and k.stages[-1] == "Sporenreif" and "Blüh" not in " ".join(k.stages)
+    assert stage_name(k, 0) == "Spore" and stage_name(k, k.bloom_at) == "Sporenreif"
+    assert len(k.palette) >= 6 and plant.bubble.icon_at(plant.bubble.icon_rects()[5][1].center()) == "pilz"
+
+
+def test_mushroom_draws_in_every_stage_color_and_water_state(plant):
+    from topfpflanze.data import PLANT_TYPES
+    plant.select_plant("pilz")
+    k = plant.kind
+    assert k.key == "pilz" and plant.ps["color"] in k.palette
+    for frac in (0.0, 0.003, 0.01, 0.05, 0.2, 0.5, 0.8, 1.0, 1.4):
+        for water, color in ((70, k.palette[0]), (10, k.palette[3]), (100, k.palette[-1])):
+            plant.ps.update(growth=k.bloom_at * frac, water=water, color=color)
+            plant.setup_randomness()
+            assert not plant.grab().isNull()
+            assert plant.top_point.y() < plant.pot["soil_y"] + 1
+    plant.ps["growth"] = k.bloom_at
+    assert plant.prestige_ready()
+    snap = plant.snapshot({**plant.ps, "key": "pilz"})
+    assert not snap.isNull()
+    assert not plant.bubble.grab().isNull() and "Pilz" in plant.bubble.tooltip_text("pilz")
+
+
+def test_mushroom_pot_offer_and_bloom_achievements_count_six_species(plant):
+    from topfpflanze import pots
+    plant.select_plant("pilz")
+    offer = plant.ps.get("pot_offer") or pots.new_offer("holz")
+    assert pots.design(offer["cheap"])["pot"] == "holz" and pots.design(offer["premium"])["tier"] == "premium"
+    for d in pots.designs_for("holz"):
+        plant.ps["pot_skin"] = d["id"]
+        assert not plant.grab().isNull()
+    plant.state["bloomed_species"] = ["wiesenblume", "kaktus", "tulpe", "sonnenblume", "bonsai"]
+    assert plant.ach_value("g_bloom5") == 5 and plant.ach_value("g_species") == 5
+    plant.state["bloomed_species"].append("pilz")
+    assert plant.ach_value("g_species") == 6
