@@ -1,5 +1,6 @@
 """Sprechblase mit Status und Werkzeugleiste."""
 
+import datetime
 import math
 import time
 from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
@@ -131,6 +132,10 @@ class Bubble(ScaledWidget):
         if key == "diary":
             head = tr("Tagebuch schliessen") if opened else tr("Tagebuch öffnen")
             return head + tr("\n{n} Einträge", n=len(pl.diary.entries))
+        if key == "todo":
+            head = tr("Aufgaben schliessen") if opened else tr("Aufgaben öffnen")
+            n = pl.todo.open_today(datetime.date.today())
+            return head + (tr("\n{n} offen heute", n=n) if n else tr("\nHeute ist alles erledigt"))
         if key == "book":
             head = tr("Besucher-Sammelbuch schliessen") if opened else tr("Besucher-Sammelbuch öffnen")
             return head + tr("\n{book} / {total} entdeckt", book=len(pl.state.get("book", {})), total=len(VISITORS))
@@ -422,6 +427,22 @@ class Bubble(ScaledWidget):
             p.drawEllipse(QPointF(14.8, 10.2), 1.1, 0.7)
             p.setBrush(QColor("#D64541"))
             p.drawRect(QRectF(20.5, 23.5, 2.2, 4.5))
+
+        elif key == "todo":     # Klemmbrett mit Haken und Linien
+            p.setPen(QPen(QColor("#6B4A2B"), 0.9))
+            p.setBrush(QColor("#B98B55"))
+            p.drawRoundedRect(QRectF(7, 5.5, 16, 21), 1.8, 1.8)
+            p.setBrush(QColor("#F8F6EC"))
+            p.drawRect(QRectF(9, 9, 12, 15.5))
+            p.setBrush(QColor("#8A8F96"))
+            p.drawRoundedRect(QRectF(11.5, 3.6, 7, 4.4), 1.2, 1.2)
+            p.setPen(round_pen(QColor("#2E9E44"), 1.4))
+            p.drawLine(QPointF(10.4, 13.2), QPointF(11.6, 14.4))
+            p.drawLine(QPointF(11.6, 14.4), QPointF(13.4, 11.8))
+            p.setPen(round_pen(QColor("#9A9A92"), 1.1))
+            p.drawLine(QPointF(15, 13), QPointF(19.6, 13))
+            p.drawLine(QPointF(10.6, 18.2), QPointF(19.6, 18.2))
+            p.drawLine(QPointF(10.6, 21.4), QPointF(16.6, 21.4))
 
         elif key == "info":
             p.setPen(QPen(QColor("#2F6DB5"), 1.3))

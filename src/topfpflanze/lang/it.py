@@ -672,8 +672,8 @@ STRINGS = {
         "Icone della nuvoletta",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "In alto: scegliere una pianta (ognuna ha il suo salvataggio, quelle non scelte sono in pausa).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
-        "In basso: Negozio, Casetta del giardino, Obiettivi, Timer focus, Libro dei visitatori, Diario, Info.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben, Info.":
+        "In basso: Negozio, Casetta del giardino, Obiettivi, Timer focus, Libro dei visitatori, Diario, Attività, Info.",
     "Einstellungen":
         "Impostazioni",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1148,16 +1148,16 @@ STRINGS = {
         "Importa",
     "Spieldaten importieren?":
         "Importare i dati di gioco?",
-    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
-        "La partita attuale e tutte le voci del diario saranno sostituite dal backup del {date} ({entries} voci). Lo stato attuale viene prima salvato nella cartella «backups». Poi il gioco si riavvia.",
+    "Der jetzige Spielstand, alle Tagebucheinträge und Aufgaben werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "La partita attuale, tutte le voci del diario e le attività saranno sostituite dal backup del {date} ({entries} voci). Lo stato attuale viene prima salvato nella cartella «backups». Poi il gioco si riavvia.",
     "Das ist keine gültige Sicherung von Topfpflanze.":
         "Questo non è un backup valido di Topfpflanze.",
     "Die Sicherung ist beschädigt oder zu gross.":
         "Il backup è danneggiato o troppo grande.",
     "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
         "Il backup proviene da una versione più recente ({version}). Aggiorna prima il gioco.",
-    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
-        "Clic destro → Dati di gioco → Esporta salva la partita, il diario e le tue parole in un file ZIP (il diario anche come file di testo leggibile). Importa sostituisce lo stato attuale con un backup; lo stato attuale viene prima salvato nella cartella backups, poi il gioco si riavvia. Le posizioni delle finestre non vengono importate.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch, Aufgaben und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Clic destro → Dati di gioco → Esporta salva la partita, il diario, le attività e le tue parole in un file ZIP (il diario anche come file di testo leggibile). Importa sostituisce lo stato attuale con un backup; lo stato attuale viene prima salvato nella cartella backups, poi il gioco si riavvia. Le posizioni delle finestre non vengono importate.",
     "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
         "Esporta e importa i dati di gioco (clic destro → Dati di gioco): partita, diario e parole proprie in un file ZIP; prima di un'importazione lo stato attuale viene salvato.",
     "Spieldaten sichern":
@@ -1178,8 +1178,8 @@ STRINGS = {
         "Cartella non trovata",
     "Der Ordner konnte nicht geöffnet werden:\n{path}":
         "Non è stato possibile aprire la cartella:\n{path}",
-    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
-        "Tutte le piante, l'Oro, gli obiettivi e tutte le voci del diario verranno eliminati e il gioco ricomincia da zero. Lo stato attuale viene prima salvato nella cartella «backups»; con «Importa» puoi recuperarlo. Poi il gioco si riavvia.",
+    "Alle Pflanzen, das Gold, die Erfolge, alle Tagebucheinträge und Aufgaben werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "Tutte le piante, l'Oro, gli obiettivi, tutte le voci del diario e le attività verranno eliminati e il gioco ricomincia da zero. Lo stato attuale viene prima salvato nella cartella «backups»; con «Importa» puoi recuperarlo. Poi il gioco si riavvia.",
     "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
         "Dati di gioco → Apri la cartella dei dati mostra la cartella con la partita, il diario e i backup; Apri la cartella del programma mostra la cartella del programma. Reimposta tutti i dati di gioco elimina tutto e ricomincia da zero (lo stato attuale viene prima salvato in backups).",
     "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
@@ -1206,4 +1206,56 @@ STRINGS = {
         "Licenza: software libero sotto la GNU General Public License, versione 3 o successiva (GPL-3.0-or-later). Licenze delle librerie e dei dizionari usati: vedi THIRD_PARTY_NOTICES.md nel codice sorgente.",
     "Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei.":
         "Finestra info, scheda «Version»: nota sulla licenza (GPL 3 o successiva); i testi delle licenze sono inclusi nel programma.",
+    "Aufgaben":
+        "Attività",
+    "Aufgaben schliessen":
+        "Chiudi le attività",
+    "Aufgaben öffnen":
+        "Apri le attività",
+    "\n{n} offen heute":
+        "\n{n} aperte oggi",
+    "\nHeute ist alles erledigt":
+        "\nTutto fatto per oggi",
+    "Neue Aufgabe …":
+        "Nuova attività …",
+    "Vorheriger Tag":
+        "Giorno precedente",
+    "Nächster Tag":
+        "Giorno successivo",
+    "Aufgabe hinzufügen (Enter)":
+        "Aggiungi attività (Invio)",
+    "Wieder öffnen":
+        "Riapri",
+    "Als erledigt markieren":
+        "Segna come completata",
+    "Aufgabe löschen":
+        "Elimina attività",
+    "Ursprünglich für den {date} erfasst":
+        "Inserita originariamente per il {date}",
+    "Keine Aufgaben":
+        "Nessuna attività",
+    "Alles erledigt ✓":
+        "Tutto fatto ✓",
+    "{open} offen, {done} erledigt":
+        "{open} aperte, {done} completate",
+    "Morgen":
+        "Domani",
+    "Gestern":
+        "Ieri",
+    "Noch nichts geplant.\nUnten eine Aufgabe eintippen und Enter drücken.":
+        "Ancora nulla in programma.\nScrivi un'attività qui sotto e premi Invio.",
+    "Für diesen Tag gibt es keine Aufgaben.":
+        "Non ci sono attività per questo giorno.",
+    "seit {date}":
+        "dal {date}",
+    "{a}–{b} von {n} (Mausrad)":
+        "{a}–{b} di {n} (rotella)",
+    "Offene Aufgaben wandern auf den nächsten Tag\nund behalten ihr Datum.":
+        "Le attività aperte passano al giorno dopo\ne mantengono la data.",
+    "{n} Aufgabe(n) aus früheren Tagen\nstehen noch offen.":
+        "{n} attività dei giorni precedenti\nsono ancora aperte.",
+    "Aufgaben: Ein Klemmbrett-Symbol im Menü öffnet die Liste eines Tages. Neue Aufgabe unten eintippen (Enter), Haken setzen, löschen. Nicht erledigte Aufgaben wandern auf den nächsten Tag und zeigen ihr ursprüngliches Datum («seit …»). Aufgaben sind Teil der Sicherung.":
+        "Attività: l'icona della cartellina nel menu apre l'elenco di un giorno. Scrivi una nuova attività in basso (Invio), spuntala o eliminala. Le attività non completate passano al giorno dopo e mostrano la data originale («dal …»). Le attività fanno parte del backup.",
+    "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
+        "Attività (to-do): un elenco per ogni giorno con caselle da spuntare. Le attività aperte passano da sole al giorno dopo e mantengono la data originale.",
 }

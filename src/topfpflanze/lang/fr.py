@@ -672,8 +672,8 @@ STRINGS = {
         "Icônes de la bulle",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "En haut : choisir une plante (chacune a sa sauvegarde, les plantes non choisies font une pause).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
-        "En bas : Boutique, Cabane du jardin, Succès, Minuteur focus, Carnet des visiteurs, Journal, Infos.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben, Info.":
+        "En bas : Boutique, Cabane du jardin, Succès, Minuteur focus, Carnet des visiteurs, Journal, Tâches, Infos.",
     "Einstellungen":
         "Réglages",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1148,16 +1148,16 @@ STRINGS = {
         "Importer",
     "Spieldaten importieren?":
         "Importer les données de jeu ?",
-    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
-        "La partie actuelle et toutes les entrées du journal seront remplacées par la sauvegarde du {date} ({entries} entrées). L'état actuel est d'abord sauvegardé dans le dossier «backups». Le jeu redémarre ensuite.",
+    "Der jetzige Spielstand, alle Tagebucheinträge und Aufgaben werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "La partie actuelle, toutes les entrées du journal et les tâches seront remplacées par la sauvegarde du {date} ({entries} entrées). L'état actuel est d'abord sauvegardé dans le dossier «backups». Le jeu redémarre ensuite.",
     "Das ist keine gültige Sicherung von Topfpflanze.":
         "Ce n'est pas une sauvegarde Topfpflanze valide.",
     "Die Sicherung ist beschädigt oder zu gross.":
         "La sauvegarde est endommagée ou trop volumineuse.",
     "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
         "La sauvegarde provient d'une version plus récente ({version}). Veuillez d'abord mettre le jeu à jour.",
-    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
-        "Clic droit → Données de jeu → Exporter enregistre la partie, le journal et vos propres mots dans un fichier ZIP (le journal aussi en fichier texte lisible). Importer remplace l'état actuel par une sauvegarde ; l'état actuel est d'abord enregistré dans le dossier backups, puis le jeu redémarre. Les positions des fenêtres ne sont pas importées.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch, Aufgaben und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Clic droit → Données de jeu → Exporter enregistre la partie, le journal, les tâches et vos propres mots dans un fichier ZIP (le journal aussi en fichier texte lisible). Importer remplace l'état actuel par une sauvegarde ; l'état actuel est d'abord enregistré dans le dossier backups, puis le jeu redémarre. Les positions des fenêtres ne sont pas importées.",
     "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
         "Exporter et importer les données de jeu (clic droit → Données de jeu) : partie, journal et propres mots dans un fichier ZIP ; l'état actuel est sauvegardé avant une importation.",
     "Spieldaten sichern":
@@ -1178,8 +1178,8 @@ STRINGS = {
         "Dossier introuvable",
     "Der Ordner konnte nicht geöffnet werden:\n{path}":
         "Le dossier n'a pas pu être ouvert :\n{path}",
-    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
-        "Toutes les plantes, l'Or, les succès et toutes les entrées du journal seront supprimés, et le jeu repart de zéro. L'état actuel est d'abord sauvegardé dans le dossier «backups» ; «Importer» permet de le récupérer. Le jeu redémarre ensuite.",
+    "Alle Pflanzen, das Gold, die Erfolge, alle Tagebucheinträge und Aufgaben werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "Toutes les plantes, l'Or, les succès, toutes les entrées du journal et les tâches seront supprimés, et le jeu repart de zéro. L'état actuel est d'abord sauvegardé dans le dossier «backups» ; «Importer» permet de le récupérer. Le jeu redémarre ensuite.",
     "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
         "Données de jeu → Ouvrir le dossier des données affiche le dossier avec la partie, le journal et les sauvegardes ; Ouvrir le dossier du programme affiche le dossier du programme. Réinitialiser toutes les données supprime tout et repart de zéro (l'état actuel est d'abord sauvegardé dans backups).",
     "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
@@ -1206,4 +1206,56 @@ STRINGS = {
         "Licence : logiciel libre sous GNU General Public License, version 3 ou ultérieure (GPL-3.0-or-later). Licences des bibliothèques et des dictionnaires utilisés : voir THIRD_PARTY_NOTICES.md dans le code source.",
     "Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei.":
         "Fenêtre d'infos, onglet «Version» : mention de la licence (GPL 3 ou ultérieure) ; les textes des licences sont fournis avec le programme.",
+    "Aufgaben":
+        "Tâches",
+    "Aufgaben schliessen":
+        "Fermer les tâches",
+    "Aufgaben öffnen":
+        "Ouvrir les tâches",
+    "\n{n} offen heute":
+        "\n{n} en cours aujourd'hui",
+    "\nHeute ist alles erledigt":
+        "\nTout est fait pour aujourd'hui",
+    "Neue Aufgabe …":
+        "Nouvelle tâche …",
+    "Vorheriger Tag":
+        "Jour précédent",
+    "Nächster Tag":
+        "Jour suivant",
+    "Aufgabe hinzufügen (Enter)":
+        "Ajouter la tâche (Entrée)",
+    "Wieder öffnen":
+        "Rouvrir",
+    "Als erledigt markieren":
+        "Marquer comme faite",
+    "Aufgabe löschen":
+        "Supprimer la tâche",
+    "Ursprünglich für den {date} erfasst":
+        "Prévue à l'origine pour le {date}",
+    "Keine Aufgaben":
+        "Aucune tâche",
+    "Alles erledigt ✓":
+        "Tout est fait ✓",
+    "{open} offen, {done} erledigt":
+        "{open} en cours, {done} faites",
+    "Morgen":
+        "Demain",
+    "Gestern":
+        "Hier",
+    "Noch nichts geplant.\nUnten eine Aufgabe eintippen und Enter drücken.":
+        "Rien de prévu pour l'instant.\nSaisissez une tâche en bas et appuyez sur Entrée.",
+    "Für diesen Tag gibt es keine Aufgaben.":
+        "Il n'y a aucune tâche pour ce jour.",
+    "seit {date}":
+        "depuis le {date}",
+    "{a}–{b} von {n} (Mausrad)":
+        "{a}–{b} sur {n} (molette)",
+    "Offene Aufgaben wandern auf den nächsten Tag\nund behalten ihr Datum.":
+        "Les tâches en cours passent au jour suivant\net gardent leur date.",
+    "{n} Aufgabe(n) aus früheren Tagen\nstehen noch offen.":
+        "{n} tâche(s) des jours précédents\nrestent en cours.",
+    "Aufgaben: Ein Klemmbrett-Symbol im Menü öffnet die Liste eines Tages. Neue Aufgabe unten eintippen (Enter), Haken setzen, löschen. Nicht erledigte Aufgaben wandern auf den nächsten Tag und zeigen ihr ursprüngliches Datum («seit …»). Aufgaben sind Teil der Sicherung.":
+        "Tâches : l'icône du bloc-notes dans le menu ouvre la liste d'un jour. Saisissez une nouvelle tâche en bas (Entrée), cochez-la ou supprimez-la. Les tâches non faites passent au jour suivant et gardent leur date d'origine («depuis …»). Les tâches font partie de la sauvegarde.",
+    "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
+        "Tâches (to-do) : une liste par jour avec cases à cocher. Les tâches en cours passent d'elles-mêmes au jour suivant et gardent leur date d'origine.",
 }

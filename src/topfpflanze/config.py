@@ -34,12 +34,12 @@ SCENE_DY = 50              # zusätzlicher Platz oben für die grösseren Pflanz
 SCENE_H = 330              # Höhe der Zeichenfläche für Topf und Pflanze
 WIN_W, WIN_H = 220, SCENE_H + SCENE_DY
 PLANT_SCALE = 1.2          # Pflanzen 20 % grösser, Töpfe unverändert
-BUBBLE_W, BUBBLE_H = 224, 252
+BUBBLE_W, BUBBLE_H = 250, 252
 BUBBLE_ROWS_H = 164         # Höhe des Textbereichs
 ICON, ICON_GAP = 30, 7 * 2 / 3  # Pflanzensymbole in der Sprechblase
 SHOP_GAP = 16 * 2 / 3        # (nicht mehr verwendet)
 TOOL, TOOL_GAP = 24, 6       # Werkzeugsymbole (zweite Reihe)
-TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "diary", "info"]
+TOOL_ORDER = ["shop", "garden", "ach", "focus", "book", "diary", "todo", "info"]
 
 VISITOR_SCALE = 1.25 * 1.3   # Darstellungsgrösse der Besucher auf der Pflanze (+30 %); das Sammelbuch bleibt unverändert
 PRESTIGE_AURA_ALPHA = (30, 78)  # Goldene Aura bei Prestige-Bereitschaft: Deckkraft (0–255) im Mittelpunkt, dunkel/hell

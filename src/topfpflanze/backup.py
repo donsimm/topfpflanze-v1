@@ -5,6 +5,7 @@ Die Sicherung enthält:
   state.json         Spielstand (Pflanzen, Gold, Erfolge, Einstellungen)
   diary.json         Tagebucheinträge
   diary_words.txt    eigenes Wörterbuch der Rechtschreibprüfung (falls vorhanden)
+  todo.json          Aufgaben (falls vorhanden; ältere Sicherungen haben sie nicht)
   tagebuch.txt       die Einträge als lesbarer Text (nur zum Nachlesen, wird beim Import nicht gelesen)
 
 Beim Import werden nur diese Namen gelesen (nie Pfade aus der ZIP-Datei) und die Grössen begrenzt.
@@ -29,7 +30,7 @@ APP_ID = "topfpflanze"
 FORMAT = 1
 MAX_BYTES = 50 * 1024 * 1024       # grösste zulässige Datei in der Sicherung (entpackt)
 KEEP_SAFETY_COPIES = 5             # so viele Sicherungen «vor dem Import» bleiben im Ordner backups
-NAMES = ("manifest.json", "state.json", "diary.json", "diary_words.txt", "tagebuch.txt")
+NAMES = ("manifest.json", "state.json", "diary.json", "diary_words.txt", "tagebuch.txt", "todo.json")
 
 
 class BackupError(Exception):
@@ -53,7 +54,7 @@ def diary_as_text(entries, moods=None):
     return "\n".join(lines)
 
 
-def write_backup(path, state, diary_entries, words, app_version, moods=None):
+def write_backup(path, state, diary_entries, words, app_version, moods=None, tasks=None):
     """Schreibt die Sicherung als ZIP (zuerst temporär, dann ersetzen)."""
     manifest = {"app": APP_ID, "format": FORMAT, "app_version": app_version,
                 "created": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -66,6 +67,8 @@ def write_backup(path, state, diary_entries, words, app_version, moods=None):
         if words:
             z.writestr("diary_words.txt", "\n".join(sorted(words)) + "\n")
         z.writestr("tagebuch.txt", diary_as_text(diary_entries, moods))
+        if tasks:
+            z.writestr("todo.json", json.dumps({"version": 1, "tasks": tasks}, ensure_ascii=False, indent=1))
     os.replace(tmp, path)
     return manifest
 
@@ -85,12 +88,14 @@ def read_backup(path, current_version):
     try:
         with zipfile.ZipFile(path) as z:
             raw_manifest, raw_state, raw_diary, raw_words = (_read(z, n) for n in NAMES[:4])
+            raw_todo = _read(z, NAMES[5])
     except (OSError, zipfile.BadZipFile):
         raise BackupError(tr("Das ist keine gültige Sicherung von Topfpflanze."))
     try:
         manifest = json.loads(raw_manifest) if raw_manifest else None
         state = json.loads(raw_state) if raw_state else None
         diary = json.loads(raw_diary) if raw_diary else {"entries": {}}
+        todo = json.loads(raw_todo) if raw_todo else {"tasks": []}
     except ValueError:
         raise BackupError(tr("Das ist keine gültige Sicherung von Topfpflanze."))
     if not isinstance(manifest, dict) or manifest.get("app") != APP_ID or not isinstance(state, dict) \
@@ -104,7 +109,9 @@ def read_backup(path, current_version):
         raise BackupError(tr("Das ist keine gültige Sicherung von Topfpflanze."))
     entries = {k: v for k, v in entries.items() if isinstance(k, str) and isinstance(v, dict)}
     words = [w.strip() for w in raw_words.decode("utf-8", "replace").splitlines() if w.strip()] if raw_words else []
-    return {"manifest": manifest, "state": strip_positions(state), "diary": entries, "words": words}
+    from .todo import clean_tasks
+    tasks = clean_tasks(todo.get("tasks") if isinstance(todo, dict) else None)
+    return {"manifest": manifest, "state": strip_positions(state), "diary": entries, "words": words, "todo": tasks}
 
 
 def _version_tuple(v):
@@ -131,23 +138,28 @@ def _atomic_write(path, text):
     os.replace(tmp, path)
 
 
-def restore(data, state_file, diary_file, words_file):
+def restore(data, state_file, diary_file, words_file, todo_file=None):
     """Schreibt die gelesene Sicherung an die Stellen des Spielstands (Ordner werden bei Bedarf angelegt)."""
     state_file.parent.mkdir(parents=True, exist_ok=True)
     _atomic_write(state_file, json.dumps(data["state"], ensure_ascii=False))
     _atomic_write(diary_file, json.dumps({"version": 1, "entries": data["diary"]}, ensure_ascii=False, indent=1))
+    if todo_file is not None:
+        if data.get("todo"):
+            _atomic_write(todo_file, json.dumps({"version": 1, "tasks": data["todo"]}, ensure_ascii=False, indent=1))
+        elif todo_file.exists():
+            todo_file.unlink()
     if data["words"]:
         _atomic_write(words_file, "\n".join(sorted(data["words"])) + "\n")
     elif words_file.exists():
         words_file.unlink()
 
 
-def make_safety_copy(directory, state, diary_entries, words, app_version, moods=None, prefix="vor-Import"):
+def make_safety_copy(directory, state, diary_entries, words, app_version, moods=None, prefix="vor-Import", tasks=None):
     """Sichert den jetzigen Stand vor einem Import oder Zurücksetzen in `backups/` und behält die letzten Sicherungen."""
     folder = directory / "backups"
     folder.mkdir(parents=True, exist_ok=True)
     name = folder / f"{prefix}-{time.strftime('%Y%m%d-%H%M%S')}.zip"
-    write_backup(name, state, diary_entries, words, app_version, moods)
+    write_backup(name, state, diary_entries, words, app_version, moods, tasks)
     old = sorted(folder.glob(f"{prefix}-*.zip"))
     for f in old[:-KEEP_SAFETY_COPIES]:
         try:

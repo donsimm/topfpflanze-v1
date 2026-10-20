@@ -1658,7 +1658,7 @@ def test_backup_roundtrip_with_readable_diary_and_without_window_positions(tmp_p
     from topfpflanze import backup
     path, state, entries = _sample_backup(tmp_path)
     with zipfile.ZipFile(path) as z:
-        assert set(z.namelist()) == set(backup.NAMES)
+        assert set(z.namelist()) == set(backup.NAMES) - {"todo.json"}      # ohne Aufgaben keine Datei
         text = z.read("tagebuch.txt").decode("utf-8")
     assert "=== 2026-10-04 (ruhig) ===" in text and "Hallo Tagebuch" in text and "=== 2026-10-05 (schwer) ===" in text
     data = backup.read_backup(path, "0.2.0")
@@ -1933,3 +1933,123 @@ def test_license_files_are_present_and_packaged():
     for code, f in (("de_CH", "COPYING_GPLv3"), ("en_US", "README_en_US.txt"), ("fr_FR", "LICENSE-MPL-2.0.txt"), ("it_IT", "README-it.txt")):
         assert (pkg / "dictionaries" / code / f).is_file(), code
     assert "licenses/*" in (root / "pyproject.toml").read_text()
+
+
+# ---------------------------------------------------------------- Aufgaben (To-do)
+
+def test_todo_open_tasks_move_to_the_next_day_with_their_original_date(plant):
+    import datetime
+    from topfpflanze.todo import TodoStore
+    store = TodoStore()
+    d1, d2, d3 = (datetime.date(2026, 10, n) for n in (12, 13, 14))
+    a, b, c = store.add("Steuern", d1), store.add("Einkaufen", d1), store.add("Anruf", d2)
+    store.toggle(b["id"], d1)                                                    # b am 12. erledigt
+    assert [t["text"] for t in store.for_day(d1, d1)] == ["Steuern", "Einkaufen"]  # offene zuerst
+    assert [t["text"] for t in store.for_day(d2, d2)] == ["Steuern", "Anruf"]      # a wandert mit, b nicht
+    assert store.for_day(d2, d2)[0]["date"] == "2026-10-12"                        # Originaldatum bleibt
+    assert [t["text"] for t in store.for_day(d3, d3)] == ["Steuern", "Anruf"]
+    assert store.carried_today(d3) == 2 and store.open_today(d3) == 2
+    assert [t["text"] for t in store.for_day(d2, d3)] == ["Anruf"]                 # vergangene Tage: nur der eigene Tag
+    assert [t["text"] for t in store.for_day(d3 + datetime.timedelta(days=5), d3)] == []   # Zukunft: nichts mitgeschleppt
+    store.toggle(a["id"], d3)                                                      # a am 14. erledigt: bleibt dort sichtbar
+    assert [t["text"] for t in store.for_day(d3, d3)] == ["Anruf", "Steuern"]
+    assert store.for_day(d3, d3 + datetime.timedelta(days=1)) == []                # am 15. nicht mehr in der heutigen Liste
+    store.delete(c["id"])
+    assert TodoStore().tasks == store.tasks                                        # gespeichert, neu geladen gleich
+    assert store.clear_done() == 2 and store.tasks == []
+
+
+def test_todo_load_rejects_broken_entries_and_limits_text(tmp_path):
+    import json
+    from topfpflanze.todo import MAX_TEXT, TodoStore, clean_tasks
+    (config.STATE_DIR).mkdir(parents=True, exist_ok=True)
+    TodoStore.path().write_text(json.dumps({"tasks": [
+        {"id": 1, "text": "ok", "date": "2026-10-01", "done": None},
+        {"id": 1, "text": "doppelt", "date": "2026-10-02", "done": "kaputt"},
+        {"id": 2, "text": "   ", "date": "2026-10-01"}, {"id": 3, "text": "x", "date": "gestern"}, "unsinn",
+        {"id": 4, "text": "a" * 500, "date": "2026-10-03"}]}), encoding="utf-8")
+    tasks = TodoStore().tasks
+    assert [t["text"][:6] for t in tasks] == ["ok", "doppel", "aaaaaa"]
+    assert len({t["id"] for t in tasks}) == 3 and tasks[1]["done"] is None and len(tasks[2]["text"]) == MAX_TEXT
+    TodoStore.path().write_text("kein json", encoding="utf-8")
+    assert TodoStore().tasks == [] and clean_tasks(None) == []
+
+
+def test_todo_window_adds_ticks_deletes_and_scrolls(plant):
+    import datetime
+    win = plant.todo_win
+    assert "todo" in config.TOOL_ORDER and "todo" in plant.windows
+    plant.toggle_window("todo")
+    assert win.isVisible() and plant.tool_open("todo")
+    today = datetime.date.today()
+    win.input.setText("  Bericht   schreiben ")
+    win.input.returnPressed.emit()
+    assert win.input.text() == "" and [t["text"] for t in win.shown()] == ["Bericht schreiben"]
+    tid = win.shown()[0]["id"]
+    assert not win.grab().isNull()
+    assert any(k == ("c", tid) for k, _r, _c in win.items())
+    win.on_click(("c", tid))
+    assert win.shown()[0]["done"] == today.isoformat() and "Als erledigt" not in win.tooltip_at(win.box_rect(win.row_rect(0)).center())
+    win.on_click("prev")                                                          # gestern: leer, und keine Aufgabe dorthin
+    assert win.day() == today - datetime.timedelta(days=1) and win.shown() == [] and not win.follow
+    win.input.setText("Neu")
+    win.input.returnPressed.emit()                                                # für vergangene Tage: legt für heute an
+    assert win.day() == today and win.follow and len(win.shown()) == 2
+    win.on_click(("x", tid))
+    assert [t["text"] for t in win.shown()] == ["Neu"]
+    for i in range(14):
+        win.input.setText(f"Aufgabe {i}")
+        win.input.returnPressed.emit()
+    win.grab()
+    assert len(win.visible_rows()) == win.ROWS and win.scroll == len(win.shown()) - win.ROWS
+    win.wheelEvent(type("E", (), {"angleDelta": lambda self: type("P", (), {"y": lambda s: 120})()})())
+    assert win.scroll == len(win.shown()) - win.ROWS - 1
+    assert "Aufgaben" in plant.bubble.tooltip_text("todo")
+    assert not plant.bubble.grab().isNull()
+
+
+def test_todo_window_marks_carried_tasks_and_follows_midnight(plant, monkeypatch):
+    import datetime
+    from topfpflanze import todo as todo_mod
+    win = plant.todo_win
+    today = datetime.date.today()
+    old = plant.todo.add("Alt", today - datetime.timedelta(days=3))
+    assert [t["text"] for t in win.shown()] == ["Alt"] and old["date"] != today.isoformat()
+    win.show()
+    win.grab()
+    row = win.row_rect(0)
+    assert "erfasst" in win.tooltip_at(win.date_label_rect(row).center())          # Hinweis auf das Originaldatum
+    tomorrow = today + datetime.timedelta(days=1)
+    monkeypatch.setattr(todo_mod.TodoWin, "today", staticmethod(lambda: tomorrow))  # Mitternacht ist vorbei
+    win.refresh()
+    assert win.day() == tomorrow and [t["text"] for t in win.shown()] == ["Alt"]
+
+
+def test_todo_is_part_of_backup_and_reset(plant, monkeypatch, tmp_path):
+    import datetime
+    from PyQt6.QtCore import QProcess
+    from PyQt6.QtWidgets import QApplication
+    from topfpflanze import backup
+    plant.todo.add("Sichern", datetime.date(2026, 10, 4))
+    path = tmp_path / "t.zip"
+    backup.write_backup(path, plant.state, {}, set(), "0.3.0", tasks=plant.todo.tasks)
+    data = backup.read_backup(path, "0.3.0")
+    assert [t["text"] for t in data["todo"]] == ["Sichern"]
+    old = backup.read_backup(_sample_backup(tmp_path)[0], "0.2.0")                 # ältere Sicherung ohne Aufgaben
+    assert old["todo"] == []
+    out = tmp_path / "out"
+    out.mkdir()
+    backup.restore(data, out / "s.json", out / "d.json", out / "w.txt", out / "todo.json")
+    assert "Sichern" in (out / "todo.json").read_text(encoding="utf-8")
+    backup.restore(old, out / "s.json", out / "d.json", out / "w.txt", out / "todo.json")
+    assert not (out / "todo.json").exists()
+    monkeypatch.setattr(QProcess, "startDetached", staticmethod(lambda prog, args: None))
+    app = QApplication.instance()
+    monkeypatch.setattr(app, "quit", lambda: app.aboutToQuit.emit())
+    plant.save_state()
+    assert plant.todo.path().exists()
+    plant.reset_data()
+    plant.confirm_win.on_click("ok")
+    assert not plant.todo.path().exists() and plant.todo.frozen
+    plant.todo.save()                                                              # gesperrt: schreibt nichts mehr
+    assert not plant.todo.path().exists()

@@ -678,8 +678,8 @@ STRINGS = {
         "Bubble icons",
     "Oben: Pflanze wählen (jede hat einen eigenen Spielstand, nicht gewählte pausieren).":
         "Top: select a plant (each has its own save; unselected plants pause).",
-    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Info.":
-        "Bottom: Shop, Garden Shed, Achievements, Focus Timer, Visitor Book, Diary, Info.",
+    "Unten: Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben, Info.":
+        "Bottom: Shop, Garden Shed, Achievements, Focus Timer, Visitor Book, Diary, Tasks, Info.",
     "Einstellungen":
         "Settings",
     "Rechtsklick → Einstellungen: Tastatur zählen, Sprache (Deutsch / English / Français / Italiano, startet das Spiel neu), Dunkelmodus, Vordergrund, Pflanzen- und Menügrösse, Lautstärke (0–100 %, Standard 0 = stumm). Töne: Giessen beim Bewässern und ein Gong am Ende des Fokus-Timers.":
@@ -1150,16 +1150,16 @@ STRINGS = {
         "Import",
     "Spieldaten importieren?":
         "Import game data?",
-    "Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
-        "The current game and all diary entries will be replaced by the backup from {date} ({entries} diary entries). The current state is backed up first in the folder «backups». The game restarts afterwards.",
+    "Der jetzige Spielstand, alle Tagebucheinträge und Aufgaben werden durch die Sicherung vom {date} ersetzt ({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. Das Spiel startet danach neu.":
+        "The current game, all diary entries and tasks will be replaced by the backup from {date} ({entries} diary entries). The current state is backed up first in the folder «backups». The game restarts afterwards.",
     "Das ist keine gültige Sicherung von Topfpflanze.":
         "This is not a valid Topfpflanze backup.",
     "Die Sicherung ist beschädigt oder zu gross.":
         "The backup is damaged or too large.",
     "Die Sicherung stammt von einer neueren Version ({version}). Bitte zuerst das Spiel aktualisieren.":
         "The backup comes from a newer version ({version}). Please update the game first.",
-    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
-        "Right click → Game data → Export saves the game, the diary and your own words in a ZIP file (the diary also as a readable text file). Import replaces the current state with a backup; the current state is first saved in the folder backups, then the game restarts. Window positions are not imported.",
+    "Rechtsklick → Spieldaten → Exportieren speichert Spielstand, Tagebuch, Aufgaben und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als lesbare Textdatei). Importieren ersetzt den jetzigen Stand durch eine Sicherung; vorher wird der jetzige Stand im Ordner backups gesichert, danach startet das Spiel neu. Fensterpositionen werden nicht übernommen.":
+        "Right click → Game data → Export saves the game, the diary, tasks and your own words in a ZIP file (the diary also as a readable text file). Import replaces the current state with a backup; the current state is first saved in the folder backups, then the game restarts. Window positions are not imported.",
     "Spieldaten exportieren und importieren (Rechtsklick → Spieldaten): Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei; vor einem Import wird der jetzige Stand gesichert.":
         "Export and import game data (right click → Game data): game, diary and your own words in one ZIP file; the current state is backed up before an import.",
     "Spieldaten sichern":
@@ -1180,8 +1180,8 @@ STRINGS = {
         "Folder not found",
     "Der Ordner konnte nicht geöffnet werden:\n{path}":
         "The folder could not be opened:\n{path}",
-    "Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
-        "All plants, the Gold, the achievements and all diary entries will be deleted, and the game starts from scratch. The current state is backed up first in the folder «backups»; you can bring it back with «Import». The game restarts afterwards.",
+    "Alle Pflanzen, das Gold, die Erfolge, alle Tagebucheinträge und Aufgaben werden gelöscht, und das Spiel beginnt von vorn. Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. Das Spiel startet danach neu.":
+        "All plants, the Gold, the achievements, all diary entries and tasks will be deleted, and the game starts from scratch. The current state is backed up first in the folder «backups»; you can bring it back with «Import». The game restarts afterwards.",
     "Spieldaten → Datenordner öffnen zeigt den Ordner mit Spielstand, Tagebuch und Sicherungen, Programmordner öffnen den Ordner des Programms. Alle Spieldaten zurücksetzen löscht alles und beginnt von vorn (vorher wird der jetzige Stand in backups gesichert).":
         "Game data → Open data folder shows the folder with the save, the diary and the backups; Open program folder shows the folder of the program. Reset all game data deletes everything and starts from scratch (the current state is first backed up in backups).",
     "Spieldaten: Ordner mit Spielstand und Programm direkt öffnen und alle Spieldaten zurücksetzen (mit Rückfrage und vorheriger Sicherung).":
@@ -1208,4 +1208,56 @@ STRINGS = {
         "Licence: free software under the GNU General Public License, version 3 or later (GPL-3.0-or-later). Licences of the libraries and dictionaries used: see THIRD_PARTY_NOTICES.md in the source code.",
     "Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei.":
         "Info window, «Version» tab: note on the licence (GPL 3 or later); the licence texts are included with the program.",
+    "Aufgaben":
+        "Tasks",
+    "Aufgaben schliessen":
+        "Close tasks",
+    "Aufgaben öffnen":
+        "Open tasks",
+    "\n{n} offen heute":
+        "\n{n} open today",
+    "\nHeute ist alles erledigt":
+        "\nAll done for today",
+    "Neue Aufgabe …":
+        "New task …",
+    "Vorheriger Tag":
+        "Previous day",
+    "Nächster Tag":
+        "Next day",
+    "Aufgabe hinzufügen (Enter)":
+        "Add task (Enter)",
+    "Wieder öffnen":
+        "Reopen",
+    "Als erledigt markieren":
+        "Mark as done",
+    "Aufgabe löschen":
+        "Delete task",
+    "Ursprünglich für den {date} erfasst":
+        "Originally added for {date}",
+    "Keine Aufgaben":
+        "No tasks",
+    "Alles erledigt ✓":
+        "All done ✓",
+    "{open} offen, {done} erledigt":
+        "{open} open, {done} done",
+    "Morgen":
+        "Tomorrow",
+    "Gestern":
+        "Yesterday",
+    "Noch nichts geplant.\nUnten eine Aufgabe eintippen und Enter drücken.":
+        "Nothing planned yet.\nType a task below and press Enter.",
+    "Für diesen Tag gibt es keine Aufgaben.":
+        "There are no tasks for this day.",
+    "seit {date}":
+        "since {date}",
+    "{a}–{b} von {n} (Mausrad)":
+        "{a}–{b} of {n} (mouse wheel)",
+    "Offene Aufgaben wandern auf den nächsten Tag\nund behalten ihr Datum.":
+        "Open tasks move to the next day\nand keep their date.",
+    "{n} Aufgabe(n) aus früheren Tagen\nstehen noch offen.":
+        "{n} task(s) from earlier days\nare still open.",
+    "Aufgaben: Ein Klemmbrett-Symbol im Menü öffnet die Liste eines Tages. Neue Aufgabe unten eintippen (Enter), Haken setzen, löschen. Nicht erledigte Aufgaben wandern auf den nächsten Tag und zeigen ihr ursprüngliches Datum («seit …»). Aufgaben sind Teil der Sicherung.":
+        "Tasks: the clipboard icon in the menu opens the list for a day. Type a new task at the bottom (Enter), tick it off, or delete it. Tasks that are not done move to the next day and show their original date («since …»). Tasks are part of the backup.",
+    "Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum.":
+        "Tasks (to-do): a list for each day with check boxes. Open tasks move to the next day by themselves and keep their original date.",
 }

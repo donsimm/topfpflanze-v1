@@ -11,6 +11,7 @@ from .i18n import tr
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
     ("Unveröffentlicht", None, [
+        tr("Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum."),
         tr("Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei."),
     ]),
     ("0.3.0", "04.10.2026", [

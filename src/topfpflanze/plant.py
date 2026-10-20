@@ -19,6 +19,7 @@ from .config import VISITOR_SCALE, MILESTONE_COINS, MILESTONE_STEP, PASSIVE_PER_
 from .data import TOOL_NAMES, ACHIEVEMENTS, BEE_BOOST, BEE_INTERVAL, DRIP_MIN, DRIP_RATE, FERTILIZERS, FOCUS_DEFAULT, FOCUS_MULT, GNOME_INTERVAL, HELPERS, HELPER_ORDER, LAMP_BOOST, PLANT_ORDER, PLANT_TYPES, POTS, MASTERY_COINS, MASTERY_TOP_BONUS, MASTERY_NAMES, MASTERY_STEPS, PRESTIGE_BONUS, RARITY_MULT, SHINY_CHANCE, SHINY_GREET_COINS, STAGE_FRACTIONS, VARIANTS, VISITORS, VISITOR_ORDER, VISIT_DURATION, VISIT_GREET_COINS
 from . import backup
 from .diary import MOODS, DiaryCalWin, DiaryStore, DiaryTextWin
+from .todo import TodoStore, TodoWin
 from .garden import Garden
 from .info import InfoWin
 from .keys import KeyCounter
@@ -85,11 +86,13 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.diary = DiaryStore()
         self.diary_win = DiaryCalWin(self)
         self.diary_text = DiaryTextWin(self)
+        self.todo = TodoStore()
+        self.todo_win = TodoWin(self)
         self.confirm_win = backup.ConfirmWin(self)
         self.windows = {"shop": self.shop, "garden": self.garden, "ach": self.ach_win,
                         "focus": self.focus_win, "book": self.book_win, "diary": self.diary_win,
                         "info": self.info_win, "sow": self.sow_win, "diary_text": self.diary_text,
-                        "confirm": self.confirm_win}
+                        "todo": self.todo_win, "confirm": self.confirm_win}
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick)
@@ -181,7 +184,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         if hasattr(self, "garden"):
             self.state["garden_pos"] = [self.garden.x(), self.garden.y()]
         if hasattr(self, "windows"):
-            for win in (self.ach_win, self.focus_win, self.book_win, self.info_win, self.diary_win, self.diary_text):
+            for win in (self.ach_win, self.focus_win, self.book_win, self.info_win, self.diary_win, self.diary_text, self.todo_win):
                 self.state[win.pos_key] = list(win.saved_pos())
         try:
             config.STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -1134,7 +1137,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
             path += ".zip"
         try:
             backup.write_backup(path, self.state, self.diary.entries, self.diary_text.spell.personal, __version__,
-                                [m[1] for m in MOODS])
+                                [m[1] for m in MOODS], self.todo.tasks)
         except OSError as e:
             self.confirm_win.ask(tr("Export fehlgeschlagen"), str(e), tr("OK"))
             return
@@ -1152,7 +1155,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         except backup.BackupError as e:
             self.confirm_win.ask(tr("Import nicht möglich"), str(e), tr("OK"))
             return
-        text = tr("Der jetzige Spielstand und alle Tagebucheinträge werden durch die Sicherung vom {date} ersetzt "
+        text = tr("Der jetzige Spielstand, alle Tagebucheinträge und Aufgaben werden durch die Sicherung vom {date} ersetzt "
                   "({entries} Tagebucheinträge). Der jetzige Stand wird vorher im Ordner «backups» gesichert. "
                   "Das Spiel startet danach neu.", date=str(data["manifest"].get("created", "?"))[:10],
                   entries=len(data["diary"]))
@@ -1184,7 +1187,7 @@ class Plant(PlantDrawMixin, ScaledWidget):
         """Rückfrage zum Zurücksetzen aller Spieldaten."""
         self.confirm_win.ask(
             tr("Alle Spieldaten zurücksetzen?"),
-            tr("Alle Pflanzen, das Gold, die Erfolge und alle Tagebucheinträge werden gelöscht, und das Spiel beginnt von vorn. "
+            tr("Alle Pflanzen, das Gold, die Erfolge, alle Tagebucheinträge und Aufgaben werden gelöscht, und das Spiel beginnt von vorn. "
                "Der jetzige Stand wird vorher im Ordner «backups» gesichert; über «Importieren» lässt er sich zurückholen. "
                "Das Spiel startet danach neu."),
             tr("Zurücksetzen"), callback=self.apply_reset, cancel_label=tr("Abbrechen"), danger=True)
@@ -1195,15 +1198,17 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.save_state()
         try:
             backup.make_safety_copy(config.STATE_DIR, self.state, self.diary.entries, self.diary_text.spell.personal,
-                                    __version__, [m[1] for m in MOODS], prefix="vor-Zuruecksetzen")
+                                    __version__, [m[1] for m in MOODS], prefix="vor-Zuruecksetzen", tasks=self.todo.tasks)
             self._no_save = True
             self.diary.frozen = True
-            for f in (config.STATE_FILE, DiaryStore.path(), spell.personal_path()):
+            self.todo.frozen = True
+            for f in (config.STATE_FILE, DiaryStore.path(), spell.personal_path(), TodoStore.path()):
                 if f.exists():
                     f.unlink()
         except OSError as e:
             self._no_save = False
             self.diary.frozen = False
+            self.todo.frozen = False
             self.confirm_win.ask(tr("Zurücksetzen fehlgeschlagen"), str(e), tr("OK"))
             return
         self.restart_now()
@@ -1214,13 +1219,15 @@ class Plant(PlantDrawMixin, ScaledWidget):
         self.save_state()
         try:
             backup.make_safety_copy(config.STATE_DIR, self.state, self.diary.entries, self.diary_text.spell.personal,
-                                    __version__, [m[1] for m in MOODS])
+                                    __version__, [m[1] for m in MOODS], tasks=self.todo.tasks)
             self._no_save = True
             self.diary.frozen = True
-            backup.restore(data, config.STATE_FILE, DiaryStore.path(), spell.personal_path())
+            self.todo.frozen = True
+            backup.restore(data, config.STATE_FILE, DiaryStore.path(), spell.personal_path(), TodoStore.path())
         except OSError as e:
             self._no_save = False
             self.diary.frozen = False
+            self.todo.frozen = False
             self.confirm_win.ask(tr("Import fehlgeschlagen"), str(e), tr("OK"))
             return
         self.restart_now()

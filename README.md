@@ -3,7 +3,7 @@
 # Topfpflanze
 
 **Ein Fokus-Spiel für den Desktop:** Während du am Computer arbeitest, wächst neben deinem Bildschirm eine Pflanze. Jeder Mausklick
-und jeder Tastendruck lässt sie wachsen. Dazu gibt es einen Fokus-Timer, ein Tagebuch mit Kalender und Stimmungen, Besucher zum Sammeln,
+und jeder Tastendruck lässt sie wachsen. Dazu gibt es einen Fokus-Timer, ein Tagebuch mit Kalender und Stimmungen, eine Aufgabenliste (To-do), Besucher zum Sammeln,
 Erfolge und vieles mehr. Läuft unter Windows, macOS und Linux (PyQt6). Freie Software unter der [GPL v3+](LICENSE).
 
 > **Datenschutz:** Gezählt wird nur die *Anzahl* der Tastendrücke, nie welche Taste. Alles bleibt auf deinem Gerät: Spielstand, Tagebuch und
@@ -17,6 +17,7 @@ Erfolge und vieles mehr. Läuft unter Windows, macOS und Linux (PyQt6). Freie So
 - **Wachsen durch Arbeit:** Klicks giessen und lassen wachsen, Tastendrücke ebenso. Wasser, Dünger und Helfer (je Pflanze) bestimmen das Tempo.
 - **Fokus-Timer** mit Fokusmodus: Beim Start verschwinden alle Menüfenster, nur Pflanze und Zeit bleiben.
 - **Tagebuch** mit Kalender, sechs Stimmungs-Herzen und Rechtschreibprüfung; der Text wird von selbst gespeichert.
+- **Aufgaben (To-do)** je Tag: abhaken, löschen; nicht erledigte Aufgaben wandern auf den nächsten Tag und behalten ihr ursprüngliches Datum («seit …»).
 - **Besucher** (Käfer, Bienen, Schmetterlinge, Libelle, Rotkehlchen, Glühwürmchen) mit Stufen und seltenen Farbvarianten, **über 80 Erfolge** und **Prestige**.
 - **Gartenhaus:** ausgewachsene Pflanzen werden eingelagert und stehen in der Ehrenhalle.
 - **Vier Sprachen:** Deutsch, Englisch, Französisch, Italienisch. Hell- und Dunkelmodus, Grösse der Pflanze und der Menüs stufenlos einstellbar.
@@ -65,7 +66,7 @@ Aktualisieren: im Projektordner `git pull` und `pip install -e .`, dann das Spie
 Eine ausführliche Anleitung mit allen Werten steht im Spiel (Sprechblase → Info-Symbol). Kurz:
 
 - **Linksklick** auf die Pflanze: giessen und wachsen lassen. **Ziehen:** Fenster verschieben. **Mittelklick:** Sprechblase ein/aus. **Rechtsklick:** Menü.
-- **Sprechblase:** oben die fünf Pflanzen, unten Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch und Info.
+- **Sprechblase:** oben die fünf Pflanzen, unten Shop, Gartenhaus, Erfolge, Fokus-Timer, Besucher-Sammelbuch, Tagebuch, Aufgaben und Info.
 - **Rechtsklick → Einstellungen:** Tastaturzählung, Sprache, Dunkelmodus, Immer im Vordergrund, Pflanzen- und Menügrösse, Lautstärke (standardmässig stumm).
 
 ## Plattformhinweise
@@ -100,6 +101,12 @@ Zeitraffer (1x/10x/60x/600x für Wasser, Dünger, Helfer, Besucher, Fokus-Timer,
 Besucher erscheinen lassen, Fokus-Timer (1 Minute), Tastendrücke/Klicks für Erfolge, Tages-/Wochenerfolge zurücksetzen,
 alle Helfer freischalten, Prestige +1. Der echte Spielstand bleibt unberührt.
 
+## Aufgaben
+
+Das Klemmbrett-Symbol öffnet die Liste des heutigen Tags. Unten eine Aufgabe eintippen und Enter drücken, mit dem Haken erledigen, mit dem Kreuz löschen; die Pfeile blättern
+durch die Tage (so lassen sich Aufgaben für morgen vorplanen). Was am Abend offen ist, steht am nächsten Tag wieder in der Liste, mit dem ursprünglichen Datum in Rot
+(«seit 14.10.»). Erledigte Aufgaben bleiben an ihrem Tag sichtbar. Die Aufgaben liegen in `todo.json` im Datenordner und sind Teil der Sicherung.
+
 ## Tagebuch
 
 Das Tagebuch-Symbol in der Sprechblase öffnet das Textfenster des heutigen Tags (die erste Zeile ist der Titel). Der Text wird von selbst
@@ -109,7 +116,7 @@ markiertes Wort zeigt Vorschläge). Das Textfenster bleibt im Fokusmodus sichtba
 
 ## Spieldaten sichern
 
-Rechtsklick → **Spieldaten**: *Exportieren* speichert Spielstand, Tagebuch und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als
+Rechtsklick → **Spieldaten**: *Exportieren* speichert Spielstand, Tagebuch, Aufgaben und eigene Wörter in einer ZIP-Datei (das Tagebuch zusätzlich als
 lesbare Textdatei `tagebuch.txt`), *Importieren* ersetzt den jetzigen Stand durch eine Sicherung (vorher wird der jetzige Stand in `backups/`
 gesichert, danach startet das Spiel neu), *Datenordner öffnen* und *Programmordner öffnen* zeigen die Ordner, *Alle Spieldaten zurücksetzen*
 beginnt von vorn (ebenfalls mit Sicherung vorher).
@@ -151,7 +158,8 @@ englischen Eintrag ergänzen, sonst schlägt der Test fehl.
 | `keys.py` | Tastaturzählung (nur Anzahl) |
 | `diary.py` | Tagebuch: Kalender (Wärmekarte), Textfenster mit Stimmungs-Herzen, `diary.json` im Datenordner |
 | `icons/` | Programmsymbol (Wiesenblume): PNG, ICO (Windows), ICNS (macOS) |
-| `backup.py` | Spieldaten exportieren und importieren (ZIP mit Spielstand, Tagebuch, eigenen Wörtern) und das Rückfragefenster |
+| `todo.py` | Aufgaben: Liste je Tag, offene Aufgaben wandern auf den nächsten Tag, `todo.json` im Datenordner |
+| `backup.py` | Spieldaten exportieren und importieren (ZIP mit Spielstand, Tagebuch, Aufgaben, eigenen Wörtern) und das Rückfragefenster |
 | `spell.py`, `dictionaries/` | Rechtschreibprüfung im Tagebuch (Hunspell über spylls, Wörterbücher de_CH, en_US, fr_FR, it_IT; Lizenzen in `dictionaries/NOTICE.md`) |
 | `i18n.py`, `lang/` | Mehrsprachigkeit: `tr()`, Sprachwahl, Übersetzungen |
 | `sound.py` | Ton: Giesssound und Gong (selbst erzeugt), Lautstärke |
