@@ -1290,6 +1290,8 @@ STRINGS = {
         "Far fiorire tutte e 6 le specie",
     "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
         "Fungo: sesta pianta, molto difficile: cresce in un ceppo, richiede il 50–85 % di acqua e forma spore invece di fiori. Nuovi obiettivi per la sesta specie.",
-    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind.":
-        "Attività: la finestra resta visibile in modalità focus e all'apertura compare sempre sullo schermo; l'icona pulsa leggermente finché ci sono attività aperte oggi.",
+    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind. Die Aufgaben öffnen sich beim Programmstart (Einstellungen → «Aufgaben beim Start öffnen»).":
+        "Attività: la finestra resta visibile in modalità focus e all'apertura compare sempre sullo schermo; l'icona pulsa leggermente finché ci sono attività aperte oggi. Le attività si aprono all'avvio del programma (Impostazioni → «Apri le attività all'avvio»).",
+    "Aufgaben beim Start öffnen":
+        "Apri le attività all'avvio",
 }

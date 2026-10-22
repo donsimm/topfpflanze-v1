@@ -116,6 +116,7 @@ def main(argv=None):
     plant = Plant()
     plant.show()
     plant.set_bubble(plant.state.get("bubble", True))
+    plant.open_at_start()
     app.aboutToQuit.connect(plant.save_state)
 
     signal.signal(signal.SIGINT, lambda *_: app.quit())

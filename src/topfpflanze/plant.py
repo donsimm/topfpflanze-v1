@@ -122,7 +122,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 "helpers_legacy": None, "prestige": {}, "bloomed_species": [],
                 "stats": {"keys": None}, "daily": {}, "weekly": {}, "ach_done": [], "ach_new": 0, "ach_pending": [],
                 "book": {}, "focus_minutes": FOCUS_DEFAULT, "pot_offer": {},
-                "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto", "diary_spell": "auto"}
+                "focus_mode": True, "volume": sound.DEFAULT_VOLUME, "language": "auto", "diary_spell": "auto",
+                "todo_autostart": True}
 
     def load_state(self):
         state = self.default_state()
@@ -332,6 +333,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
             win.raise_()
             return
         win.setVisible(not win.isVisible())
+
+    def open_at_start(self):
+        """Nach dem Programmstart: die Aufgaben öffnen, wenn die Einstellung an ist (Standard)."""
+        if self.state.get("todo_autostart", True) and not self.todo_win.isVisible():
+            self.toggle_window("todo")
 
     def toggle_shop(self):
         self.shop.setVisible(not self.shop.isVisible())
@@ -1297,6 +1303,9 @@ class Plant(PlantDrawMixin, ScaledWidget):
         a_dark = set_menu.addAction(tr("Dunkelmodus"))
         a_dark.setCheckable(True)
         a_dark.setChecked(self.state.get("dark", False))
+        a_todo_start = set_menu.addAction(tr("Aufgaben beim Start öffnen"))
+        a_todo_start.setCheckable(True)
+        a_todo_start.setChecked(self.state.get("todo_autostart", True))
         a_top = set_menu.addAction(tr("Immer im Vordergrund"))
         a_top.setCheckable(True)
         a_top.setChecked(self.state.get("on_top", True))
@@ -1337,6 +1346,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
             self.set_dark(a_dark.isChecked())
         elif chosen is a_kb:
             self.state["keyboard_enabled"] = a_kb.isChecked()
+        elif chosen is a_todo_start:
+            self.state["todo_autostart"] = a_todo_start.isChecked()
         elif chosen is a_top:
             self.state["on_top"] = a_top.isChecked()
             self.apply_flags()

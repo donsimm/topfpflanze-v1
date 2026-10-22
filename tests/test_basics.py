@@ -2123,3 +2123,19 @@ def test_todo_icon_blinks_only_with_open_tasks_and_window_stays_in_focus_mode(pl
     assert plant.todo_win.isVisible() and not plant.ach_win.isVisible()    # bleibt im Fokusmodus
     plant.abort_focus()
     assert plant.todo_win.isVisible() and plant.ach_win.isVisible()
+
+
+def test_todo_opens_at_startup_unless_switched_off(plant):
+    assert plant.default_state()["todo_autostart"] is True
+    assert not plant.todo_win.isVisible()
+    plant.open_at_start()
+    assert plant.todo_win.isVisible()
+    plant.open_at_start()                                          # zweimal: bleibt offen, schaltet nicht um
+    assert plant.todo_win.isVisible()
+    plant.todo_win.hide()
+    plant.state["todo_autostart"] = False
+    plant.open_at_start()
+    assert not plant.todo_win.isVisible()
+    plant.state.pop("todo_autostart")                              # alter Spielstand ohne Eintrag: Standard = öffnen
+    plant.open_at_start()
+    assert plant.todo_win.isVisible()

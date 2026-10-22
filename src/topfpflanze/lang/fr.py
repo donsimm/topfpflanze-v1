@@ -1290,6 +1290,8 @@ STRINGS = {
         "Faire fleurir les 6 espèces",
     "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
         "Champignon : sixième plante, très difficile : pousse dans une souche, demande 50–85 % d'eau et forme des spores au lieu de fleurs. Nouveaux succès pour la sixième espèce.",
-    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind.":
-        "Tâches : la fenêtre reste visible en mode focus et apparaît toujours à l'écran à l'ouverture ; l'icône pulse doucement tant que des tâches restent ouvertes aujourd'hui.",
+    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind. Die Aufgaben öffnen sich beim Programmstart (Einstellungen → «Aufgaben beim Start öffnen»).":
+        "Tâches : la fenêtre reste visible en mode focus et apparaît toujours à l'écran à l'ouverture ; l'icône pulse doucement tant que des tâches restent ouvertes aujourd'hui. Les tâches s'ouvrent au démarrage du programme (Réglages → «Ouvrir les tâches au démarrage»).",
+    "Aufgaben beim Start öffnen":
+        "Ouvrir les tâches au démarrage",
 }

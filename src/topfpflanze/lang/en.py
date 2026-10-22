@@ -1292,6 +1292,8 @@ STRINGS = {
         "Make all 6 species bloom",
     "Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art.":
         "Mushroom: sixth plant, very hard: grows in a tree stump, needs 50–85 % water and forms spores instead of blossoms. New achievements for the sixth species.",
-    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind.":
-        "Tasks: the window stays visible in focus mode and always appears on screen when opened; the icon pulses gently while tasks are still open today.",
+    "Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind. Die Aufgaben öffnen sich beim Programmstart (Einstellungen → «Aufgaben beim Start öffnen»).":
+        "Tasks: the window stays visible in focus mode and always appears on screen when opened; the icon pulses gently while tasks are still open today. The tasks open at program start (Settings → «Open tasks at startup»).",
+    "Aufgaben beim Start öffnen":
+        "Open tasks at startup",
 }
