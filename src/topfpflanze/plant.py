@@ -326,6 +326,11 @@ class Plant(PlantDrawMixin, ScaledWidget):
                 win.show_month_of(today)
                 self.diary_text.open_date(today)
             return
+        if key == "todo" and not win.isVisible():    # die Aufgaben sollen beim Öffnen immer sichtbar sein
+            win.show()
+            self.clamp_to_screen(win)
+            win.raise_()
+            return
         win.setVisible(not win.isVisible())
 
     def toggle_shop(self):
@@ -620,8 +625,8 @@ class Plant(PlantDrawMixin, ScaledWidget):
         Gemerkt wird, welche Fenster offen waren, damit sie danach zurückkommen."""
         if self.focus_mode_active or not self.state.get("focus_mode", True):
             return
-        # Das Tagebuch-Textfenster bleibt im Fokusmodus sichtbar, wenn es offen ist
-        others = [w for w in (self.bubble, *self.windows.values()) if w not in (self.focus_win, self.diary_text)]
+        # Das Tagebuch-Textfenster und die Aufgaben bleiben im Fokusmodus sichtbar, wenn sie offen sind
+        others = [w for w in (self.bubble, *self.windows.values()) if w not in (self.focus_win, self.diary_text, self.todo_win)]
         self._focus_restore = [w for w in others if w.isVisible()]
         self._focus_win_was_visible = self.focus_win.isVisible()
         for w in self._focus_restore:

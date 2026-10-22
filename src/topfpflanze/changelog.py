@@ -11,6 +11,7 @@ from .i18n import tr
 # (Version, Datum oder None, [Punkte])
 CHANGELOG = [
     ("Unveröffentlicht", None, [
+        tr("Aufgaben: Das Fenster bleibt im Fokusmodus sichtbar und erscheint beim Öffnen immer im Bildschirm; das Symbol pulsiert leicht, solange heute noch Aufgaben offen sind."),
         tr("Pilz: sechste Pflanze, sehr schwer: wächst in einem Baumstumpf, braucht 50–85 % Wasser und bildet statt Blüten Sporen. Neue Erfolge für die sechste Art."),
         tr("Aufgaben (To-do): Liste je Tag mit Haken. Offene Aufgaben wandern von selbst auf den nächsten Tag und behalten ihr ursprüngliches Datum."),
         tr("Info-Fenster, Reiter «Version»: Hinweis auf die Lizenz (GPL 3 oder später); Lizenztexte liegen dem Programm bei."),

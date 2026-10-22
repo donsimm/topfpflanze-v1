@@ -2099,3 +2099,27 @@ def test_mushroom_pot_offer_and_bloom_achievements_count_six_species(plant):
     assert plant.ach_value("g_bloom5") == 5 and plant.ach_value("g_species") == 5
     plant.state["bloomed_species"].append("pilz")
     assert plant.ach_value("g_species") == 6
+
+
+def test_todo_icon_blinks_only_with_open_tasks_and_window_stays_in_focus_mode(plant):
+    import datetime
+    b = plant.bubble
+    plant.t = 0.9                                                   # halber Puls
+    assert b.todo_blink() == 0.0                                    # keine Aufgaben: kein Blinken
+    task = plant.todo.add("Offen", datetime.date.today())
+    assert abs(b.todo_blink() - 1.0) < 1e-6
+    plant.t = 0.0
+    assert b.todo_blink() < 1e-6                                    # pulsiert zwischen 0 und 1
+    assert not b.grab().isNull()
+    plant.todo.toggle(task["id"], datetime.date.today())
+    assert b.todo_blink() == 0.0                                    # erledigt: Ruhe
+    plant.todo.add("Wieder offen", datetime.date.today())
+    plant.todo_win.move(-5000, -5000)                               # ausserhalb des Bildschirms
+    plant.toggle_window("todo")
+    assert plant.todo_win.isVisible() and plant.todo_win.x() > -5000    # beim Öffnen wieder sichtbar im Bildschirm
+    plant.bubble.show()
+    plant.ach_win.show()
+    plant.start_focus(25)
+    assert plant.todo_win.isVisible() and not plant.ach_win.isVisible()    # bleibt im Fokusmodus
+    plant.abort_focus()
+    assert plant.todo_win.isVisible() and plant.ach_win.isVisible()

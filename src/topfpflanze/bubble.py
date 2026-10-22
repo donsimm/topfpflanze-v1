@@ -12,9 +12,10 @@ from .config import (BUBBLE_H, BUBBLE_ROWS_H, BUBBLE_W, ICON, ICON_GAP, PASSIVE_
 from .data import PLANT_ORDER, PLANT_TYPES, VISITORS
 from .drawing import draw_coin, draw_seed_packet, draw_star, fit_font, round_pen
 from .theme import T
-from .util import fmt_age, fmt_int, stage_name, water_status
+from .util import fmt_age, mix, fmt_int, stage_name, water_status
 from .scaling import ScaledWidget
 
+TODO_BLINK_PERIOD = 1.8   # Sekunden pro Puls des Aufgaben-Symbols
 BUBBLE_ROW_COUNT = 10   # Zeilen der Statusliste
 STAGE_ROW = 1           # Zeile «Stadium»
 SEED_ICON = 14          # Grösse des Aussaat-Symbols (Kantenlänge des 20×20-Feldes): sichtbar so gross wie die Münze
@@ -108,6 +109,13 @@ class Bubble(ScaledWidget):
     def mouseMoveEvent(self, e):
         over = self.icon_at(e.position()) is not None or self.over_seed(e.position())
         self.setCursor(Qt.CursorShape.PointingHandCursor if over else Qt.CursorShape.ArrowCursor)
+
+    def todo_blink(self):
+        """Stärke (0–1) des Blinkens am Aufgaben-Symbol: nur solange heute noch Aufgaben offen sind."""
+        pl = self.plant
+        if not hasattr(pl, "todo") or not pl.todo.open_today(datetime.date.today()):
+            return 0.0
+        return 0.5 - 0.5 * math.cos(2 * math.pi * pl.t / TODO_BLINK_PERIOD)
 
     def tooltip_text(self, key):
         """Text beim Überfahren eines Symbols: zuerst, was der Klick auslöst, darunter Angaben dazu."""
@@ -221,8 +229,13 @@ class Bubble(ScaledWidget):
         for key, r in self.icon_rects():
             if key in TOOL_ORDER:
                 is_open = hasattr(self.plant, "windows") and self.plant.tool_open(key)
-                p.setPen(QPen(QColor("#D4A017"), 2.0) if is_open else QPen(T("cell_border"), 1))
-                p.setBrush(T("gold_bg") if is_open else T("cell"))
+                blink = self.todo_blink() if key == "todo" and not is_open else 0.0
+                if blink:       # offene Aufgaben: das Symbol pulsiert leicht (Rand und Hintergrund)
+                    p.setPen(QPen(mix(T("cell_border"), QColor("#E59A1F"), blink), 1 + blink))
+                    p.setBrush(mix(T("cell"), T("gold_bg"), blink))
+                else:
+                    p.setPen(QPen(QColor("#D4A017"), 2.0) if is_open else QPen(T("cell_border"), 1))
+                    p.setBrush(T("gold_bg") if is_open else T("cell"))
                 p.drawRoundedRect(r, 5, 5)
                 self.draw_icon(p, key, r)
                 if key == "focus" and self.plant.focus:
